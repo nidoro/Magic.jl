@@ -158,7 +158,7 @@ end
 
 # Constants and Globals
 #--------------------------
-LIT_SO    = joinpath(@__DIR__, "../local/build/liblit.so")
+LIT_SO    = joinpath(@__DIR__, "../local/build/artifacts-linux-x86_64/liblit.so")
 LIBLIT    = Nothing
 g         = Global()
 START_CWD = pwd()

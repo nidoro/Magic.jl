@@ -2,7 +2,7 @@
 
 julia_version = "1.12.2"
 manifest_format = "2.0"
-project_hash = "dca43312dddda263cd25f12fcb18731dc3238162"
+project_hash = "57bf727b62eb28e169c4bbb157f4017a7ab4c66c"
 
 [[deps.ArgParse]]
 deps = ["Logging", "TextWrap"]
@@ -108,7 +108,7 @@ uuid = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
 version = "1.11.0"
 
 [[deps.Lit]]
-deps = ["ArgParse", "JSON", "Libdl", "Logging", "Parameters", "Pkg", "Random", "SHA", "Sockets", "Tables"]
+deps = ["ArgParse", "JSON", "Libdl", "Logging", "Parameters", "Pkg", "REPL", "Random", "SHA", "Sockets", "Tables"]
 path = "."
 uuid = "938144cb-3a24-4977-a248-a12dea9dd101"
 version = "0.1.0"

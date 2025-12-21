@@ -5,6 +5,7 @@ authors = ["Davi Doro <ni.doro@gmail.com>"]
 
 [deps]
 ArgParse = "c7e460c6-2fb9-53a9-8c5b-16f535851c63"
+Artifacts = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
 JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 Libdl = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
 Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
@@ -18,6 +19,7 @@ Tables = "bd369af6-aec1-5ad0-b16a-f7cc5008161c"
 
 [compat]
 ArgParse = "1.2.0"
+Artifacts = "1.11.0"
 JSON = "0.18.0 - 1.3.0"
 Libdl = "1.11.0"
 Logging = "1.11.0"
