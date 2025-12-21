@@ -1,4 +1,5 @@
 local
+.kate*
 examples/.Lit/certs
 examples/.Lit/served-files/cache
 
