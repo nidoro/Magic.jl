@@ -159,7 +159,7 @@ end
 
 # Constants and Globals
 #--------------------------
-LIT_SO    = joinpath(@__DIR__, "../local/build/lit-net-layer.so")
+LIT_SO    = joinpath(@__DIR__, "../local/build/liblit.so")
 LIBLIT    = Nothing
 g         = Global()
 START_CWD = pwd()
