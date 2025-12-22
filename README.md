@@ -6,6 +6,19 @@
 > This package is in early stage of development. You are welcomed to try it out
 > and give us your feedback!
 
+## What is Lit.jl?
+
+`Lit.jl` is a web app framework for Julia that makes it easy for you to build
+awesome interactable pages for your Julia creations. `Lit.jl` is what you need
+to give a web interface to your Julia programs. With `Lit.jl` you can make
+dashboards, data analysers, data transformers, optimizers, simulators, forms and
+much more.
+
+`Lit.jl` was inspired by the popular `streamlit` Python package.
+Like `streamlit`, it gives you the necessary
+structure to rapidly build a functional nice-looking web app and enough
+flexibility to customize it so it looks exactly how you want.
+
 ## Demo Web Apps
 
 ## Quick start
@@ -29,19 +42,6 @@ end
 using Lit
 @start
 ```
-
-## What is Lit.jl?
-
-`Lit.jl` is a web app framework for Julia that makes it easy for you to build
-awesome interactable pages for your Julia creations. `Lit.jl` is what you need
-to give a web interface to your Julia programs. With `Lit.jl` you can make
-dashboards, data analysers, data transformers, optimizers, simulators, forms and
-much more.
-
-`Lit.jl` was inspired by the popular `streamlit` Python package.
-Like `streamlit`, it gives you the necessary
-structure to rapidly build a functional nice-looking web app and enough
-flexibility to customize it so it looks exactly how you want.
 
 ## Why choose Lit.jl?
 
