@@ -2,11 +2,12 @@ module Lit
 
 using ArgParse
 
-macro start(file_path::String="app.jl")
+macro start(file_path::String="app.jl", dev_mode::Bool=false)
     impl_file = joinpath(@__DIR__, "LitImpl.jl")
 
     return esc(:(
         included = include($impl_file);
+        included.g.dev_mode = $dev_mode;
         invokelatest(included.start_lit, $file_path)
     ))
 end

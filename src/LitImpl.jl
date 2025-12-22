@@ -8,6 +8,7 @@ using JSON
 using SHA
 using Tables
 using Random
+using Artifacts
 
 const WidgetKind             = Int
 const WidgetKind_None        = 0
@@ -140,7 +141,10 @@ end
     first_pass::Bool = true
     base_page_config::PageConfig = PageConfig()
     pages::Vector{PageConfig} = Vector{PageConfig}()
+    dev_mode::Bool = false
 end
+
+g = Global()
 
 macro register(def)
     struct_name = def.args[2]
@@ -156,11 +160,27 @@ macro register(def)
     end)
 end
 
+function get_dyn_lib_path()::String
+    if g.dev_mode
+        if Sys.islinux()
+            return joinpath(@__DIR__, "../local/build/artifacts-linux-x86_64/liblit.so")
+        else
+            @error "Unsupported OS"
+        end
+    else
+        if Sys.islinux()
+            return joinpath(artifact"artifacts", "liblit.so")
+        else
+            @error "Unsupported OS"
+        end
+    end
+    return ""
+end
+
 # Constants and Globals
 #--------------------------
-LIT_SO    = joinpath(@__DIR__, "../local/build/artifacts-linux-x86_64/liblit.so")
-LIBLIT    = Nothing
-g         = Global()
+LIT_SO    = nothing
+LIBLIT    = nothing
 START_CWD = pwd()
 USER_TYPES= Dict{Symbol,DataType}()
 
@@ -1411,6 +1431,7 @@ function start_lit(script_path::String)::Nothing
         return nothing
     end
 
+    global LIT_SO = get_dyn_lib_path()
     global LIBLIT = Libdl.dlopen(LIT_SO, Libdl.RTLD_NOW)
     g.sessions = Dict{Ptr{Cvoid}, Session}()
     g.first_pass = true
