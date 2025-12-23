@@ -153,7 +153,17 @@ function codeChange(event) {
 
 function applyCSS(elem, css) {
     for (const [key, value] of Object.entries(css)) {
-        elem.style[key] = value;
+        if (key.startsWith("--")) {
+            elem.style.setProperty(key, value);
+        } else {
+            elem.style[key] = value;
+        }
+    }
+}
+
+function applyAttributes(elem, attributes) {
+    for (const [key, value] of Object.entries(attributes)) {
+        elem.setAttribute(key, value);
     }
 }
 
@@ -163,13 +173,9 @@ function createAppElement(parent, props, fragmentId) {
     if (props.type == "html") {
         const elem = document.createElement(props.tag);
 
-        for (const [key, value] of Object.entries(props.attributes)) {
-            elem.setAttribute(key, value);
-        }
-
-        for (const [key, value] of Object.entries(props.css)) {
-            elem.style[key] = value;
-        }
+        applyCSS(elem, props.css);
+        console.log(props.css);
+        applyAttributes(elem, props.attributes);
 
         elem.innerHTML = props.inner_html;
 
@@ -177,13 +183,31 @@ function createAppElement(parent, props, fragmentId) {
     } else if (props.type == "container") {
         const elem = document.createElement("div");
 
-        for (const [key, value] of Object.entries(props.css)) {
-            elem.style[key] = value;
-        }
+        elem.setAttribute("data-lt-id", props.id);
+        applyCSS(elem, props.css);
+        applyAttributes(elem, props.attributes);
 
         if (props.is_fragment_container) {
             elem.classList.add("lt_fragment_container");
             fragmentId = props.fragment_id;
+        }
+
+        // Sidebar
+        //---------
+        if (elem.classList.contains("lt-sidebar")) {
+            let state = elem.classList.contains("lt-show") ? "open" : "closed";
+            const oldElem = document.querySelector(`.lt-sidebar[data-lt-id="${props.id}"]`);
+
+            if (oldElem) {
+                if (oldElem.classList.contains("lt-show")) {
+                    state = "open";
+                } else {
+                    state = "closed";
+                }
+            }
+
+            LT_SetSidebarState(elem, state);
+            requestAnimationFrame(() => LT_SetSidebarState(elem, state));
         }
 
         newElements.push(elem);
@@ -572,6 +596,33 @@ function wsOnClose(event) {
 
 function wsOnError(err) {
     console.log("wsOnError");
+}
+
+function LT_SetSidebarState(sidebarElem, state) {
+    const btn = sidebarElem.querySelector(".lt-sidebar-toggle-button");
+
+    if (state == "open") {
+        sidebarElem.classList.add("lt-show");
+        if (btn) {
+            btn.innerHTML = sidebarElem.dataset.ltCloseLabel;
+        }
+    } else {
+        sidebarElem.classList.remove("lt-show");
+        if (btn) {
+            btn.innerHTML = sidebarElem.dataset.ltOpenLabel;
+        }
+    }
+}
+
+function LT_ToggleSidebar(event) {
+    const btn = event.currentTarget;
+    const sidebarElem = btn.parentElement.parentElement;
+
+    if (sidebarElem.classList.contains("lt-show")) {
+        LT_SetSidebarState(sidebarElem, "closed");
+    } else {
+        LT_SetSidebarState(sidebarElem, "open");
+    }
 }
 
 async function loadIconMap(url) {

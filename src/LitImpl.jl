@@ -24,6 +24,10 @@ const WidgetKind_Code = 9
 
 @with_kw mutable struct ContainerInterface
     container::Union{Dict, Nothing} = nothing
+
+    columns::Function = (args...; kwargs...)->()
+    column::Function = (args...; kwargs...)->()
+    row::Function = (args...; kwargs...)->()
     button::Function = (args...; kwargs...)->()
     image::Function = (args...; kwargs...)->()
     html::Function = (args...; kwargs...)->()
@@ -36,6 +40,15 @@ const WidgetKind_Code = 9
     dataframe::Function = (args...; kwargs...)->()
     checkbox::Function = (args...; kwargs...)->()
     checkboxes::Function = (args...; kwargs...)->()
+end
+
+CONTAINER_INTERFACE_FUNCS = [:columns, :column, :row, :button, :image, :html, :h1, :h2, :h3, :h4, :h5, :h6, :dataframe, :checkbox, :checkboxes]
+
+function (container_interface::ContainerInterface)(inner_func::Function)::Nothing
+    push_container(container_interface)
+    inner_func()
+    pop_container()
+    return nothing
 end
 
 @with_kw mutable struct Widget
@@ -245,7 +258,7 @@ function create_interface(container::Dict)::ContainerInterface
     task = task_local_storage("app_task")
     widgets = task.session.widgets
 
-    for func in [:button, :image, :html, :h1, :h2, :h3, :h4, :h5, :h6, :dataframe, :checkbox, :checkboxes]
+    for func in CONTAINER_INTERFACE_FUNCS
         define_widget_func(interface, func)
     end
 
@@ -263,12 +276,13 @@ function define_page_config_func(page, func_name)
     setfield!(page, func_name, f)
 end
 
-function create_container(parent::Dict, css::Dict, fragment_id::String="", is_fragment_container::Bool=false)::ContainerInterface
+function create_container(parent::Dict, css::Dict, attributes::Dict, fragment_id::String="", is_fragment_container::Bool=false)::ContainerInterface
     container = Dict(
         "type" => "container",
         "children" => Vector{Dict{String, Any}}(),
         "id" => "$(parent["id"])/$(length(parent["children"]))",
         "css" => css,
+        "attributes" => attributes,
         "is_fragment_container" => is_fragment_container,
         "fragment_id" => fragment_id,
     )
@@ -278,7 +292,7 @@ function create_container(parent::Dict, css::Dict, fragment_id::String="", is_fr
     return create_interface(container)
 end
 
-function container(inner_func::Function=()->(); css::Dict=Dict())::ContainerInterface
+function container(inner_func::Function=()->(); css::Dict=Dict(), attributes::Dict=Dict())::ContainerInterface
     combined_css = Dict(
         "display" => "flex",
         "flex-direction" => "column",
@@ -288,7 +302,7 @@ function container(inner_func::Function=()->(); css::Dict=Dict())::ContainerInte
     )
 
     merge!(combined_css, css)
-    i_container = create_container(top_container(), combined_css)
+    i_container = create_container(top_container(), combined_css, attributes)
 
     push_container(i_container)
     inner_func()
@@ -299,7 +313,7 @@ end
 function fragment(func::Function; id::String=String(nameof(func)))
     task = task_local_storage("app_task")
 
-    wrapper = create_container(top_container(), Dict("display" => "contents", "flex-direction" => get_css_value(top_container(), "flex-direction")), id, true)
+    wrapper = create_container(top_container(), Dict("display" => "contents", "flex-direction" => get_css_value(top_container(), "flex-direction")), Dict(), id, true)
 
     frag = Fragment()
     frag.id = id
@@ -319,6 +333,14 @@ macro fragment(block)
     return :(
         Main.Lit.fragment(() -> $(esc(block)))
     )
+end
+
+function get_css_value(element::Dict, property::String)
+    if haskey(element, "css") && haskey(element["css"], property)
+        return element["css"][property]
+    else
+        return missing
+    end
 end
 
 function set_css_if_not_set(css::Dict, key::String, value::String)::Nothing
@@ -354,7 +376,7 @@ function set_css_to_achieve_layout(css::Dict, parent::Dict, fill_width::Bool, fi
     if height !== nothing css["height"] = height end
 end
 
-function column(inner_func::Function=()->(); fill_width::Bool=false, fill_height::Bool=false, show_border::Bool=false, align_items::String="flex-start", justify_content::String="flex-start", gap::String=".8rem", max_width::String="100%", max_height::String="initial", border::String="1px solid #d6d6d6", padding::String="none", margin::String="none", css::Dict=Dict())
+function column(inner_func::Function=()->(); fill_width::Bool=false, fill_height::Bool=false, show_border::Bool=false, align_items::String="flex-start", justify_content::String="flex-start", gap::String=".8rem", max_width::String="100%", max_height::String="initial", border::String="1px solid #d6d6d6", padding::String="none", margin::String="none", css::Dict=Dict(), attributes::Dict=Dict())
     combined_css = Dict(
         "gap" => gap,
         "align-items" => align_items,
@@ -370,15 +392,7 @@ function column(inner_func::Function=()->(); fill_width::Bool=false, fill_height
     set_css_if_not_set(css, "max-height", max_height)
     merge!(combined_css, css)
 
-    return container(inner_func, css=combined_css)
-end
-
-function get_css_value(element::Dict, property::String)
-    if haskey(element, "css") && haskey(element["css"], property)
-        return element["css"][property]
-    else
-        return missing
-    end
+    return container(inner_func, css=combined_css, attributes=attributes)
 end
 
 function row(inner_func::Function=()->(); fill_width::Bool=false, fill_height::Bool=false, align_items::String="flex-start", justify_content::String="flex-start", margin::String="0", gap::String="0.8rem", css::Dict=Dict())
@@ -396,21 +410,25 @@ function row(inner_func::Function=()->(); fill_width::Bool=false, fill_height::B
     return container(inner_func, css=combined_css)
 end
 
-@with_kw mutable struct Columns
-    columns::Vector{ContainerInterface} = Vector{ContainerInterface}()
+@with_kw mutable struct Containers
+    containers::Vector{Union{ContainerInterface, Nothing}} = Vector{Union{ContainerInterface, Nothing}}()
+
+    main_area::Union{ContainerInterface, Nothing} = nothing
+    left_sidebar::Union{ContainerInterface, Nothing} = nothing
+    right_sidebar::Union{ContainerInterface, Nothing} = nothing
 end
 
-Base.getindex(columns::Columns, i) = columns.columns[i]
+Base.getindex(containers::Containers, i) = containers.containers[i]
 
-function (columns::Columns)(inner_func::Function, column_index::Int)
-    push_container(columns.columns[column_index])
+function (containers::Containers)(inner_func::Function, column_index::Int)
+    push_container(containers.containers[column_index])
     inner_func()
     pop_container()
     return nothing
 end
 
 function columns(amount_or_widths::Union{Int, Vector}; kwargs...)
-    columns = Columns()
+    columns = Containers()
 
     @push row(fill_width=true)
         if amount_or_widths isa Int
@@ -422,7 +440,7 @@ function columns(amount_or_widths::Union{Int, Vector}; kwargs...)
 
             for c in 1:amount_or_widths
                 col = column(css=css; kwargs...)
-                push!(columns.columns, col)
+                push!(columns.containers, col)
             end
         else
             for w in amount_or_widths
@@ -433,12 +451,123 @@ function columns(amount_or_widths::Union{Int, Vector}; kwargs...)
                 end
 
                 col = column(css=css; kwargs...)
-                push!(columns.columns, col)
+                push!(columns.containers, col)
             end
         end
     @pop
 
     return columns
+end
+
+# Layout
+#-------------
+function create_sidebar(initial_state::String, side::String, initial_width::String, position::String, labels::Tuple{Union{String, Nothing}, Union{String, Nothing}})::ContainerInterface
+    state_class = initial_state == "open" ? "lt-show" : ""
+    side_class = "lt-$(side)"
+    position_class = position == "slide-out" ? "lt-slide-out" : "lt-overlay"
+
+    open_label = "<lt-icon lt-icon='material/arrow_forward_ios'></lt-icon>"
+    close_label = "<lt-icon lt-icon='material/arrow_back_ios'></lt-icon>"
+
+    if side == "right"
+        open_label, close_label = close_label, open_label
+    end
+
+    open_label  = labels[1] != nothing ? labels[1] : open_label
+    close_label = labels[2] != nothing ? labels[2] : close_label
+
+    sidebar_wrapper = column(
+        fill_height=true,
+        max_height="100vh",
+        attributes=Dict("class" => "lt-sidebar $(side_class) $(state_class) $(position_class)", "data-lt-open-label" => open_label, "data-lt-close-label" => close_label),
+        css=Dict("--sidebar-width" => initial_width)
+    )
+    sidebar_lining = sidebar_wrapper.column(fill_width=true, fill_height=true, attributes=Dict("class" => "lt-sidebar-lining"))
+    sidebar_lining.html("dd-button", "", attributes=Dict("onclick" => "LT_ToggleSidebar(event)", "class" => "lt-sidebar-toggle-button"))
+    sidebar = sidebar_lining.column(fill_width=true, fill_height=true, attributes=Dict("class" => "lt-sidebar-content"))
+    return sidebar
+end
+
+function basic_layout(
+        inner_func::Function=()->();
+
+        left_sidebar_initial_state::Union{Nothing, String}=nothing,
+        left_sidebar_initial_width::String="300px",
+        left_sidebar_position::String="slide-out",
+        left_sidebar_toggle_labels::Tuple{Union{String, Nothing}, Union{String, Nothing}}=(nothing, nothing),
+
+        right_sidebar_initial_state::Union{Nothing, String}=nothing,
+        right_sidebar_initial_width::String="300px",
+        right_sidebar_position::String="slide-out",
+        right_sidebar_toggle_labels::Tuple{Union{String, Nothing}, Union{String, Nothing}}=(nothing, nothing),
+    )::Containers
+
+    left_sidebar, right_sidebar = nothing, nothing
+
+    @push row(fill_width=true, fill_height=true)
+        if left_sidebar_initial_state != nothing
+            left_sidebar = create_sidebar(left_sidebar_initial_state, "left", left_sidebar_initial_width, left_sidebar_position, left_sidebar_toggle_labels)
+        end
+
+        main_area = column(fill_width=true, fill_height=true)
+
+        if right_sidebar_initial_state != nothing
+            right_sidebar = create_sidebar(right_sidebar_initial_state, "right", right_sidebar_initial_width, right_sidebar_position, right_sidebar_toggle_labels)
+        end
+    @pop
+
+    push_container(main_area)
+    inner_func
+    pop_container()
+
+    layout = Containers()
+    layout.containers = [main_area, left_sidebar, right_sidebar]
+    layout.main_area = main_area
+    layout.left_sidebar = left_sidebar
+    layout.right_sidebar = right_sidebar
+
+    return layout
+end
+
+function centered_layout(
+        inner_func::Function=()->();
+        max_width::String="600px",
+        align_items::String="flex-start",
+
+        left_sidebar_initial_state::Union{Nothing, String}=nothing,
+        left_sidebar_initial_width::String="300px",
+        left_sidebar_position::String="slide-out",
+        left_sidebar_toggle_labels::Tuple{Union{String, Nothing}, Union{String, Nothing}}=(nothing, nothing),
+
+        right_sidebar_initial_state::Union{Nothing, String}=nothing,
+        right_sidebar_initial_width::String="300px",
+        right_sidebar_position::String="slide-out",
+        right_sidebar_toggle_labels::Tuple{Union{String, Nothing}, Union{String, Nothing}}=(nothing, nothing),
+    )::Containers
+
+    containers = basic_layout(
+        left_sidebar_initial_state=left_sidebar_initial_state,
+        left_sidebar_initial_width=left_sidebar_initial_width,
+        left_sidebar_position=left_sidebar_position,
+        left_sidebar_toggle_labels=left_sidebar_toggle_labels,
+
+        right_sidebar_initial_state=right_sidebar_initial_state,
+        right_sidebar_initial_width=right_sidebar_initial_width,
+        right_sidebar_position=right_sidebar_position,
+        right_sidebar_toggle_labels=right_sidebar_toggle_labels,
+    )
+
+    @push containers[1]
+        @push column(fill_width=true, fill_height=true, align_items="center", margin="3rem 0 0 0")
+            main_area = @push column(fill_width=true, fill_height=true, align_items=align_items, max_width=max_width)
+                inner_func()
+            @pop
+        @pop
+    @pop
+
+    containers.containers[1] = main_area
+    containers.main_area = main_area
+    return containers
 end
 
 # Button
@@ -1224,8 +1353,8 @@ function new_client(client_id::Cint)::Nothing
             "gap" => ".8rem",
             "width" => "100%",
             "height" => "100%",
-            "padding" => "5px",
-        )
+        ),
+        "attributes" => Dict()
     )
 
     root_frag = Fragment()
@@ -1681,6 +1810,7 @@ export  @app_startup, @session_startup, @page_startup, @register, @push, @pop,
         html, text, h1, h2, h3, h4, h5, h6, link, space, metric,
         button, image, dataframe, selectbox, radio, checkbox, checkboxes, text_input,
         code, color_picker, get_url_path,
-        add_page, add_style, add_font, begin_page_config, end_page_config, set_title, set_description
+        add_page, add_style, add_font, begin_page_config, end_page_config, set_title, set_description,
+        basic_layout, centered_layout
 
 end # module

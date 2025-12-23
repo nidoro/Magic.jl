@@ -81,40 +81,57 @@ end
     set_default_value("clr_skin", "#ffffff")
 end
 
-column(fill_width=true, align_items="center", margin="3rem 0 0 0") do
-    column(fill_width=true, align_items="center", max_width="600px") do
-        h1("Avatar Creator", icon="material/auto_awesome")
+layout = centered_layout(
+    align_items="center",
+    left_sidebar_initial_state="open",
+    right_sidebar_initial_state="closed",
+    right_sidebar_initial_width="50%",
+    right_sidebar_position="overlay",
+    right_sidebar_toggle_labels=(
+        "VIEW SOURCE <lt-icon lt-icon='material/code'></lt-icon>",
+        "HIDE SOURCE <lt-icon lt-icon='material/arrow_forward_ios'></lt-icon>",
+    )
+)
 
-        img_slot = column()
-        randomize = button("Randomize", icon="material/replay") || is_session_first_pass()
+layout.main_area() do
+    h1("Avatar Creator", icon="material/auto_awesome")
 
-        column() do
-            cols = columns(2)
+    img_slot = column()
+    randomize = button("Randomize", icon="material/replay") || is_session_first_pass()
 
-            cols(1) do
-                selectbox("Hair", HAIR_OPTIONS, fill_width=true, id="slc_hair")
-                selectbox("Eyes", EYES_OPTIONS, fill_width=true, id="slc_eyes")
-                selectbox("Mouth", MOUTH_OPTIONS, fill_width=true, id="slc_mouth")
-            end
+    column() do
+        cols = columns(2)
 
-            cols(2) do
-                color_picker("Hair Color", fill_width=true, id="clr_hair")
-                color_picker("Skin Color", fill_width=true, id="clr_skin")
-                selectbox("Accessory", ACCESSORY_OPTIONS, fill_width=true, id="slc_accessory")
-            end
+        cols(1) do
+            selectbox("Hair", HAIR_OPTIONS, fill_width=true, id="slc_hair")
+            selectbox("Eyes", EYES_OPTIONS, fill_width=true, id="slc_eyes")
+            selectbox("Mouth", MOUTH_OPTIONS, fill_width=true, id="slc_mouth")
         end
 
-        if randomize
-            randomize_options()
+        cols(2) do
+            color_picker("Hair Color", fill_width=true, id="clr_hair")
+            color_picker("Skin Color", fill_width=true, id="clr_skin")
+            selectbox("Accessory", ACCESSORY_OPTIONS, fill_width=true, id="slc_accessory")
         end
+    end
 
-        img_src = generate_avatar_url()
-        img_slot.image(img_src, width=200, height=200, max_width="200px")
+    if randomize
+        randomize_options()
+    end
 
-        row(align_items="center", gap=".3rem", margin="2rem 0 0 0", css=Dict("opacity" => ".7", "font-size" => ".9rem")) do
-            text("Check out")
-            link("DiceBear", "http://dicebear.com")
-        end
+    img_src = generate_avatar_url()
+    img_slot.image(img_src, width=200, height=200, max_width="200px")
+
+    row(align_items="center", gap=".3rem", margin="2rem 0 0 0", css=Dict("opacity" => ".7", "font-size" => ".9rem")) do
+        text("Check out")
+        link("DiceBear", "http://dicebear.com")
     end
 end
 
+layout.left_sidebar() do
+
+end
+
+layout.right_sidebar() do
+    code(initial_value_file=@__FILE__)
+end

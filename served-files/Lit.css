@@ -353,3 +353,74 @@ dd-button .lt-material-icon {
     padding: .5em 1em;
     font-size: .9rem;
 }
+
+.lt-sidebar {
+    --sidebar-width: 300px;
+    --max-width: 0px;
+    background: #f0f0f0;
+    border-radius: 0 !important;
+    width: 100%;
+    max-width: var(--max-width) !important;
+    transition: max-width 0.3s ease-out;
+    height: 100vh;
+}
+
+.lt-sidebar.lt-right {
+    right: 0;
+}
+
+.lt-sidebar.lt-overlay {
+    position: absolute;
+}
+
+.lt-sidebar-lining {
+    position: relative;
+    height: 100%;
+}
+
+.lt-sidebar-content {
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.lt-sidebar.lt-show {
+    --max-width: var(--sidebar-width);
+}
+
+.lt-sidebar.lt-show.lt-overlay {
+    -webkit-box-shadow: 0px 0px 19px -8px #000000;
+    box-shadow: 0px 0px 19px -8px #000000;
+}
+
+.lt-sidebar.lt-show .lt-sidebar-toggle-button {
+    background: #f0f0f0;
+}
+
+.lt-sidebar-toggle-button {
+    position: absolute;
+    width: max-content;
+    z-index: 200;
+    padding: 5px;
+    top: 0;
+    --button-font-size: .85rem;
+    --button-color: #aaa;
+    --button-hover-color: #555;
+}
+
+.lt-sidebar-toggle-button lt-icon {
+    font-weight: bold;
+}
+
+.lt-sidebar.lt-left .lt-sidebar-toggle-button {
+    right: 0;
+    transform: translateX(100%);
+    border-radius: 0 .5em .5em 0;
+}
+
+.lt-sidebar.lt-right .lt-sidebar-toggle-button {
+    left: 0;
+    transform: translateX(-100%);
+    border-radius: .5em 0 0 .5em;
+}
+
