@@ -83,7 +83,6 @@ end
 
 set_page_layout(
     style="centered",
-    align_items="center",
     left_sidebar_initial_state="open",
     right_sidebar_initial_state="closed",
     right_sidebar_position="overlay",
@@ -132,7 +131,7 @@ end
 left_sidebar() do
     column(fill_width=true, gap="0px") do
         space(height="3rem")
-        h3("Lit Demo Apps", css=Dict("margin" => "0 0 .8rem .8rem", "white-space" => "nowrap"))
+        h5("Lit.jl Demo Apps", css=Dict("margin" => "0 0 .8rem .8rem", "white-space" => "nowrap", "color" => "#444"))
         link("To-Do List", "/todo", style="naked", fill_width=true, css=Dict("justify-content" => "flex-start"))
         link("Avatar Creator", "/avatar", style="naked", fill_width=true, css=Dict("justify-content" => "flex-start"))
         link("Seattle Weather", "/seattle-weather", style="naked", fill_width=true, css=Dict("justify-content" => "flex-start"))

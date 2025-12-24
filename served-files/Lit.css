@@ -186,6 +186,10 @@ img.lt-image {
     max-width: 100%;
 }
 
+.lt-dataframe-lining {
+
+}
+
 .tabulator-row.tabulator-row-even {
     background-color: white;
 }
@@ -311,7 +315,7 @@ dd-button.lt-button, a.lt-link {
     --button-hover-bg: #f0f0f0;
 }
 
-.lt-button-style-primary {
+.lt-button.lt-button-style-primary, .lt-link.lt-button-style-primary {
     --button-bg: var(--primary);
     --button-color: white;
     --button-border-color: var(--primary);
@@ -360,6 +364,10 @@ dd-button.lt-button, a.lt-link {
     border-right: 1px solid #bbb;
 }
 
+/* SIDEBAR */
+/* SIDEBAR */
+/* SIDEBAR */
+
 .lt-sidebar {
     --sidebar-width: 300px;
     --max-width: 0px;
@@ -367,7 +375,8 @@ dd-button.lt-button, a.lt-link {
     border-radius: 0 !important;
     width: 100%;
     max-width: var(--max-width) !important;
-    transition: max-width 0.3s ease-out;
+    min-width: var(--max-width) !important;
+    transition: max-width 0.3s ease-out, min-width 0.3s ease-out;
     height: 100vh;
 }
 

@@ -370,12 +370,15 @@ end
 
 function set_css_to_achieve_layout(css::Dict, parent::Dict, fill_width::Bool, fill_height::Bool)
     flex_grow = "0"
+    min_width = nothing
+    min_height = nothing
     width = nothing
     height = nothing
 
     if fill_width
         if get_css_value(parent, "flex-direction") == "row"
             flex_grow = "1"
+            min_width = "0"
         else
             width = "100%"
         end
@@ -386,10 +389,13 @@ function set_css_to_achieve_layout(css::Dict, parent::Dict, fill_width::Bool, fi
             height = "100%"
         else
             flex_grow = "1"
+            min_height = "0"
         end
     end
 
     css["flex-grow"] = flex_grow
+    if min_width !== nothing css["min-width"] = min_width end
+    if min_height !== nothing css["min-height"] = min_height end
     if width !== nothing css["width"] = width end
     if height !== nothing css["height"] = height end
 end
@@ -493,7 +499,6 @@ function set_page_layout(
         inner_func::Function=()->();
         style::String="basic",
         max_width::String="600px",
-        align_items::String="flex-start",
 
         left_sidebar_initial_state::Union{Nothing, String}=nothing,
         left_sidebar_initial_width::String="300px",
@@ -510,7 +515,7 @@ function set_page_layout(
     #------------------------
     left_sidebar, right_sidebar = nothing, nothing
 
-    @push row(fill_width=true, fill_height=true)
+    @push row(fill_width=true, fill_height=true, gap="0px")
         if left_sidebar_initial_state != nothing
             left_sidebar = create_sidebar(left_sidebar_initial_state, "left", left_sidebar_initial_width, left_sidebar_position, left_sidebar_toggle_labels)
         end
@@ -528,8 +533,14 @@ function set_page_layout(
         # Nothing to do
     elseif style == "centered"
         @push main_area
-            @push column(fill_width=true, fill_height=true, align_items="center", margin="3rem 0 0 0")
-                main_area = column(fill_width=true, fill_height=true, align_items=align_items, max_width=max_width)
+            @push column(fill_width=true, fill_height=true, align_items="center", padding="3rem 5px 5px 5px", css=Dict("overflow" => "auto"))
+                main_area = column(fill_width=true, fill_height=true, align_items="center", max_width=max_width, css=Dict("align-items" => "center"))
+            @pop
+        @pop
+    elseif style == "wide"
+        @push main_area
+            @push column(fill_width=true, fill_height=true, align_items="center", padding="3rem 0 0 0", css=Dict("overflow" => "auto"))
+                main_area = column(fill_width=true, fill_height=true, css=Dict("padding" => "0 5%"))
             @pop
         @pop
     end
@@ -560,6 +571,12 @@ end
 
 function left_sidebar(inner_func::Function)::ContainerInterface
     task = task_local_storage("app_task")
+    if task.layout.left_sidebar == nothing
+        throw(ArgumentError(
+            "Your layout does not have a left sidebar. To create one,\n" *
+            "first call `set_page_layout()` with the desired `left_sidebar` parameters."
+        ))
+    end
     push_container(task.layout.left_sidebar)
     inner_func()
     pop_container()
@@ -568,6 +585,12 @@ end
 
 function right_sidebar(inner_func::Function)::ContainerInterface
     task = task_local_storage("app_task")
+    if task.layout.right_sidebar == nothing
+        throw(ArgumentError(
+            "Your layout does not have a left sidebar. To create one,\n" *
+            "first call `set_page_layout()` with the desired `right_sidebar` parameters."
+        ))
+    end
     push_container(task.layout.right_sidebar)
     inner_func()
     pop_container()
@@ -619,7 +642,7 @@ end
 
 # Text Input
 #-----------
-function create_text_input(widgets::Dict{String, Widget}, parent::Dict, user_id::Any, label::String, initial_value::String, placeholder::String, css=Dict)::Any
+function create_text_input(widgets::Dict{String, Widget}, parent::Dict, user_id::Any, label::String, initial_value::String, placeholder::String, css=Dict)::String
     props = Dict(
         "type" => "text_input",
         "user_id" => user_id,
@@ -656,7 +679,7 @@ function create_text_input(widgets::Dict{String, Widget}, parent::Dict, user_id:
     return widget.value
 end
 
-function text_input(label::String; id::Any=nothing, show_label::Bool=true, fill_width::Bool=false, initial_value::String="", placeholder::String="", css::Dict=Dict())::Any
+function text_input(label::String; id::Any=nothing, show_label::Bool=true, fill_width::Bool=false, initial_value::String="", placeholder::String="", css::Dict=Dict())::String
     task = task_local_storage("app_task")
     parent = top_container()
     widgets = task.session.widgets
@@ -838,7 +861,7 @@ function create_checkboxes(widgets::Dict{String, Widget}, parent::Dict, user_id:
     return widget.value
 end
 
-function checkbox(label::String; id::Any=nothing, initial_value::Bool=false, onchange::Function=(args...; kwargs...)->(), args::Vector=Vector())::Any
+function checkbox(label::String; id::Any=nothing, initial_value::Bool=false, onchange::Function=(args...; kwargs...)->(), args::Vector=Vector())::Bool
     task = task_local_storage("app_task")
     widgets = task.session.widgets
     init_value = initial_value ? [label] : []
@@ -1036,7 +1059,7 @@ function create_html(parent::Dict, tag::String, inner_html::String, attributes::
     return nothing
 end
 
-function html(tag::String, inner_html::String; attributes::Dict=Dict(), css::Dict=Dict())
+function html(tag::String, inner_html::String; attributes::Dict=Dict(), css::Dict=Dict())::Nothing
     create_html(top_container(), tag, inner_html, attributes, css)
     return nothing
 end
@@ -1060,7 +1083,7 @@ space(; width::String="1px", height::String="1px") = html("div", "", css=Dict("w
 
 # Text
 #----------
-function maybe_prepend_icon(text, icon::String, icon_color::String)
+function maybe_prepend_icon(text::String, icon::String, icon_color::String)::String
     if length(icon) > 0
         style = ""
         if length(icon_color) > 0
@@ -1143,7 +1166,7 @@ end
 
 # Metric
 #-------------
-function metric(label::String, value::String, delta::String="", higher_is_better::Bool=true)
+function metric(label::String, value::String, delta::String="", higher_is_better::Bool=true)::Nothing
     deltaHTML = ""
     color, background = "#0b8a07", "#a6f9a6"
 
@@ -1165,6 +1188,8 @@ function metric(label::String, value::String, delta::String="", higher_is_better
             html("span", deltaHTML, css=Dict("font-size" => "0.85rem", "color" => color, "background" => background, "border-radius" => "100vw", "padding" => ".2em .4em", "display" => "flex", "align-items" => "center"))
         end
     @pop
+
+    return nothing
 end
 
 function get_widget_by_user_id(widgets::Dict{String, Widget}, user_id::String)::Union{Widget, Missing}
@@ -1360,9 +1385,9 @@ function new_client(client_id::Cint)::Nothing
             "flex-direction" => "column",
             "align-items" => "flex-start",
             "justify-content" => "flex-start",
-            "gap" => ".8rem",
             "width" => "100%",
             "height" => "100%",
+            "overflow" => "auto",
         ),
         "attributes" => Dict()
     )
@@ -1456,8 +1481,12 @@ function update(client_id::Cint, payload::Dict)
         frag.container_props["children"] = Vector{Dict{String, Any}}()
 
         task.state = Dict("root" => frag.container_props)
-        push_container(create_interface(task.state["root"]))
+        root_interface = create_interface(task.state["root"])
+        push_container(root_interface)
         push_fragment(frag)
+
+        task.layout = Containers()
+        task.layout.main_area = root_interface
 
         # Handle events
         #------------------

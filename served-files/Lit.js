@@ -404,6 +404,10 @@ function createAppElement(parent, props, fragmentId) {
             elem.style["height"] = props.height;
             elem.classList.add("lt-dataframe");
 
+            const lining = document.createElement("div");
+            lining.classList.add("lt-dataframe-lining");
+            elem.appendChild(lining);
+
             for (const [i, row] of props.initial_value.entries()) {
                 row.lt_original_index = i+1;
             }
@@ -432,7 +436,7 @@ function createAppElement(parent, props, fragmentId) {
                 }
             }
 
-            const table = new Tabulator(elem, {
+            const table = new Tabulator(lining, {
                 data: props.initial_value,
                 columns,
                 layout: "fitFill",
