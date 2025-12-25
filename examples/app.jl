@@ -1,4 +1,4 @@
-using Main.Lit
+using Lit
 
 @app_startup begin
     add_page(["/", "/counter"])

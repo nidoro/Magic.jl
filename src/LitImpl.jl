@@ -1,5 +1,6 @@
 module Lit
 
+using ArgParse
 using Libdl
 using Parameters
 using Sockets
