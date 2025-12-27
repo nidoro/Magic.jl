@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CFLAGS="-g -static-libstdc++ -static-libgcc -Wno-unused-result -fPIC -shared -o ../local/build/artifacts-linux-x86_64/liblit.so"
+CFLAGS="-g -Wno-unused-result -fPIC -shared -o ../local/build/artifacts-linux-x86_64/liblit.so"
 LDFLAGS="-pthread"
 LIBS="-l:libwebsockets.a -l:libssl.a -l:libcrypto.a -l:libSqliteIcu.a -l:libicui18n.a -l:libicuuc.a -l:libicudata.a -l:libicuio.a -l:libsqlite3.a"
 

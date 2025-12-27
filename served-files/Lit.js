@@ -645,7 +645,12 @@ async function loadIconMap(url) {
 (async function main(){
     g.materialIcons = await loadIconMap("/Lit.jl/fonts/MaterialIconsOutlined-Regular.codepoints");
 
-    g.ws = new WebSocket(`wss://${location.host}`, ["ws"]);
+    let wsEndpoint = `wss://${location.host}`;
+    if (location.protocol == "http:") {
+        wsEndpoint = `ws://${location.host}`;
+    }
+
+    g.ws = new WebSocket(wsEndpoint, ["ws"]);
     g.ws.addEventListener("open", wsOnOpen);
     g.ws.addEventListener("message", wsOnMessage);
     g.ws.addEventListener("close", wsOnClose);

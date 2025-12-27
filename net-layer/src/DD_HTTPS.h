@@ -1326,6 +1326,29 @@ void HS_SetVHostVerbosity(HS_Server* server, const char* vhostName, int verbosit
     vhost->verbosity = verbosity;
 }
 
+void HS_UpdateVHostHostString(HS_Server* server, const char* vhostName) {
+    HS_VHost* vhost = HS_GetVHost(server, vhostName);
+    if (vhost->port == 443) {
+        strcpy(vhost->host, vhost->hostName);
+    } else {
+        sprintf(vhost->host, "%s:%d", vhost->hostName, vhost->port);
+    }
+}
+
+void HS_SetVHostHostName(HS_Server* server, const char* vhostName, const char* hostName) {
+    HS_VHost* vhost = HS_GetVHost(server, vhostName);
+    strcpy(vhost->hostName, hostName);
+    vhost->lwsContextInfo.vhost_name = vhost->hostName;
+    HS_UpdateVHostHostString(server, vhostName);
+}
+
+void HS_SetVHostPort(HS_Server* server, const char* vhostName, int port) {
+    HS_VHost* vhost = HS_GetVHost(server, vhostName);
+    vhost->port = port;
+    vhost->lwsContextInfo.port = vhost->port;
+    HS_UpdateVHostHostString(server, vhostName);
+}
+
 void HS_SetHTTPSessionDataSize(HS_Server* server, const char* vhostName, int sessionDataSize) {
     HS_VHost* vhost = HS_GetVHost(server, vhostName);
     vhost->sessionDataSize = sessionDataSize;
@@ -2652,7 +2675,7 @@ int HS_RequesterCallback(lws* socket, lws_callback_reasons reason, void* userDat
     return 0;
 }
 
-bool HS_InitServer(HS_Server* server, bool disableHTTP2 = false) {
+bool HS_InitServer(HS_Server* server, bool disableHTTP2=false) {
     server->lwsContextInfo = {};
     server->lwsContextInfo.options = LWS_SERVER_OPTION_EXPLICIT_VHOSTS | LWS_SERVER_OPTION_DISABLE_IPV6;
     server->lwsContextInfo.user = server;
@@ -2662,10 +2685,12 @@ bool HS_InitServer(HS_Server* server, bool disableHTTP2 = false) {
     return server->lwsContext;
 }
 
-HS_Server HS_CreateServer(void* userData) {
+HS_Server HS_CreateServer(void* userData, bool disableSSL=false) {
     HS_Server server = {};
     server.userData = userData;
-    server.defaultConnectionFlags = LCCSCF_USE_SSL;
+    if (!disableSSL) {
+        server.defaultConnectionFlags = LCCSCF_USE_SSL;
+    }
     return server;
 }
 
@@ -3041,7 +3066,6 @@ void HS_AddServedFilesDir(HS_Server* server, const char* vhostName, const char* 
     HS_RootDirMapEntry& entry = vhost->rootDirMap[vhost->rootDirMapSize++];
     strcpy(entry.uriPrefix, uriPrefix);
     realpath(path, entry.path);
-    printf("%s -- %s\n", uriPrefix, entry.path);
 
     if (!HS_EndsWith(entry.uriPrefix, "/")) {
         strcat(entry.uriPrefix, "/");
@@ -3074,14 +3098,9 @@ bool HS_InitFileServer(HS_Server* server, const char* vhostName, const char* con
     bool result = JS_Parse(jreader, jConfig);
     
     if (result) {
-        vhost->lwsContextInfo.vhost_name = vhost->hostName;
-        vhost->lwsContextInfo.port = vhost->port; 
-        if (vhost->port == 443) {
-            strcpy(vhost->host, vhost->hostName);
-        } else {
-            sprintf(vhost->host, "%s:%d", vhost->hostName, vhost->port);
-        }
-        
+        HS_SetVHostHostName(server, vhostName, vhost->hostName);
+        HS_SetVHostPort(server, vhostName, vhost->port);
+
         vhost->lwsContextInfo.ssl_cert_filepath = vhost->sslPublicKeyPath;
         vhost->lwsContextInfo.ssl_private_key_filepath = vhost->sslPrivateKeyPath;
         vhost->lwsContextInfo.ssl_ca_filepath = vhost->sslPrivateKeyPath;

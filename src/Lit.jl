@@ -1668,11 +1668,13 @@ function open_in_default_browser(url::AbstractString)::Bool
     end
 end
 
-function start_lit(script_path::String)::Nothing
+function start_lit(script_path::String; host_name::String="localhost", port::Int=3443, docs::Bool=false, dev_mode::Bool=false)::Nothing
     if !isfile(script_path)
         @error "File not found: '$(script_path)'"
         return nothing
     end
+
+    g.dev_mode = dev_mode
 
     if g.dev_mode
         @warn "Starting Lit.jl on dev mode"
@@ -1685,13 +1687,14 @@ function start_lit(script_path::String)::Nothing
     g.initialized = true
     g.script_path = joinpath(START_CWD, script_path)
 
+
     # Dry run to try and initialize the app
     #-------------------------------------------
     new_client(Cint(0))
     add_page("/", title="Lit App", description="Lit App")
 
     @info "Dry Run: First pass over '$(script_path)'. @app_startup code blocks will run now."
-    wait(update(Cint(0), Dict("type" => "update", "events" => [], "location" => Dict("href" => "https://localhost:3443/", "pathname" => "/", "host" => "localhost:3443", "hostname" => "localhost", "search" => ""))))
+    wait(update(Cint(0), Dict("type" => "update", "events" => [], "location" => Dict("href" => "https://$(host_name):$(port)/", "pathname" => "/", "host" => "$(host_name):$(port)", "hostname" => host_name, "search" => ""))))
 
     if is_app_first_pass()
         @error "Dry run of app '$(script_path)' failed."
@@ -1707,7 +1710,7 @@ function start_lit(script_path::String)::Nothing
             @info "Dry Run: First pass over '$(script_path)' as if loading page '$(page.uris[1])'. @page_startup code blocks will run now."
             g.sessions[Cint(0)].first_pass = true
 
-            wait(update(Cint(0), Dict("type" => "update", "events" => [], "location" => Dict("href" => "https://localhost:3443" * page.uris[1], "pathname" => page.uris[1], "host" => "localhost:3443", "hostname" => "localhost", "search" => ""))))
+            wait(update(Cint(0), Dict("type" => "update", "events" => [], "location" => Dict("href" => "https://$(host_name):$(port)" * page.uris[1], "pathname" => page.uris[1], "host" => "$(host_name):$(port)", "hostname" => host_name, "search" => ""))))
 
             if page.first_pass
                 @error "Dry run of page '$(page.uris[1])' failed."
@@ -1726,11 +1729,11 @@ function start_lit(script_path::String)::Nothing
 
     server = listen(socket_path)
 
-    start_server(socket_path, joinpath(@__DIR__, ".."))
+    init_net_layer(host_name, port, docs, socket_path, joinpath(@__DIR__, ".."))
 
     conn = accept(server)
     @info "NetLayerStarted"
-    @info "Now serving at https://localhost:3443"
+    @info "Now serving at https://$(host_name):$(port)"
 
     mkpath(".Lit/served-files/cache/pages")
     cp(joinpath(@__DIR__, "../served-files/LitPageTemplate.html"), ".Lit/served-files/cache/pages/first.html", force=true)
@@ -1832,8 +1835,13 @@ function destroy_net_event(ev::NetEvent)::Nothing
     ccall((:LT_DestroyNetEvent, LIT_SO), Cvoid, (NetEvent,), ev)
 end
 
-function start_server(socket_path::String, package_root_dir::String)
-    ccall((:LT_InitServer, LIT_SO), Cvoid, (Cstring, Cint, Cstring, Cint), socket_path, Cint(sizeof(socket_path)), package_root_dir, Cint(sizeof(package_root_dir)))
+function init_net_layer(host_name::String, port::Int, docs::Bool, socket_path::String, package_root_dir::String)
+    ccall(
+        (:LT_InitNetLayer, LIT_SO),
+        Cvoid,
+        (Cstring, Cint, Cint, Cint, Cstring, Cint, Cstring, Cint),
+        host_name, Cint(sizeof(host_name)), port, Cint(docs), socket_path, Cint(sizeof(socket_path)), package_root_dir, Cint(sizeof(package_root_dir))
+    )
 end
 
 function server_is_running()::Bool
@@ -1848,7 +1856,8 @@ function stop_server()
     return ccall((:LT_StopServer, LIT_SO), Cvoid, ())
 end
 
-export  @app_startup, @session_startup, @page_startup, @register, @push, @pop,
+export  start_lit,
+        @app_startup, @session_startup, @page_startup, @register, @push, @pop,
         push_container, pop_container, top_container,
         set_app_data, get_app_data, set_session_data, get_session_data,
         set_page_data, get_page_data,

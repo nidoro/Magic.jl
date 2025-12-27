@@ -57,6 +57,9 @@ struct LT_Global {
     int fdSocket;
 
     char projectPath[PATH_MAX];
+    char appHostName[PATH_MAX];
+    int appPort;
+    bool serveDocs;
 
     HS_Server hserver;
 
@@ -296,11 +299,11 @@ void LT_PushURIMapping(const char* uri, int uriSize, const char* filePath, int f
     char filePathBuf[PATH_MAX] = {};
     strncpy(uriBuf, uri, uriSize);
     strncpy(filePathBuf, filePath, filePathSize);
-    HS_PushURIMapping(&g.hserver, "localhost", uriBuf, filePathBuf);
+    HS_PushURIMapping(&g.hserver, "lit-app", uriBuf, filePathBuf);
 }
 
 void LT_ClearURIMapping() {
-    HS_ClearURIMapping(&g.hserver, "localhost");
+    HS_ClearURIMapping(&g.hserver, "lit-app");
 }
 
 void LT_SetStateSize(size_t size) {
@@ -326,28 +329,43 @@ void* LT_RunServer(void*) {
     g.netEvents = arralloc(LT_NetEvent, 100);
     g.appEvents = arralloc(LT_AppEvent, 100);
 
-    g.hserver = HS_CreateServer();
+    bool disableSSL = !HS_IsDirectory(".Lit/certs");
+
+    g.hserver = HS_CreateServer(0, disableSSL);
     HS_InitServer(&g.hserver, true);
-    HS_AddVHost(&g.hserver, "localhost");
-    HS_SetLWSVHostConfig(&g.hserver, "localhost", pt_serv_buf_size, HS_KILO_BYTES(12));
-    HS_SetLWSProtocolConfig(&g.hserver, "localhost", "HTTP", rx_buffer_size, HS_KILO_BYTES(12));
-    HS_InitFileServer(&g.hserver, "localhost", "config.json");
-    HS_SetCertificate(&g.hserver, "localhost", ".Lit/certs/certificate.crt", ".Lit/certs/private.key");
-
-    HS_VHost* v = HS_GetVHost(&g.hserver, "localhost");
-
-    HS_AddProtocol(&g.hserver, "localhost", "ws", handleEvent, LT_Client);
+    HS_AddVHost(&g.hserver, "lit-app");
+    HS_SetLWSVHostConfig(&g.hserver, "lit-app", pt_serv_buf_size, HS_KILO_BYTES(12));
+    HS_SetLWSProtocolConfig(&g.hserver, "lit-app", "HTTP", rx_buffer_size, HS_KILO_BYTES(12));
+    HS_SetHTTPGetHandler(&g.hserver, "lit-app", HS_GetFileByURI);
+    HS_SetVHostHostName(&g.hserver, "lit-app", g.appHostName);
+    HS_SetVHostPort(&g.hserver, "lit-app", g.appPort);
+    if (!disableSSL) {
+        HS_SetCertificate(&g.hserver, "lit-app", ".Lit/certs/certificate.crt", ".Lit/certs/private.key");
+    }
+    HS_AddProtocol(&g.hserver, "lit-app", "ws", handleEvent, LT_Client);
 
     char tempBuffer[2*PATH_MAX];
 
     snprintf(tempBuffer, sizeof(tempBuffer), "%s/%s", g.projectPath, ".Lit/served-files");
-    HS_SetServedFilesRootDir(&g.hserver, "localhost", tempBuffer);
+    HS_SetServedFilesRootDir(&g.hserver, "lit-app", tempBuffer);
 
     snprintf(tempBuffer, sizeof(tempBuffer), "%s/%s", g.litPackageRootPath, "served-files");
-    HS_AddServedFilesDir(&g.hserver, "localhost", "/Lit.jl", tempBuffer);
+    HS_AddServedFilesDir(&g.hserver, "lit-app", "/Lit.jl", tempBuffer);
 
-    // HS_SetVHostVerbosity(&g.hserver, "localhost", 1);
-    HS_DisableFileCache(&g.hserver, "localhost");
+    // HS_SetVHostVerbosity(&g.hserver, "lit-app", 1);
+    HS_DisableFileCache(&g.hserver, "lit-app");
+
+    if (g.serveDocs) {
+        snprintf(tempBuffer, sizeof(tempBuffer), "%s/%s", g.litPackageRootPath, "docs");
+        HS_AddServedFilesDir(&g.hserver, "lit-app", "/docs", tempBuffer);
+    }
+
+    if (HS_IsRegularFile(".Lit/companion-host.json")) {
+        HS_AddVHost(&g.hserver, "lit-companion");
+        HS_SetLWSVHostConfig(&g.hserver, "lit-companion", pt_serv_buf_size, HS_KILO_BYTES(12));
+        HS_SetLWSProtocolConfig(&g.hserver, "lit-companion", "HTTP", rx_buffer_size, HS_KILO_BYTES(12));
+        HS_InitFileServer(&g.hserver, "lit-companion", ".Lit/companion-host.json");
+    }
 
     SG_RegisterHandler(SIGINT, LT_HandleSigInt, 0);
 
@@ -362,10 +380,14 @@ void* LT_RunServer(void*) {
     return 0;
 }
 
-void LT_InitServer(const char* socketPath, int socketPathSize, const char* litPackageRootPath, int litPackageRootPathSize) {
+void LT_InitNetLayer(const char* hostName, int hostNameSize, int port, bool serveDocs, const char* socketPath, int socketPathSize, const char* litPackageRootPath, int litPackageRootPathSize) {
     LU_Disable(&LU_GlobalLogFile);
     LU_EnableStdout(&LU_GlobalLogFile);
     LU_DisableStderr(&LU_GlobalLogFile);
+
+    strncpy(g.appHostName, hostName, hostNameSize);
+    g.appPort = port;
+    g.serveDocs = serveDocs;
 
     strncpy(g.socketPath, socketPath, socketPathSize);
     strncpy(g.litPackageRootPath, litPackageRootPath, litPackageRootPathSize);
