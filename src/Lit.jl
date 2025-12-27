@@ -1791,7 +1791,7 @@ function start_lit(script_path::String; host_name::String="localhost", port::Int
                 # NOTE: Now that we've copied the payload, it is safe to destroy the event.
                 destroy_net_event(ev.data)
 
-                payload = JSON.parse(payload_string)
+                payload = Dict(JSON.parse(payload_string))
                 #println("PAYLOAD:")
                 #println(payload)
 
