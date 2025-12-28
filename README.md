@@ -22,7 +22,7 @@ flexibility to customize it so it looks exactly how you want.
 ## Demo Web Apps
 
 ## Quick start
-### 1. Install:
+### 1. Install (globally):
 ```julia
 julia -e 'using Pkg; Pkg.add(url="https://github.com/nidoro/Lit.jl")'
 ```
@@ -30,16 +30,20 @@ julia -e 'using Pkg; Pkg.add(url="https://github.com/nidoro/Lit.jl")'
 ### 2. Implement `app.jl`:
 ```julia
 # app.jl
-using Main.Lit
+using Lit
 if button("Click me")
     text("Button Clicked!")
 end
 ```
 
-### 3. Start REPL and run `app.jl`
+### 3. Run the package
 ```julia
 julia -m Lit
 ```
+
+### 4. Open the app in your browser
+
+The default host is http://localhost:3443
 
 ## Why choose Lit.jl?
 
