@@ -1892,7 +1892,7 @@ function main(args::Vector{String})
     parsed = parse_args(cli)
 
     if parsed["script"] != nothing
-        start_lit(parsed["script"], dev_mode=true)
+        start_lit(parsed["script"])
     end
 end
 
