@@ -1883,7 +1883,7 @@ end
 function main(args::Vector{String})
     cli = ArgParseSettings()
 
-    @add_arg_table s begin
+    @add_arg_table cli begin
         "script"
             help = "input file"
             default = "app.jl"
