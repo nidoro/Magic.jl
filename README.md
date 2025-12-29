@@ -32,6 +32,7 @@ and the code for getting their values.
 - API Reference
 
 ## Quick start
+
 ### 1. Install (globally):
 ```bash
 $ julia -e 'using Pkg; Pkg.add(url="https://github.com/nidoro/Lit.jl")'
@@ -47,6 +48,7 @@ end
 ```
 
 ### 3. Start the app
+From the terminal:
 ```bash
 $ julia -m Lit
 ```
