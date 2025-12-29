@@ -19,7 +19,14 @@ Like `streamlit`, it gives you the necessary
 structure to rapidly build a functional nice-looking web app and enough
 flexibility to customize it so it looks exactly how you want.
 
+## Supported Platforms
+
+[x] Linux x86_64
+[ ] Windows (will come eventually)
+
 ## Demo Web Apps
+
+Check out our demo apps here.
 
 ## Quick start
 ### 1. Install (globally):
