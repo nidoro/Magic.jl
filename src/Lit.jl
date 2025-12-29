@@ -1921,14 +1921,33 @@ function main(args::Vector{String})
 
     @add_arg_table cli begin
         "script"
-            help = "input file"
+            help = "Entry point script"
+            arg_type = String
             default = "app.jl"
+
+        "--hostname", "-H"
+            help = "Host name to bind to"
+            arg_type = String
+            default = "localhost"
+
+        "--port", "-p"
+            help = "Port number"
+            arg_type = Int
+            default = 3443
+
+        "--docs", "-d"
+            help = "Serve Lit.jl documentation at /docs/build/"
+            action = :store_true
+
+        "--dev", "-D"
+            help = "Enable development mode"
+            action = :store_true
     end
 
     parsed = parse_args(cli)
 
     if parsed["script"] != nothing
-        start_app(parsed["script"])
+        start_app(parsed["script"]; host_name=parsed["hostname"], port=parsed["port"], docs=parsed["docs"], dev_mode=parsed["dev"])
     end
 end
 
