@@ -24,13 +24,11 @@ flexibility to customize it so it looks exactly how you want.
 - [x] Linux x86_64
 - [ ] Windows (will come eventually)
 
-## Demo Web Apps
-
-Check out our demo apps here.
-
 ## Documentation
 
-You can find the documentation here.
+- Getting Started
+- Demo Web Apps
+- API Reference
 
 ## Quick start
 ### 1. Install (globally):
@@ -47,7 +45,7 @@ if button("Click me")
 end
 ```
 
-### 3. Run the package
+### 3. Run Lit as a script
 ```julia
 julia -m Lit
 ```
