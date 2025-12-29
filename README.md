@@ -34,7 +34,7 @@ and the code for getting their values.
 ## Quick start
 ### 1. Install (globally):
 ```julia
-julia -e 'using Pkg; Pkg.add(url="https://github.com/nidoro/Lit.jl")'
+$ julia -e 'using Pkg; Pkg.add(url="https://github.com/nidoro/Lit.jl")'
 ```
 
 ### 2. Implement `app.jl`:
@@ -46,9 +46,14 @@ if button("Click me")
 end
 ```
 
-### 3. Run Lit as a script
+### 3. Start the app
 ```julia
-julia -m Lit
+$ julia -m Lit
+```
+or from REPL (recommended for faster app restart during development):
+```julia
+> using Lit
+> start_app()
 ```
 
 ### 4. Open the app in your browser
