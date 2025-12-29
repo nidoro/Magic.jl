@@ -1,0 +1,43 @@
+<svg width="600" height="300" viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="coreGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffd86b"/>
+      <stop offset="100%" stop-color="#6366f1"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background (optional) -->
+  <rect x="0" y="0" width="600" height="300" rx="20" fill="transparent"/>
+
+  <!-- Performance core -->
+  <circle cx="160" cy="150" r="52" fill="url(#coreGlow)"/>
+  <circle cx="160" cy="150" r="34" fill="#1e1e2e"/>
+
+  <!-- Speed lines -->
+  <line x1="90" y1="120" x2="40" y2="120" stroke="#9aa2ff" stroke-width="4" opacity="0.7"/>
+  <line x1="90" y1="150" x2="30" y2="150" stroke="#6ee7b7" stroke-width="4" opacity="0.7"/>
+  <line x1="90" y1="180" x2="50" y2="180" stroke="#fca5a5" stroke-width="4" opacity="0.7"/>
+
+  <!-- Data dashboard -->
+  <rect x="300" y="70" width="240" height="160" rx="18" fill="#f8fafc"/>
+
+  <!-- Chart bars -->
+  <rect x="330" y="150" width="20" height="50" rx="6" fill="#6366f1"/>
+  <rect x="360" y="130" width="20" height="70" rx="6" fill="#9aa2ff"/>
+  <rect x="390" y="110" width="20" height="90" rx="6" fill="#4ade80"/>
+  <rect x="420" y="140" width="20" height="60" rx="6" fill="#fca5a5"/>
+
+  <!-- Line chart -->
+  <polyline
+    points="330,120 360,100 390,115 420,90 450,110"
+    fill="none"
+    stroke="#6ee7b7"
+    stroke-width="3"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Connector -->
+  <line x1="212" y1="150" x2="300" y2="150" stroke="#ffd86b" stroke-width="4"/>
+  <polygon points="300,150 288,142 288,158" fill="#ffd86b"/>
+</svg>

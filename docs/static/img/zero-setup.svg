@@ -1,0 +1,37 @@
+<svg width="600" height="300" viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="arrowGradient" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#9aa2ff"/>
+      <stop offset="100%" stop-color="#ffd86b"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background (optional, remove if embedding on colored section) -->
+  <rect x="0" y="0" width="600" height="300" rx="20" fill="transparent"/>
+
+  <!-- Code editor -->
+  <rect x="40" y="60" width="200" height="180" rx="14" fill="#1e1e2e"/>
+  <rect x="40" y="60" width="200" height="36" rx="14" fill="#2a2a3d"/>
+  <circle cx="60" cy="78" r="5" fill="#ff6b6b"/>
+  <circle cx="78" cy="78" r="5" fill="#ffd86b"/>
+  <circle cx="96" cy="78" r="5" fill="#4ade80"/>
+
+  <!-- Code lines -->
+  <rect x="60" y="120" width="120" height="10" rx="5" fill="#9aa2ff"/>
+  <rect x="60" y="140" width="160" height="10" rx="5" fill="#6ee7b7"/>
+  <rect x="60" y="160" width="100" height="10" rx="5" fill="#fca5a5"/>
+  <rect x="60" y="180" width="140" height="10" rx="5" fill="#9aa2ff"/>
+
+  <!-- Arrow -->
+  <line x1="260" y1="150" x2="340" y2="150" stroke="url(#arrowGradient)" stroke-width="4"/>
+  <polygon points="340,150 328,142 328,158" fill="#ffd86b"/>
+
+  <!-- Web UI -->
+  <rect x="360" y="80" width="200" height="140" rx="16" fill="#f8fafc"/>
+  <rect x="380" y="110" width="160" height="16" rx="8" fill="#6366f1"/>
+  <rect x="380" y="140" width="120" height="12" rx="6" fill="#94a3b8"/>
+  <rect x="380" y="160" width="140" height="12" rx="6" fill="#94a3b8"/>
+
+  <!-- Button -->
+  <rect x="420" y="185" width="80" height="24" rx="12" fill="#4ade80"/>
+</svg>
