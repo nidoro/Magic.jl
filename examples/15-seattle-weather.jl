@@ -88,14 +88,14 @@ main_area() do
     h4("Summary of 2015")
 
     row(gap="1.5rem 3rem", margin="0 0 2rem 0", css=Dict("flex-wrap" => "wrap")) do
-        metric("Max Temperature", @sprintf("%.0fºC", max_temp_2015), @sprintf("%.0fºC", max_temp_2015 - max_temp_2014))
-        metric("Min Temperature", @sprintf("%.0fºC", min_temp_2015), @sprintf("%.0fºC", min_temp_2015 - min_temp_2014))
+        metric("Max Temperature", @sprintf("%.1fºC", max_temp_2015), @sprintf("%.1fºC", max_temp_2015 - max_temp_2014))
+        metric("Min Temperature", @sprintf("%.1fºC", min_temp_2015), @sprintf("%.1fºC", min_temp_2015 - min_temp_2014))
 
-        metric("Max Precipitation", @sprintf("%.0f", max_prec_2015), @sprintf("%.0f", max_prec_2015 - max_prec_2014))
-        metric("Min Precipitation", @sprintf("%.0f", min_prec_2015), @sprintf("%.0f", min_prec_2015 - min_prec_2014))
+        metric("Max Precipitation", @sprintf("%.1f", max_prec_2015), @sprintf("%.1f", max_prec_2015 - max_prec_2014))
+        metric("Min Precipitation", @sprintf("%.1f", min_prec_2015), @sprintf("%.1f", min_prec_2015 - min_prec_2014))
 
-        metric("Max Wind", @sprintf("%.0f", max_wind_2015), @sprintf("%.0f", max_wind_2015 - max_wind_2014))
-        metric("Min Wind", @sprintf("%.0f", min_wind_2015), @sprintf("%.0f", min_wind_2015 - min_wind_2014))
+        metric("Max Wind", @sprintf("%.1fm/s", max_wind_2015), @sprintf("%.1fm/s", max_wind_2015 - max_wind_2014))
+        metric("Min Wind", @sprintf("%.1fm/s", min_wind_2015), @sprintf("%.1fm/s", min_wind_2015 - min_wind_2014))
 
         df_counts = combine(groupby(page_data.df_2015, :weather), nrow => :count)
         sort!(df_counts, :count, rev=true)
