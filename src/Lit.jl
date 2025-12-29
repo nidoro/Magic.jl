@@ -1481,7 +1481,7 @@ function update(client_id::Cint, payload::Dict)
     session = g.sessions[client_id]
 
     return Threads.@spawn try
-        # NOTE: No more than one update task should be allowed to run on a
+        # TODO: No more than one update task should be allowed to run on a
         # session at any given moment. Queue the updates if needed. And the main
         # event loop should only touch the session at the creation moment.
         #
@@ -1845,6 +1845,7 @@ function start_app(script_path::String; host_name::String="localhost", port::Int
 
             payload = Dict(
                 "type" => "new_state",
+                "dev_mode" => g.dev_mode,
                 "root" => ev.data.state["root"],
             )
 

@@ -15,6 +15,7 @@ class LT_Icon extends HTMLElement {
 
 var g = {
     ws: null,
+    devMode: false,
 };
 
 function getLocation() {
@@ -174,7 +175,6 @@ function createAppElement(parent, props, fragmentId) {
         const elem = document.createElement(props.tag);
 
         applyCSS(elem, props.css);
-        console.log(props.css);
         applyAttributes(elem, props.attributes);
 
         elem.innerHTML = props.inner_html;
@@ -517,13 +517,17 @@ function createAppElement(parent, props, fragmentId) {
 }
 
 function wsSendObj(obj) {
-    console.log("Sending this:");
-    console.log(obj);
+    if (g.devMode) {
+        console.log("Sending this:");
+        console.log(obj);
+    }
     g.ws.send(JSON.stringify(obj));
 }
 
 function wsOnOpen() {
-    console.log("wsOnOpen");
+    if (g.devMode) {
+        console.log("Connected to net-layer");
+    }
     wsSendObj({type: "update", location: getLocation(), events: []});
 }
 
@@ -557,8 +561,12 @@ async function wsOnMessage(event) {
     //console.log(event.data);
 
     const msg = JSON.parse(event.data);
-    console.log("Receiving this (parsed):");
-    console.log(msg);
+    g.devMode = "dev_mode" in msg ? msg["dev_mode"] : false;
+
+    if (g.devMode) {
+        console.log("Receiving this (parsed):");
+        console.log(msg);
+    }
 
     if (msg.type == "new_state") {
         // Preload images
@@ -596,11 +604,13 @@ async function wsOnMessage(event) {
 }
 
 function wsOnClose(event) {
-    console.log("wsOnClose");
+    if (g.devMode) {
+        console.log("Disconnected from net-layer");
+    }
 }
 
 function wsOnError(err) {
-    console.log("wsOnError");
+    console.error(err);
 }
 
 function LT_SetSidebarState(sidebarElem, state) {
