@@ -65,7 +65,7 @@ end
     set_title("Avatar Creator | Lit.jl Demo")
     set_description("Avatar Creator using DiceBear | Lit.jl Demo")
     add_font("Pacifico", ".Lit/served-files/fonts/Pacifico-Regular.ttf")
-    add_style("""
+    add_css_rule("""
         h1 {
             font-family: Pacifico;
         }
