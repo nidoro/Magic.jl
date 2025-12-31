@@ -30,37 +30,14 @@ code blocks.
 
 ### 1. Initialization of session persistent data
 
-Session persistent data is an user defined data that is bound to a session and
-whose lifetime is the lifetime of the session, i.e., as long as the session
-stays active the data will persist. Session persistent data can be retrieved at
-any moment using `get_session_data()` and is only visible to the current
-session.
+Session persistent data is a user defined data that is bound to a session and
+whose lifetime is the lifetime of the session, i.e., as long as the session is
+active the data will persist. Session persistent data can be retrieved at any
+moment using `get_page_data()`.
 
-Although the session persistent data can be either mutable or immutable, a
-common practice is to define a mutable struct to store all of your sessions's
-data and store it with `set_session_data()` at the session startup. Example:
-
-```julia
-# Define the struct to hold the session persistent data
-mutable struct SessionData
-    foo::String
-    bar::Int
-end
-
-@session_startup begin
-    # Initialize the session persistent data
-    session = SessionData("hello", 32)
-    set_session_data(session)
-end
-
-# now `get_session_data()` can be called from anywhere
-# to retrieve the current session data
-```
-
-In the example above, since the persistent data is a mutable struct, every time
-`get_session_data()` is called the same `SessionData` object instance stored with
-`set_session_data()` at the session startup is returned, and thus you can modify its
-members without having to call `set_session_data()` ever again.
+You can store data that you want to be available within a session via the
+`set_session_data()` function, and retrieve it using the `get_session_data()`
+function. See `Session persistent data` to learn more.
 
 ## See also
 
