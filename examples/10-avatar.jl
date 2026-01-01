@@ -81,64 +81,36 @@ end
     set_default_value("clr_skin", "#ffffff")
 end
 
-set_page_layout(
-    style="centered",
-    left_sidebar_initial_state="open",
-    right_sidebar_initial_state="closed",
-    right_sidebar_position="overlay",
-    right_sidebar_initial_width="50%",
-    right_sidebar_toggle_labels=(
-        "VIEW SOURCE <lt-icon lt-icon='material/code'></lt-icon>",
-        nothing
-    )
-)
+h1("Avatar Creator", icon="material/auto_awesome")
 
-main_area() do
-    h1("Avatar Creator", icon="material/auto_awesome")
+img_slot = column()
+randomize = button("Randomize", icon="material/replay") || is_session_first_pass()
 
-    img_slot = column()
-    randomize = button("Randomize", icon="material/replay") || is_session_first_pass()
+column() do
+    cols = columns(2)
 
-    column() do
-        cols = columns(2)
-
-        cols(1) do
-            selectbox("Hair", HAIR_OPTIONS, fill_width=true, id="slc_hair")
-            selectbox("Eyes", EYES_OPTIONS, fill_width=true, id="slc_eyes")
-            selectbox("Mouth", MOUTH_OPTIONS, fill_width=true, id="slc_mouth")
-        end
-
-        cols(2) do
-            color_picker("Hair Color", fill_width=true, id="clr_hair")
-            color_picker("Skin Color", fill_width=true, id="clr_skin")
-            selectbox("Accessory", ACCESSORY_OPTIONS, fill_width=true, id="slc_accessory")
-        end
+    cols(1) do
+        selectbox("Hair", HAIR_OPTIONS, fill_width=true, id="slc_hair")
+        selectbox("Eyes", EYES_OPTIONS, fill_width=true, id="slc_eyes")
+        selectbox("Mouth", MOUTH_OPTIONS, fill_width=true, id="slc_mouth")
     end
 
-    if randomize
-        randomize_options()
-    end
-
-    img_src = generate_avatar_url()
-    img_slot.image(img_src, width=200, height=200, max_width="200px")
-
-    row(align_items="center", gap=".3rem", margin="2rem 0 0 0", css=Dict("opacity" => ".7", "font-size" => ".9rem")) do
-        text("Check out")
-        link("DiceBear", "http://dicebear.com", style="naked")
+    cols(2) do
+        color_picker("Hair Color", fill_width=true, id="clr_hair")
+        color_picker("Skin Color", fill_width=true, id="clr_skin")
+        selectbox("Accessory", ACCESSORY_OPTIONS, fill_width=true, id="slc_accessory")
     end
 end
 
-left_sidebar() do
-    column(fill_width=true, gap="0px") do
-        space(height="3rem")
-        h5("Lit.jl Demo Apps", css=Dict("margin" => "0 0 .8rem .8rem", "white-space" => "nowrap", "color" => "#444"))
-        link("Counter", "/counter", style="naked", fill_width=true, css=Dict("justify-content" => "flex-start"))
-        link("To-Do List", "/todo", style="naked", fill_width=true, css=Dict("justify-content" => "flex-start"))
-        link("Avatar Creator", "/avatar", style="naked", fill_width=true, css=Dict("justify-content" => "flex-start"))
-        link("Seattle Weather", "/seattle-weather", style="naked", fill_width=true, css=Dict("justify-content" => "flex-start"))
-    end
+if randomize
+    randomize_options()
 end
 
-right_sidebar() do
-    code(initial_value_file=@__FILE__)
+img_src = generate_avatar_url()
+img_slot.image(img_src, width=200, height=200, max_width="200px")
+
+row(align_items="center", gap=".3rem", margin="2rem 0 0 0", css=Dict("opacity" => ".7", "font-size" => ".9rem")) do
+    text("Check out")
+    link("DiceBear", "http://dicebear.com", style="naked")
 end
+
