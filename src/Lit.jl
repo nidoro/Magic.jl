@@ -648,6 +648,17 @@ function right_sidebar(inner_func::Function)::ContainerInterface
     return task.layout.right_sidebar
 end
 
+maybe_get_default_value = (user_id::Union{String, Nothing}) -> (user_id != nothing ? get_default_value(user_id) : nothing)
+
+function coalesce(args...)
+    for arg in args
+        if arg !== nothing && arg !== missing
+            return arg
+        end
+    end
+    return nothing
+end
+
 # Button
 #-----------
 function create_button(widgets::Dict{String, Widget}, parent::Dict, label::String, style::String, icon::String, onclick::Function, args::Vector)::Bool
@@ -693,15 +704,18 @@ end
 
 # Text Input
 #-----------
-function create_text_input(widgets::Dict{String, Widget}, parent::Dict, user_id::Any, label::String, initial_value::String, placeholder::String, css=Dict)::String
+function create_text_input(widgets::Dict{String, Widget}, parent::Dict, user_id::Any, label::String, initial_value::Union{String, Nothing}, placeholder::String, css=Dict)::Union{String, Nothing}
     props = Dict(
         "type" => "text_input",
         "user_id" => user_id,
         "label" => label,
+        "default_value" => maybe_get_default_value(user_id),
         "initial_value" => initial_value,
         "placeholder" => placeholder,
         "css" => css,
     )
+
+    props["default_value"] = coalesce(props["default_value"], "")
 
     props["local_id"] = bytes2hex(sha256(JSON.json(props)))
     props["container_id"] = parent["id"]
@@ -720,17 +734,17 @@ function create_text_input(widgets::Dict{String, Widget}, parent::Dict, user_id:
         widget.id = props["id"]
         widget.fragment_id = top_fragment().id
         widget.user_id = props["user_id"]
-        widget.value = initial_value
+        widget.value = props["initial_value"]
         widgets[props["id"]] = widget
     end
 
     props["value"] = widget.value
     widget.props = props
 
-    return widget.value
+    return coalesce(widget.value, props["default_value"])
 end
 
-function text_input(label::String; id::Any=nothing, show_label::Bool=true, fill_width::Bool=false, initial_value::String="", placeholder::String="", css::Dict=Dict())::String
+function text_input(label::String; id::Any=nothing, show_label::Bool=true, fill_width::Bool=false, initial_value::Union{String, Nothing}=nothing, placeholder::String="", css::Dict=Dict())::Union{String, Nothing}
     task = task_local_storage("app_task")
     parent = top_container()
     widgets = task.session.widgets
@@ -755,7 +769,7 @@ function create_selectbox(widgets::Dict{String, Widget}, parent::Dict, user_id::
     props = Dict(
         "type" => "selectbox",
         "user_id" => user_id,
-        "default_value" => user_id != nothing ? get_default_value(user_id) : nothing,
+        "default_value" => maybe_get_default_value(user_id),
         "label" => label,
         "options" => options,
         "multiple" => multiple,

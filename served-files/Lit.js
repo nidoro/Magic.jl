@@ -201,7 +201,7 @@ function inpChange(event) {
         type: "change",
         widget_id: id,
         fragment_id: fragmentId,
-        new_value: newValue,
+        new_value: newValue == "" ? null : newValue,
     }]);
 }
 
@@ -236,6 +236,15 @@ function applyAttributes(elem, attributes) {
     for (const [key, value] of Object.entries(attributes)) {
         elem.setAttribute(key, value);
     }
+}
+
+function coalesce(...args) {
+    for (const arg of args) {
+        if (arg !== null && arg !== undefined) {
+            return arg;
+        }
+    }
+    return null;
 }
 
 function createAppElement(parent, props, fragmentId) {
@@ -323,15 +332,26 @@ function createAppElement(parent, props, fragmentId) {
             elem.classList.add("lt-text-input");
 
             elem.setAttribute("data-lt-id", props.id);
-            elem.setAttribute("placeholder", props.placeholder);
-            elem.setAttribute("value", props.value);
+
+            if (props.value != null) {
+                elem.setAttribute("value", props.value);
+            }
+
+            if (props.placeholder) {
+                elem.setAttribute("placeholder", props.placeholder);
+            } else if (props.default_value) {
+                elem.setAttribute("placeholder", props.default_value);
+            }
+
             //elem.setAttribute("oninput", "inpInput(event)");
             elem.setAttribute("onchange", "inpChange(event)");
         } else {
             elem.setAttribute("dd-reconnecting", "");
 
-            if (elem.input.value != props.value) {
+            if (props.value && elem.input.value != props.value) {
                 elem.setAttribute("value", props.value);
+            } else if (!props.value && elem.input.value) {
+                elem.setAttribute("value", "");
             }
 
             if (DD_Components.isFocused(elem.input)) {
