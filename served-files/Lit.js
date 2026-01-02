@@ -91,22 +91,92 @@ function radChange(groupName) {
     }]);
 }
 
-function dfChange(cell) {
-    const rowData = cell.getRow().getData();
-    const rowIndex = rowData.lt_original_index;
-    const columnName = cell.getField();
-    const newValue = cell.getValue();
-    const tableElem = cell.getTable().element;
+function isNumber(value) {
+    return !isNaN(value);
+}
+
+function sendDFChanges(table) {
+    if (table.lt_queued_changes.length == 0) return;
+
+    const tableElem = table.element;
 
     requestUpdate([{
         type: "change",
         widget_id: tableElem.getAttribute("data-lt-id"),
         fragment_id: tableElem.getAttribute("data-lt-fragment-id"),
-
-        row_index: rowIndex,
-        column_name: columnName,
-        new_value: newValue,
+        changes: table.lt_queued_changes,
     }]);
+
+    table.lt_queued_changes = [];
+}
+
+function dfChange(cell) {
+    if ("ltIgnoreNextChange" in cell && cell.ltIgnoreNextChange) {
+        cell.ltIgnoreNextChange = false;
+        return;
+    }
+
+    const table = cell.getTable();
+
+    const oldValue = cell.getOldValue();
+    let newValue = cell.getValue();
+
+    const rowData = cell.getRow().getData();
+    const rowIndex = rowData.lt_original_index;
+    const columnName = cell.getField();
+    const tableElem = table.element;
+
+    const columnConfig = table.lt_column_config[columnName];
+    const columnType = columnConfig.type;
+    const juliaType = columnConfig.julia_type;
+
+    if (oldValue == newValue) return;
+
+    let ignore_changes = false;
+
+    if (columnType == "Number") {
+        if (["", undefined, null].includes(newValue)) {
+            if (columnConfig.required) {
+                cell.ltIgnoreNextChange = true;
+                cell.setValue(oldValue);
+                ignore_changes = true;
+                newValue = oldValue;
+            } else {
+                newValue = null;
+            }
+        } else if (isNumber(newValue)) {
+            newValue = Number(newValue);
+        } else if (columnConfig.required) {
+            cell.ltIgnoreNextChange = true;
+            cell.setValue(oldValue);
+            ignore_changes = true;
+            newValue = oldValue;
+        } else {
+            cell.setValue(null);
+            newValue = null;
+        }
+    } else if (columnType == "String") {
+        if ([undefined, null].includes(newValue)) {
+            if (columnConfig.required) {
+                cell.ltIgnoreNextChange = true;
+                cell.setValue(oldValue);
+                ignore_changes = true;
+                newValue = oldValue;
+            } else {
+                newValue = null;
+            }
+        }
+    }
+
+    if (!ignore_changes) {
+        table.lt_queued_changes.push({
+            row_index: rowIndex,
+            column_name: columnName,
+            new_value: newValue,
+        });
+
+        requestAnimationFrame(() => sendDFChanges(table));
+    }
 }
 
 function inpInput(event) {
@@ -406,6 +476,10 @@ function createAppElement(parent, props, fragmentId) {
 
             const lining = document.createElement("div");
             lining.classList.add("lt-dataframe-lining");
+            lining.setAttribute("data-lt-container-id", props.container_id);
+            lining.setAttribute("data-lt-local-id", props.local_id);
+            lining.setAttribute("data-lt-id", props.id);
+            lining.setAttribute("data-lt-fragment-id", fragmentId);
             elem.appendChild(lining);
 
             for (const [i, row] of props.initial_value.entries()) {
@@ -418,21 +492,23 @@ function createAppElement(parent, props, fragmentId) {
                 for (const columnName of Object.keys(props.initial_value[0])) {
                     if (columnName == "lt_original_index") continue;
 
-                    if (columnName in props.columns) {
-                        const column = props.columns[columnName];
-                        columns.push({
-                            field: columnName,
-                            title: columnName,
-                            editor: column.editable ? "input" : null,
-                            cellEdited: column.editable ? dfChange : null,
-                        });
-                    } else {
-                        columns.push({
-                            field: columnName,
-                            title: columnName,
-                            editor: null,
-                        });
+                    let columnOptions = {
+                        field: columnName,
+                        title: columnName,
+                        editor: null,
                     }
+
+                    if (columnName in props.column_config) {
+                        const config = props.column_config[columnName];
+                        columnOptions = {
+                            field: columnName,
+                            title: columnName,
+                            editor: config.editable ? (config.type == "Number" ? "number" : "input") : null,
+                            cellEdited: config.editable ? dfChange : null,
+                        }
+                    }
+
+                    columns.push(columnOptions);
                 }
             }
 
@@ -442,6 +518,13 @@ function createAppElement(parent, props, fragmentId) {
                 layout: "fitFill",
                 selectableRange: true,
                 selectableRangeAutoFocus: false,
+
+                // NOTE: This activates Tabular.js handler for Delete/Backspace keydown
+                // event, but it turns out that it is not good because it deletes
+                // read-only cells too, and it also deletes the entire cell content
+                // when the user is editing a specific cell, which is really bad UX.
+                // selectableRangeClearCells: true,
+
                 clipboard: true,
                 clipboardCopyRowRange: "range",
                 clipboardCopyConfig:{
@@ -454,13 +537,49 @@ function createAppElement(parent, props, fragmentId) {
                     editor: null,
                     resizable: "header",
                 },
+                editTriggerEvent:"dblclick"
             });
 
-            setTimeout(()=>{
-                document.activeElement.blur();
-            }, 0);
+            table.lt_column_config = props.column_config;
+            table.lt_queued_changes = [];
+
+            // Handle Delete/Backspace
+            //---------------------------------------
+            lining.addEventListener("keydown", function(e) {
+                if (document.activeElement.tagName == "INPUT") {
+                    return;
+                }
+
+                if (e.key === "Delete" || e.key === "Backspace") {
+                    let ranges = table.getRanges();
+
+                    ranges.forEach(range => {
+                        range.getCells().forEach(cells => {
+                            cells.forEach(cell => {
+                                if (cell.getColumn().getDefinition().editor) {
+                                    cell.setValue(null);
+                                }
+                            });
+                        });
+                    });
+
+                    e.preventDefault();
+                }
+            });
+
+            setTimeout(()=> document.activeElement.blur(), 0);
         } else {
-            // TODO: NOTHING TO DO?
+            const scrollY = elem.querySelector(".tabulator-tableholder").scrollTop;
+
+            let refocus = null;
+            if (elem.contains(document.activeElement)) {
+                refocus = document.activeElement;
+            }
+
+            requestAnimationFrame(() => {
+                elem.querySelector(".tabulator-tableholder").scrollTop = scrollY;
+                if (refocus) refocus.focus();
+            });
         }
 
         newElements.push(elem);

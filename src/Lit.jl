@@ -8,6 +8,7 @@ using Logging
 using JSON
 using SHA
 using Tables
+using DataFrames
 using Random
 using Artifacts
 
@@ -596,7 +597,8 @@ function set_page_layout(
 
     push_container(main_area)
     inner_func()
-    # pop_container()
+    # NOTE: we don't pop the container, so main_area() is essentially the new
+    # root where top-level elements are placed.
 
     containers = Containers()
     containers.containers = [main_area, left_sidebar, right_sidebar]
@@ -876,6 +878,7 @@ function create_checkboxes(widgets::Dict{String, Widget}, parent::Dict, user_id:
         "options" => options,
         "initial_value" => initial_value,
         "multiple" => multiple,
+        "user_id" => user_id,
     )
 
     props["local_id"] = bytes2hex(sha256(JSON.json(props)))
@@ -893,6 +896,7 @@ function create_checkboxes(widgets::Dict{String, Widget}, parent::Dict, user_id:
         widget = Widget()
         widget.kind = WidgetKind_Checkboxes
         widget.id = props["id"]
+        widget.user_id = props["user_id"]
         widget.fragment_id = top_fragment().id
         if multiple
             widget.value = initial_value
@@ -1053,12 +1057,13 @@ end
 
 # Dataframe
 #--------------------
-function create_dataframe(widgets::Dict{String, Widget}, parent::Dict, data::Any, columns::Dict, height::String)::Widget
+function create_dataframe(widgets::Dict{String, Widget}, parent::Dict, user_id::Any, data::DataFrame, column_config::Dict, height::String, onchange::Function, args::Vector)::Any
     props = Dict(
         "type" => "dataframe",
         "data_ptr" => repr(pointer_from_objref(data)),
-        "columns" => columns,
+        "column_config" => column_config,
         "height" => height,
+        "user_id" => user_id,
     )
 
     props["local_id"] = bytes2hex(sha256(JSON.json(props)))
@@ -1077,6 +1082,9 @@ function create_dataframe(widgets::Dict{String, Widget}, parent::Dict, data::Any
         widget.kind = WidgetKind_DataFrame
         widget.id = props["id"]
         widget.fragment_id = top_fragment().id
+        widget.user_id = props["user_id"]
+        widget.onchange = onchange
+        widget.args = args
         widget.value = data
         widgets[props["id"]] = widget
         props["initial_value"] = Tables.collect(Tables.rowtable(data))
@@ -1084,13 +1092,54 @@ function create_dataframe(widgets::Dict{String, Widget}, parent::Dict, data::Any
 
     widget.props = props
 
-    return widget
+    return widget.value
 end
 
-function dataframe(data::Any; columns::Dict=Dict(), height::String="400px")::Widget
+function dataframe(
+        data::DataFrame;
+        column_config::Dict=Dict(),
+        height::String="400px",
+        id::Union{String, Nothing}=nothing,
+        onchange::Function=(args...; kwargs...)->(),
+        args::Vector=Vector()
+    )::Any
+
     task = task_local_storage("app_task")
     widgets = task.session.widgets
-    return create_dataframe(widgets, top_container(), data, columns, height)
+
+    cc = Dict()
+
+    for column_name in names(data)
+        cc[column_name] = Dict()
+
+        if column_name in keys(column_config)
+            merge!(cc[column_name], column_config[column_name])
+        end
+
+        column_type = eltype(data[:, column_name])
+        cc[column_name]["julia_type"] = column_type
+
+        if !("type" in keys(cc[column_name]))
+            if Number <: column_type || Int <: column_type || Real <: column_type
+                cc[column_name]["type"] = "Number"
+            else
+                cc[column_name]["type"] = "String"
+            end
+        end
+
+        if !("empty_value" in keys(cc[column_name]))
+            if Nothing <: column_type
+                cc[column_name]["empty_value"] = "<nothing>"
+            elseif Missing <: column_type
+                cc[column_name]["empty_value"] = "<missing>"
+            else
+                cc[column_name]["empty_value"] = ""
+                cc[column_name]["required"] = true
+            end
+        end
+    end
+
+    return create_dataframe(widgets, top_container(), id, data, cc, height, onchange, args)
 end
 
 # HTML
@@ -1288,6 +1337,15 @@ function get_value(user_id::String)::Any
         return get_default_value(user_id)
     end
     return widget.value
+end
+
+function get_changes(user_id::String)::Union{Missing, Dict{Int, Dict{String, Any}}}
+    task = task_local_storage("app_task")
+    widget = get_widget_by_user_id(task.session.widgets, user_id)
+    if widget === missing
+        return missing
+    end
+    return widget.changes
 end
 
 function get_app_data()::Any
@@ -1574,13 +1632,37 @@ function update(client_id::Cint, payload::Dict)
                     else
                         widget.value = (length(front_event["new_value"]) > 0)
                     end
-                    invokelatest(widget.onchange, widget.value, widget.args...)
+                    invokelatest(widget.onchange, widget.args...)
                 elseif widget.kind == WidgetKind_Selectbox || widget.kind == WidgetKind_Radio || widget.kind == WidgetKind_TextInput || widget.kind == WidgetKind_ColorPicker
                     widget.value = front_event["new_value"]
-                    invokelatest(widget.onchange, widget.value, widget.args...)
+                    invokelatest(widget.onchange, widget.args...)
                 elseif widget.kind == WidgetKind_DataFrame
-                    change = get!(widget.changes, front_event["row_index"], Dict())
-                    change[front_event["column_name"]] = front_event["new_value"]
+                    for change in front_event["changes"]
+                        column_config = widget.props["column_config"][change["column_name"]]
+                        new_value = change["new_value"]
+
+                        if column_config["type"] == "Number" && !(new_value in ["", nothing])
+                            new_value = round(column_config["julia_type"], new_value)
+                        end
+
+                        if (column_config["type"] == "Number" && (new_value == "" || new_value == nothing)) ||
+                           (column_config["type"] == "String" && (new_value == nothing))
+                            if column_config["empty_value"] == "<nothing>"
+                                new_value = nothing
+                            elseif column_config["empty_value"] == "<missing>"
+                                new_value = missing
+                            else
+                                new_value = column_config["empty_value"]
+                            end
+                        end
+
+                        row_changes = get!(widget.changes, change["row_index"], Dict{String, Any}())
+                        row_changes[change["column_name"]] = new_value
+
+                        widget.value[change["row_index"], change["column_name"]] = new_value
+                    end
+
+                    invokelatest(widget.onchange, widget.args...)
                 end
             end
         end
@@ -1927,7 +2009,7 @@ end
 #--------------------
 export html, text, h1, h2, h3, h4, h5, h6, link, space, metric,
 button, image, dataframe, selectbox, radio, checkbox, checkboxes, text_input,
-code, color_picker
+code, color_picker, get_value, set_value, get_changes
 
 # Layout Elements
 #-------------------
@@ -1938,7 +2020,7 @@ columns, container, @push, @pop, push_container, pop_container
 #--------------------
 export start_app, @app_startup, @page_startup, @session_startup, @once,
 set_app_data, get_app_data, set_page_data, get_page_data, set_session_data,
-get_session_data, get_default_value, set_default_value, get_value, set_value,
+get_session_data, get_default_value, set_default_value,
 is_app_first_pass, is_page_first_pass, is_session_first_pass, gen_resource_path,
 fragment, @fragment, get_url_path, is_on_page, get_current_page, add_page,
 add_css_rule, add_font, begin_page_config, end_page_config, set_title,

@@ -235,6 +235,11 @@ img.lt-image {
     cursor: default;
 }
 
+.tabulator input {
+    font-family: inherit !important;
+    color: inherit !important;
+}
+
 /* SELECTBOX */
 /* SELECTBOX */
 /* SELECTBOX */
