@@ -14,9 +14,9 @@ function delete_item(i::Int)
     deleteat!(session.items, i)
 end
 
-function toggle_item(new_value::Bool, i::Int)
+function toggle_item(i::Int)
     session = get_session_data()
-    session.items[i].status = new_value
+    session.items[i].status = get_value("item_$i")
 end
 
 function delete_all_checked()
@@ -55,7 +55,7 @@ if length(session.items) > 0
     column(fill_width=true, show_border=true, padding="0.8rem") do
         for (i, item) in enumerate(session.items)
             row(fill_width=true, align_items="center", justify_content="space-between") do
-                checkbox(item.name, initial_value=item.status, onchange=toggle_item, args=[i])
+                checkbox(item.name, initial_value=item.status, id="item_$i", onchange=toggle_item, args=[i])
                 button("", icon="material/delete", style="naked", onclick=delete_item, args=[i])
             end
         end
