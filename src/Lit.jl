@@ -704,7 +704,16 @@ end
 
 # Text Input
 #-----------
-function create_text_input(widgets::Dict{String, Widget}, parent::Dict, user_id::Any, label::String, initial_value::Union{String, Nothing}, placeholder::String, css=Dict)::Union{String, Nothing}
+function create_text_input(
+        widgets::Dict{String, Widget},
+        parent::Dict,
+        user_id::Any,
+        label::String,
+        initial_value::Union{String, Nothing},
+        placeholder::Union{String, Nothing},
+        css=Dict
+    )::Union{String, Nothing}
+
     props = Dict(
         "type" => "text_input",
         "user_id" => user_id,
@@ -715,7 +724,9 @@ function create_text_input(widgets::Dict{String, Widget}, parent::Dict, user_id:
         "css" => css,
     )
 
-    props["default_value"] = coalesce(props["default_value"], "")
+    if props["placeholder"] == nothing
+        props["placeholder"] = coalesce(props["default_value"], "")
+    end
 
     props["local_id"] = bytes2hex(sha256(JSON.json(props)))
     props["container_id"] = parent["id"]
@@ -744,7 +755,16 @@ function create_text_input(widgets::Dict{String, Widget}, parent::Dict, user_id:
     return coalesce(widget.value, props["default_value"])
 end
 
-function text_input(label::String; id::Any=nothing, show_label::Bool=true, fill_width::Bool=false, initial_value::Union{String, Nothing}=nothing, placeholder::String="", css::Dict=Dict())::Union{String, Nothing}
+function text_input(
+        label::String;
+        id::Any=nothing,
+        show_label::Bool=true,
+        fill_width::Bool=false,
+        initial_value::Union{String, Nothing}=nothing,
+        placeholder::Union{String, Nothing}=nothing,
+        css::Dict=Dict()
+    )::Union{String, Nothing}
+
     task = task_local_storage("app_task")
     parent = top_container()
     widgets = task.session.widgets
@@ -765,7 +785,18 @@ end
 
 # Selectbox
 #-----------
-function create_selectbox(widgets::Dict{String, Widget}, parent::Dict, user_id::Any, label::String, options::Vector, multiple::Bool, onchange::Function, css=Dict)::Any
+function create_selectbox(
+        widgets::Dict{String, Widget},
+        parent::Dict,
+        user_id::Any,
+        label::String,
+        options::Vector,
+        multiple::Bool,
+        placeholder::Union{String, Nothing},
+        onchange::Function,
+        css=Dict
+    )::Union{String, Vector, Nothing}
+
     props = Dict(
         "type" => "selectbox",
         "user_id" => user_id,
@@ -773,8 +804,21 @@ function create_selectbox(widgets::Dict{String, Widget}, parent::Dict, user_id::
         "label" => label,
         "options" => options,
         "multiple" => multiple,
+        "placeholder" => placeholder,
         "css" => css,
     )
+
+    if props["placeholder"] == nothing
+        if props["default_value"] !== nothing
+            if typeof(props["default_value"]) == String
+                props["placeholder"] = props["default_value"]
+            else
+                props["placeholder"] = join([replace(option, "\"" => "") for option in repr.(props["default_value"])], ", ")
+            end
+        else
+            props["placeholder"] = ""
+        end
+    end
 
     props["local_id"] = bytes2hex(sha256(JSON.json(props)))
     props["container_id"] = parent["id"]
@@ -800,10 +844,21 @@ function create_selectbox(widgets::Dict{String, Widget}, parent::Dict, user_id::
     props["value"] = widget.value
     widget.props = props
 
-    return widget.value
+    return coalesce(widget.value, props["default_value"])
 end
 
-function selectbox(label::String, options::Vector; id::Any=nothing, multiple::Bool=false, show_label::Bool=true, fill_width::Bool=false, onchange::Function=(args...; kwargs...)->(), css::Dict=Dict())::Any
+function selectbox(
+        label::String,
+        options::Vector;
+        id::Any=nothing,
+        multiple::Bool=false,
+        show_label::Bool=true,
+        placeholder::Union{String, Nothing}=nothing,
+        fill_width::Bool=false,
+        onchange::Function=(args...; kwargs...)->(),
+        css::Dict=Dict()
+    )::Union{String, Vector, Nothing}
+
     task = task_local_storage("app_task")
     parent = top_container()
     widgets = task.session.widgets
@@ -819,19 +874,35 @@ function selectbox(label::String, options::Vector; id::Any=nothing, multiple::Bo
         merge!(css, container_css)
     end
 
-    return create_selectbox(widgets, parent, id, label, options, multiple, onchange, css)
+    return create_selectbox(widgets, parent, id, label, options, multiple, placeholder, onchange, css)
 end
 
 # Color Picker
 #-------------------
-function create_color_picker(widgets::Dict{String, Widget}, parent::Dict, user_id::Any, label::String, onchange::Function, css=Dict)::Any
+function create_color_picker(
+        widgets::Dict{String, Widget},
+        parent::Dict,
+        user_id::Any,
+        label::String,
+        initial_value::Union{String, Nothing},
+        onchange::Function,
+        css=Dict
+    )::String
+
     props = Dict(
         "type" => "color_picker",
         "user_id" => user_id,
-        "default_value" => user_id != nothing ? get_default_value(user_id) : nothing,
+        "default_value" => maybe_get_default_value(user_id),
+        "initial_value" => initial_value,
         "label" => label,
         "css" => css,
     )
+
+    # NOTE: Color picker can't have "no" value, so initial value must be
+    # set to something.
+    if props["initial_value"] === nothing
+        props["initial_value"] = coalesce(props["default_value"], "#999999")
+    end
 
     props["local_id"] = bytes2hex(sha256(JSON.json(props)))
     props["container_id"] = parent["id"]
@@ -850,6 +921,7 @@ function create_color_picker(widgets::Dict{String, Widget}, parent::Dict, user_i
         widget.id = props["id"]
         widget.user_id = props["user_id"]
         widget.fragment_id = top_fragment().id
+        widget.value = props["initial_value"]
         widget.onchange = onchange
         widgets[props["id"]] = widget
     end
@@ -860,7 +932,16 @@ function create_color_picker(widgets::Dict{String, Widget}, parent::Dict, user_i
     return widget.value
 end
 
-function color_picker(label::String; id::Any=nothing, show_label::Bool=true, fill_width::Bool=false, onchange::Function=(args...; kwargs...)->(), css::Dict=Dict())
+function color_picker(
+        label::String;
+        initial_value::Union{String, Nothing}=nothing,
+        id::Any=nothing,
+        show_label::Bool=true,
+        fill_width::Bool=false,
+        onchange::Function=(args...; kwargs...)->(),
+        css::Dict=Dict()
+    )::String
+
     task = task_local_storage("app_task")
     parent = top_container()
     widgets = task.session.widgets
@@ -880,12 +961,23 @@ function color_picker(label::String; id::Any=nothing, show_label::Bool=true, fil
         merge!(css, container_css)
     end
 
-    return create_color_picker(widgets, parent, id, label, onchange, css)
+    return create_color_picker(widgets, parent, id, label, initial_value, onchange, css)
 end
 
 # Checkbox
 #-----------
-function create_checkboxes(widgets::Dict{String, Widget}, parent::Dict, user_id::Any, label::String, options::Vector, initial_value::Vector, multiple::Bool, onchange::Function, args::Vector)::Any
+function create_checkboxes(
+        widgets::Dict{String, Widget},
+        parent::Dict,
+        user_id::Any,
+        label::String,
+        options::Vector,
+        initial_value::Union{Vector, Nothing},
+        multiple::Bool,
+        onchange::Function,
+        args::Vector
+    )::Union{Bool, Vector}
+
     props = Dict(
         "type" => "checkboxes",
         "label" => label,
@@ -894,6 +986,19 @@ function create_checkboxes(widgets::Dict{String, Widget}, parent::Dict, user_id:
         "multiple" => multiple,
         "user_id" => user_id,
     )
+
+    if props["initial_value"] === nothing
+        default_value = maybe_get_default_value(user_id)
+        if default_value !== nothing
+            if multiple
+                props["initial_value"] = default_value
+            else
+                props["initial_value"] = default_value ? [label] : []
+            end
+        else
+            props["initial_value"] = []
+        end
+    end
 
     props["local_id"] = bytes2hex(sha256(JSON.json(props)))
     props["container_id"] = parent["id"]
@@ -913,9 +1018,9 @@ function create_checkboxes(widgets::Dict{String, Widget}, parent::Dict, user_id:
         widget.user_id = props["user_id"]
         widget.fragment_id = top_fragment().id
         if multiple
-            widget.value = initial_value
+            widget.value = props["initial_value"]
         else
-            widget.value = (length(initial_value) > 0)
+            widget.value = (length(props["initial_value"]) > 0)
         end
         widget.onchange = onchange
         widget.args = args
@@ -928,14 +1033,35 @@ function create_checkboxes(widgets::Dict{String, Widget}, parent::Dict, user_id:
     return widget.value
 end
 
-function checkbox(label::String; id::Any=nothing, initial_value::Bool=false, onchange::Function=(args...; kwargs...)->(), args::Vector=Vector())::Bool
+function checkbox(
+        label::String;
+        id::Any=nothing,
+        initial_value::Union{Bool, Nothing}=nothing,
+        onchange::Function=(args...; kwargs...)->(),
+        args::Vector=Vector()
+    )::Bool
+
     task = task_local_storage("app_task")
     widgets = task.session.widgets
-    init_value = initial_value ? [label] : []
+
+    init_value = nothing
+
+    if initial_value !== nothing
+        init_value = initial_value ? [label] : []
+    end
+
     return create_checkboxes(widgets, top_container(), id, label, [label], init_value, false, onchange, args)
 end
 
-function checkboxes(label::String, options::Vector; id::Any=nothing, initial_value::Vector=[], onchange::Function=(args...; kwargs...)->(), args::Vector=Vector())::Any
+function checkboxes(
+        label::String,
+        options::Vector;
+        id::Any=nothing,
+        initial_value::Union{Vector, Nothing}=nothing,
+        onchange::Function=(args...; kwargs...)->(),
+        args::Vector=Vector()
+    )::Vector
+
     task = task_local_storage("app_task")
     widgets = task.session.widgets
     return create_checkboxes(widgets, top_container(), id, label, options, initial_value, true, onchange, args)
@@ -943,7 +1069,15 @@ end
 
 # Radio
 #-----------
-function create_radio(widgets::Dict{String, Widget}, parent::Dict, user_id::Any, label::String, options::Vector, initial_value::Any)::Any
+function create_radio(
+        widgets::Dict{String, Widget},
+        parent::Dict,
+        user_id::Any,
+        label::String,
+        options::Vector,
+        initial_value::Union{String, Nothing}
+    )::Union{String, Nothing}
+
     props = Dict(
         "type" => "radio",
         "label" => label,
@@ -951,6 +1085,10 @@ function create_radio(widgets::Dict{String, Widget}, parent::Dict, user_id::Any,
         "user_id" => user_id,
         "initial_value" => initial_value,
     )
+
+    if props["initial_value"] === nothing
+        props["initial_value"] = coalesce(maybe_get_default_value(user_id), options[1])
+    end
 
     props["local_id"] = bytes2hex(sha256(JSON.json(props)))
     props["container_id"] = parent["id"]
@@ -969,11 +1107,7 @@ function create_radio(widgets::Dict{String, Widget}, parent::Dict, user_id::Any,
         widget.id = props["id"]
         widget.user_id = props["user_id"]
         widget.fragment_id = top_fragment().id
-        if initial_value != nothing
-            widget.value = initial_value
-        else
-            widget.value = options[1]
-        end
+        widget.value = props["initial_value"]
         widgets[props["id"]] = widget
     end
 
@@ -983,7 +1117,13 @@ function create_radio(widgets::Dict{String, Widget}, parent::Dict, user_id::Any,
     return widget.value
 end
 
-function radio(label::String, options::Vector; id::Any=nothing, initial_value::Any=nothing)::Any
+function radio(
+        label::String,
+        options::Vector;
+        id::Any=nothing,
+        initial_value::Union{String, Nothing}=nothing
+    )::Union{String, Nothing}
+
     task = task_local_storage("app_task")
     widgets = task.session.widgets
     return create_radio(widgets, top_container(), id, label, options, initial_value)

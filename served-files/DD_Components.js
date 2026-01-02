@@ -1083,11 +1083,20 @@ class DD_Radio extends DD_Checkbox {
     static observedAttributes = ["checked"];
 
     connectedCallback() {
+        if (this.hasAttribute("dd-reconnecting")) {
+            this.removeAttribute("dd-reconnecting");
+            return;
+        }
+
         this.initializeButton();
         this.initializeCheckbox();
     }
     
     disconnectedCallback() {
+        if (this.hasAttribute("dd-reconnecting")) {
+            return;
+        }
+
         this.deinitializeCheckbox();
     }
     
@@ -1112,7 +1121,9 @@ class DD_Radio extends DD_Checkbox {
         if (group) {
             for (let checkbox of group.checkboxes) {
                 if (checkbox != this && checkbox.hasAttribute("checked")) {
+                    checkbox.setAttribute("dd-silent", "");
                     checkbox.removeAttribute("checked");
+                    checkbox.removeAttribute("dd-silent");
                 }
             }
         }
@@ -2950,6 +2961,7 @@ class DD_Select extends DD_Menu {
     updateText() {
         let selected = this.getAttribute("dd-selected");
         let text = this.getOptionText(selected);
+
         if (text == null) {
             if (this.hasAttribute("dd-placeholder")) {
                 text = this.getAttribute("dd-placeholder");
@@ -2964,6 +2976,14 @@ class DD_Select extends DD_Menu {
         
         if (this.anchorType != "INPUT") {
             this.anchor.innerHTML = text;
+        } else if (this.hasAttribute("dd-multiple")) {
+            if (!selected) {
+                this.anchor.setAttribute("placeholder", text);
+            } else {
+                this.anchor.setAttribute("placeholder", "");
+            }
+        } else {
+            this.anchor.setAttribute("placeholder", text);
         }
     }
     

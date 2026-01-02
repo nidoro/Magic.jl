@@ -52,12 +52,18 @@ function btnClick(event) {
 }
 
 function mslChange(oldValue, newValue, elem) {
+    if (Array.isArray(newValue) && newValue.length == 0) {
+        newValue = null;
+    } else if (newValue == "") {
+        newValue = null;
+    }
+
     requestUpdate([{
         type: "change",
         widget_id: elem.getAttribute("data-lt-id"),
         fragment_id: elem.getAttribute("data-lt-fragment-id"),
         old_value: oldValue,
-        new_value: newValue ? newValue : null,
+        new_value: newValue,
     }]);
 }
 
@@ -337,11 +343,7 @@ function createAppElement(parent, props, fragmentId) {
                 elem.setAttribute("value", props.value);
             }
 
-            if (props.placeholder) {
-                elem.setAttribute("placeholder", props.placeholder);
-            } else if (props.default_value) {
-                elem.setAttribute("placeholder", props.default_value);
-            }
+            elem.setAttribute("placeholder", props.placeholder);
 
             //elem.setAttribute("oninput", "inpInput(event)");
             elem.setAttribute("onchange", "inpChange(event)");
@@ -363,40 +365,46 @@ function createAppElement(parent, props, fragmentId) {
 
         newElements.push(elem);
     } else if (props.type == "selectbox") {
-        const inpElem = document.createElement("dd-input");
-        inpElem.classList.add("lt-selectbox");
+        let inpElem = document.querySelector(`dd-input[data-lt-id="${props.id}"]`);
+        let slcElem = document.querySelector(`dd-select[data-lt-id="${props.id}"]`);
 
-        for (const [key, value] of Object.entries(props.css)) {
-            inpElem.style[key] = value;
+        if (!inpElem) {
+            inpElem = document.createElement("dd-input");
+            inpElem.classList.add("lt-selectbox");
+
+            for (const [key, value] of Object.entries(props.css)) {
+                inpElem.style[key] = value;
+            }
+
+            slcElem = document.createElement("dd-select");
+            slcElem.classList.add("lt-selectbox");
+
+            if (props["multiple"]) {
+                slcElem.setAttribute("dd-multiple", "");
+            }
+
+            slcElem.setAttribute("dd-placeholder", props["placeholder"]);
+            slcElem.setAttribute("dd-onchange", "mslChange()");
+
+            slcElem.setAttribute("dd-width", "anchor");
+            slcElem.setAttribute("data-lt-container-id", props.container_id);
+            slcElem.setAttribute("data-lt-local-id", props.local_id);
+            slcElem.setAttribute("data-lt-id", props.id);
+
+            for (const op of props.options) {
+                const optElem = document.createElement("dd-option");
+                optElem.setAttribute("value", op);
+                optElem.setAttribute("dd-text", op);
+                slcElem.appendChild(optElem);
+            }
         }
-
-        const slcElem = document.createElement("dd-select");
-        slcElem.classList.add("lt-selectbox");
-
-        if (props["multiple"]) {
-            slcElem.setAttribute("dd-multiple", "");
-        }
-
-        slcElem.setAttribute("dd-onchange", "mslChange()");
-
-        slcElem.setAttribute("dd-width", "anchor");
-        slcElem.setAttribute("data-lt-container-id", props.container_id);
-        slcElem.setAttribute("data-lt-local-id", props.local_id);
-        slcElem.setAttribute("data-lt-id", props.id);
-
-        for (const op of props.options) {
-            const optElem = document.createElement("dd-option");
-            optElem.setAttribute("value", op);
-            optElem.setAttribute("dd-text", op);
-            slcElem.appendChild(optElem);
-        }
-
-        newElements.push(inpElem);
-        newElements.push(slcElem);
 
         if (props.value != null) {
             requestAnimationFrame(() => slcElem.setValue(props.value, {silent: true}));
         }
+
+        newElements.push(inpElem);
+        newElements.push(slcElem);
     } else if (props.type == "color_picker") {
         let elem = document.querySelector(`[data-lt-id="${props.id}"]`);
 
@@ -407,7 +415,9 @@ function createAppElement(parent, props, fragmentId) {
             elem.setAttribute("data-lt-container-id", props.container_id);
             elem.setAttribute("data-lt-local-id", props.local_id);
             elem.setAttribute("data-lt-id", props.id);
-            elem.setAttribute("value", props.value);
+
+            let value = props.value ? props.value : "#999999";
+            elem.setAttribute("value", value);
 
             applyCSS(elem, props.css)
         } else {
@@ -417,6 +427,7 @@ function createAppElement(parent, props, fragmentId) {
         newElements.push(elem);
     } else if (props.type == "checkboxes") {
         const cbxGroup = DD_Checkbox.getGroup(props.id);
+
 
         if (!cbxGroup) {
             for (const op of props.options) {
@@ -445,21 +456,53 @@ function createAppElement(parent, props, fragmentId) {
             newElements = cbxGroup.checkboxes;
             for (const elem of newElements) {
                 elem.setAttribute("dd-reconnecting", "");
+                elem.setAttribute("dd-silent", "");
+
+                if (props.multiple) {
+                    if (props.value.includes(elem.value)) {
+                        elem.setAttribute("checked", "");
+                    } else {
+                        elem.removeAttribute("checked", "");
+                    }
+                } else {
+                    if (props.value) {
+                        elem.setAttribute("checked", "");
+                    } else {
+                        elem.removeAttribute("checked", "");
+                    }
+                }
             }
+
+            requestAnimationFrame(() => {
+                for (const elem of newElements) {
+                    elem.removeAttribute("dd-silent");
+                }
+            });
         }
+
     } else if (props.type == "radio") {
-        for (const op of props.options) {
-            const elem = document.createElement("dd-radio");
-            elem.setAttribute("dd-group", props.id);
+        const group = DD_Radio.getGroup(props.id);
 
-            elem.innerText = op;
-            elem.value = op;
+        if (!group) {
+            for (const op of props.options) {
+                const elem = document.createElement("dd-radio");
+                elem.setAttribute("dd-group", props.id);
 
-            if (props.value == op) {
-                elem.setAttribute("dd-onanychange", "radChange()");
+                elem.innerText = op;
+                elem.value = op;
+
+                if (op == props.options[0]) {
+                    elem.setAttribute("dd-onanychange", "radChange()");
+                }
+
+                newElements.push(elem);
             }
-
-            newElements.push(elem);
+        } else {
+            const elems = document.querySelectorAll(`dd-radio[dd-group="${props.id}"]`);
+            newElements = Array.from(elems);
+            for (const elem of elems) {
+                elem.setAttribute("dd-reconnecting", "");
+            }
         }
 
         requestAnimationFrame(() => {
@@ -729,7 +772,7 @@ async function wsOnMessage(event) {
         oldFragContainer.parentElement.insertBefore(newFragWrapper, oldFragContainer);
         oldFragContainer.remove();
 
-        // Remove checkbox groups that cease to exist
+        // Remove checkbox groups that ceased to exist
         //-----------------------------------------------
         while (DD_Components.removeItemFromArrayIfCondition(DD_Checkbox.groups, (entry) => (entry.checkboxes.length == 0)));
 
