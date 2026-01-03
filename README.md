@@ -23,7 +23,7 @@ science web app.
 
 ## Documentation
 
-- [Open here](https://lit.coisasdodavi.net/docs/build/docs/getting-started/install)
+- [Getting Started](https://lit.coisasdodavi.net/docs/build/docs/getting-started/install)
 - [Demo Web Apps](https://lit.coisasdodavi.net/)
 - [API Reference](https://lit.coisasdodavi.net/docs/build/docs/category/api-reference)
 
