@@ -2020,20 +2020,18 @@ function start_app(script_path::String="app.jl"; host_name::String="localhost", 
         popfirst!(g.pages)
     end
 
-    if true
-        for page in g.pages
-            @info "Dry Run: First pass over '$(script_path)' as if loading page '$(page.uris[1])'.\n$(AC_Green("@page_startup")) code blocks will run now."
-            g.sessions[Cint(0)].first_pass = true
+    for page in g.pages
+        @info "Dry Run: First pass over '$(script_path)' as if loading page '$(page.uris[1])'.\n$(AC_Green("@page_startup")) code blocks will run now."
+        g.sessions[Cint(0)].first_pass = true
 
-            dry_run_payload["location"]["href"] = "https://$(host_name):$(port)" * page.uris[1]
-            dry_run_payload["location"]["pathname"] = page.uris[1]
+        dry_run_payload["location"]["href"] = "https://$(host_name):$(port)" * page.uris[1]
+        dry_run_payload["location"]["pathname"] = page.uris[1]
 
-            wait(update(Cint(0), dry_run_payload))
+        wait(update(Cint(0), dry_run_payload))
 
-            if page.first_pass
-                @error "Dry run of page '$(page.uris[1])' failed."
-                return
-            end
+        if page.first_pass
+            @error "Dry run of page '$(page.uris[1])' failed."
+            return
         end
     end
 
