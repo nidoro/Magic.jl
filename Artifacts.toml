@@ -2,7 +2,7 @@
 git-tree-sha1 = "9695c3c331847b9e116ee03ae3aea174dc68187d"
 
     [[artifacts.download]]
-    url = "https://github.com/nidoro/Lit.jl/releases/download/v0.2.0/artifacts-linux-x86_64.tar.gz"
+    url = "https://github.com/nidoro/Lit.jl/releases/download/v0.2.1/artifacts-linux-x86_64.tar.gz"
     sha256 = "7ed087615641b55c5100822bfed19c0b18018e3734bd3a69a05259189bcfbefa"
     os = "linux"
     arch = "x86_64"
