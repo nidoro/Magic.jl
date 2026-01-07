@@ -258,6 +258,25 @@ function coalesce(...args) {
     return null;
 }
 
+function getTabulatorColumnNumber(table, columnName) {
+    const columns = table.getColumns();
+    for (const [index, column] of columns.entries()) {
+        if (column.getField() == columnName) {
+            return index;
+        }
+    }
+    return null;
+}
+
+function getTabulatorColumn(table, columnName) {
+    const columns = table.getColumns();
+    const index = getTabulatorColumnNumber(table, columnName);
+    if (index != null) {
+        return columns[index];
+    }
+    return null;
+}
+
 function createAppElement(parent, props, fragmentId) {
     let newElements = [];
 
@@ -599,6 +618,36 @@ function createAppElement(parent, props, fragmentId) {
                     rowHeaders: false,
                     columnHeaders: false,
                 },
+                clipboardPasteParser:"range",
+
+                // NOTE: Unfortunately, we need to implement our own clipboard
+                // paste action to prevent read-only cells from being edited.
+                // TODO: Handle paste of a single value into multiple cells.
+                clipboardPasteAction: function(clipboardData) {
+                    // Get top-left cell of the active range
+                    const range = table.getRanges()?.[0];
+                    if(!range) return;
+
+                    const startCell = range.getCells()[0][0];
+                    const startRow = startCell.getRow().getPosition();
+                    const rows = table.getRows();
+
+                    clipboardData.forEach((pasteRow, rowOffset) => {
+                        const row = rows[startRow + rowOffset - 1];
+                        if(!row) return;
+
+                        for (const [columnName, value] of Object.entries(pasteRow)) {
+                            const column = getTabulatorColumn(table, columnName);
+                            if (column.getDefinition().editor) {
+                                const cell = row.getCell(column.getField());
+                                if(!cell) return;
+                                cell.setValue(value);
+                            }
+
+                        };
+                    });
+                },
+
                 height: props.height,
                 columnDefaults:{
                     headerSort: false,
