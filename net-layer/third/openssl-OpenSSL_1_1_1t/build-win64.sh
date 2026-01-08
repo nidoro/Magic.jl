@@ -17,7 +17,7 @@ make clean
 
 #./config --prefix=$DEST_DIR --host=$TARGET --build=x86_64-linux-gnu --enable-static LDFLAGS="-lwinpthread" CFLAGS="-fPIC" CXXFLAGS="-fPIC"
 
-perl Configure mingw64 --prefix=$DEST_DIR
+perl Configure mingw64 shared --prefix=$DEST_DIR
 
 make -j8
 make install_sw
