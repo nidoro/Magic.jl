@@ -5,7 +5,7 @@ set -xe
 THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 pushd $THIS_DIR
 
-mkdir -p ../local/build/artifacts-linux-x86_64
+mkdir -p ../build/linux-x86_64/artifacts-linux-x86_64
 
 g++ \
     -g \
@@ -15,17 +15,17 @@ g++ \
     -Wno-unused-result \
     -shared \
     -fPIC \
-    -o ../local/build/artifacts-linux-x86_64/liblit.so \
+    -o ../build/linux-x86_64/artifacts-linux-x86_64/liblit.so \
     \
-        -I../local/build/openssl-OpenSSL_1_1_1t/include \
-        -I../local/build/libwebsockets-4.3.2/include \
-        -I../local/build/sqlite-amalgamation-3420000/include \
-        -I../local/build/icu-release-78.1/include \
+        -I../build/linux-x86_64/openssl-OpenSSL_1_1_1t/include \
+        -I../build/linux-x86_64/libwebsockets-4.3.2/include \
+        -I../build/linux-x86_64/sqlite-amalgamation-3420000/include \
+        -I../build/linux-x86_64/icu-release-78.1/include \
     \
-        -L../local/build/openssl-OpenSSL_1_1_1t/lib \
-        -L../local/build/libwebsockets-4.3.2/lib \
-        -L../local/build/sqlite-amalgamation-3420000/lib \
-        -L../local/build/icu-release-78.1/lib \
+        -L../build/linux-x86_64/openssl-OpenSSL_1_1_1t/lib \
+        -L../build/linux-x86_64/libwebsockets-4.3.2/lib \
+        -L../build/linux-x86_64/sqlite-amalgamation-3420000/lib \
+        -L../build/linux-x86_64/icu-release-78.1/lib \
     \
     -Wl,--whole-archive \
         -l:libwebsockets.a \

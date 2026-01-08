@@ -1,8 +1,9 @@
 #!/bin/bash
 
 THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+pushd $THIS_DIR
 
-DEST_DIR=$THIS_DIR/../../../local/build/sqlite-amalgamation-3420000
+DEST_DIR=$THIS_DIR/../../../build/linux-x86_64/sqlite-amalgamation-3420000
 mkdir -p $DEST_DIR/include
 mkdir -p $DEST_DIR/lib
 
@@ -24,3 +25,5 @@ gcc $CFLAGS -fPIC -shared -o $DEST_DIR/lib/libsqlite3.so sqlite3.c $LIBS
 
 echo "Building static library libsqlite3.a"
 gcc $CFLAGS -fPIC -c -o $DEST_DIR/lib/libsqlite3.a sqlite3.c $LIBS
+
+popd
