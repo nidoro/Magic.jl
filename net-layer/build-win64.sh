@@ -15,7 +15,7 @@ x86_64-w64-mingw32-gcc \
     -Wno-unused-result \
     -shared \
     -fPIC \
-    -o ../build/win64/artifacts-win64/liblit.so \
+    -o ../build/win64/artifacts-win64/liblit.dll \
     \
         -I../build/win64/openssl-OpenSSL_1_1_1t/include \
         -I../build/win64/libwebsockets-4.3.2/include \
@@ -35,9 +35,8 @@ x86_64-w64-mingw32-gcc \
     \
     -Wl,--start-group \
         -l:libSqliteIcu.dll.a \
-        -l:libicui18n.dll.a \
+        -l:libicuin.dll.a \
         -l:libicuuc.dll.a \
-        -l:libicudata.dll.a \
         -l:libicuio.dll.a \
         -l:libsqlite3.dll.a \
     -Wl,--end-group \

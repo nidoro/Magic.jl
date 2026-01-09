@@ -104,13 +104,14 @@ version `1.0` forward. Public API breaking changes can be found in
 testing it and giving your feedback on
 [issues](https://github.com/nidoro/Lit.jl/issues). But at this point in time,
 when the design of the package is still taking shape and form, we think it is
-best that its development stays centralized on us.
+best that its development stays centralized on us. In the future we will open
+for code collaboration.
 - **Security and Resilience**: While we believe that Lit has no major
-vulnerability since when we made it public, tests are still being performed to
-ensure that. Meanwhile, our advice is that you don't host your Lit web app a
-along with sensitive data (or run it inside a sandbox like
-[NSJail](https://github.com/google/nsjail)) and don't use it for anything
-safety-critical.
+vulnerability since the first public release, tests are still being performed to
+ensure that. Meanwhile, our advice is that you don't host your Lit web app
+along with sensitive data and don't use it for anything safety-critical. If you
+want to be extra safe, you can run it inside a sandbox like
+[NSJail](https://github.com/google/nsjail)).
 
 
 

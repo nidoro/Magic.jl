@@ -9,6 +9,16 @@
 #include "DD_SQLite.h"
 #include "DD_JSON.h"
 
+#ifdef _WIN32
+#include <windows.h>
+#include <direct.h>
+#else
+#include <sys/types.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <limits.h>
+#endif
+
 #define HS_KILO_BYTES(x) (1024*x)
 #define HS_MEGA_BYTES(x) (1024*1024*x)
 #define HS_GIGA_BYTES(x) (1024*1024*1024*x)
@@ -1077,12 +1087,26 @@ void HS_RemoveVersionString(char* string, int* size) {
     *size -= versionStringSize;
 }
 
+// bool HS_IsDirectory(const char *path) {
+//    struct stat statbuf;
+//    if (stat(path, &statbuf) != 0)
+//        return 0;
+//    return S_ISDIR(statbuf.st_mode);
+// }
+
 bool HS_IsDirectory(const char *path) {
-   struct stat statbuf;
-   if (stat(path, &statbuf) != 0)
-       return 0;
-   return S_ISDIR(statbuf.st_mode);
+    struct stat st;
+
+    if (stat(path, &st) != 0)
+        return false;
+
+#ifdef _WIN32
+    return (st.st_mode & _S_IFDIR) != 0;
+#else
+    return S_ISDIR(st.st_mode);
+#endif
 }
+
 
 bool HS_IsRegularFile(const char *path) {
     struct stat path_stat;
@@ -1100,6 +1124,14 @@ void HS_SystemCall(const char* formatString, ...) {
     system(command);
 }
 
+int HS_Mkdir(const char *path, int permissions) {
+#ifdef _WIN32
+    return _mkdir(path);
+#else
+    return mkdir(path, permissions);
+#endif
+}
+
 void HS_CreateFilePath(const char* root, const char* path) {
     char pathBuffer[HS__FilePathCap] = {};
     strcpy(pathBuffer, path);
@@ -1113,7 +1145,7 @@ void HS_CreateFilePath(const char* root, const char* path) {
         strcat(dirPath, "/");
         strcat(dirPath, pathComponent);
         if (!HS_IsDirectory(dirPath)) {
-            mkdir(dirPath, 0777);
+            HS_Mkdir(dirPath, 0777);
         }
         pathComponent = nextPathComponent;
         nextPathComponent = strtok(0, "/");
@@ -1322,9 +1354,31 @@ int HS_Return404(HS_VHost* vhost, HS_HTTPClient* client) {
     return 0;
 }
 
+char* HS_RealPath(const char *path, char *resolved) {
+#ifdef _WIN32
+    wchar_t wpath[MAX_PATH];
+    wchar_t wfull[MAX_PATH];
+
+    if (!MultiByteToWideChar(CP_UTF8, 0, path, -1, wpath, MAX_PATH))
+        return NULL;
+
+    DWORD len = GetFullPathNameW(wpath, MAX_PATH, wfull, NULL);
+    if (len == 0 || len >= MAX_PATH)
+        return NULL;
+
+    if (!WideCharToMultiByte(CP_UTF8, 0, wfull, -1, resolved, MAX_PATH, NULL, NULL))
+        return NULL;
+
+    return resolved;
+
+#else
+    return realpath(path, resolved);
+#endif
+}
+
 void HS_SetServedFilesRootDir(HS_Server* server, const char* vhostName, const char* path) {
     HS_VHost* vhost = HS_GetVHost(server, vhostName);
-    realpath(path, vhost->servedFilesRootDir);
+    HS_RealPath(path, vhost->servedFilesRootDir);
 }
 
 void HS_SetVHostVerbosity(HS_Server* server, const char* vhostName, int verbosity) {
@@ -1534,7 +1588,7 @@ int HS_GetFileByURI(HS_CallbackArgs* args) {
                 sprintf(locURI, "/%s/%s", lang, client->uri + 7);
                 
                 sprintf(tempBuffer, "%s%s", rootDir, locURI);
-                realpath(tempBuffer, filePath);
+                HS_RealPath(tempBuffer, filePath);
                 
                 if (HS_IsRegularFile(filePath)) {
                     strcpy(client->uri, locURI);
@@ -1555,7 +1609,7 @@ int HS_GetFileByURI(HS_CallbackArgs* args) {
         // Infer file path
         //-----------------------
         sprintf(tempBuffer, "%s%s", rootDir, unprefixedURI);
-        realpath(tempBuffer, client->filePath);
+        HS_RealPath(tempBuffer, client->filePath);
         
         if (!HS_StartsWith(client->filePath, rootDir)) {
             HS_CloseConnection(client, HTTP_STATUS_NOT_FOUND);
@@ -3071,7 +3125,7 @@ void HS_AddServedFilesDir(HS_Server* server, const char* vhostName, const char* 
     HS_VHost* vhost = HS_GetVHost(server, vhostName);
     HS_RootDirMapEntry& entry = vhost->rootDirMap[vhost->rootDirMapSize++];
     strcpy(entry.uriPrefix, uriPrefix);
-    realpath(path, entry.path);
+    HS_RealPath(path, entry.path);
 
     if (!HS_EndsWith(entry.uriPrefix, "/")) {
         strcat(entry.uriPrefix, "/");
@@ -3111,7 +3165,7 @@ bool HS_InitFileServer(HS_Server* server, const char* vhostName, const char* con
         vhost->lwsContextInfo.ssl_private_key_filepath = vhost->sslPrivateKeyPath;
         vhost->lwsContextInfo.ssl_ca_filepath = vhost->sslPrivateKeyPath;
         
-        realpath(servedFilesRootDir, vhost->servedFilesRootDir);
+        HS_RealPath(servedFilesRootDir, vhost->servedFilesRootDir);
         
         JS_JSON* j = JS_Get(jConfig, "uri-map");
         if (j) {

@@ -1,10 +1,11 @@
-#include <sys/un.h>
+//#include <sys/un.h>
 
 #include "DD_Assert.h"
 #include "DD_HTTPS.h"
 #include "DD_LogUtils.h"
 #include "DD_SignalUtils.h"
 
+#if 0
 #define MIN(a, b) (a < b ? a : b)
 
 extern "C" {
@@ -437,3 +438,5 @@ void LT_StopServer() {
 }
 
 } // extern "C"
+
+#endif
