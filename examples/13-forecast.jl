@@ -5,6 +5,9 @@ using Plots
 using Colors
 using Printf
 using DataFrames
+using Downloads
+using Tar
+using CodecZlib
 
 mutable struct SessionData
     data::DataFrame
@@ -126,9 +129,38 @@ function update_map()
     plot_map(session.data, session.img_path)
 end
 
+function ensure_shape_data()::Bool
+    if isdir("data/gadm41_BRA_shp")
+        return true
+    end
+
+    mkpath("data")
+    url = "https://coisasdodavi.net/Lit/gadm41_BRA_shp.tar.gz"
+
+    @info "Downloading Brazil shape data from $url..."
+    temp_file = Downloads.download(url)
+
+    try
+        @info "Extracting to 'data/'..."
+        open(temp_file, "r") do io
+            Tar.extract(GzipDecompressorStream(io), "data")
+        end
+
+        @info "Extraction complete!"
+        return true
+    catch e
+        return false
+    finally
+        rm(temp_file, force=true)
+    end
+
+    return true
+end
+
 @page_startup begin
     set_title("Brazil Forecast | Lit.jl Demo")
     set_description("Brazil Forecast | Lit.jl Demo")
+    ensure_shape_data()
 end
 
 @session_startup begin
