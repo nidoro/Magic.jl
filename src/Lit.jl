@@ -255,9 +255,9 @@ function get_dyn_lib_path()::String
         end
     else
         if Sys.islinux()
-            return joinpath(artifact"linux-x86_64", "liblit.so")
+            return joinpath(artifact"artifacts", "liblit.so")
         elseif Sys.iswindows()
-            return joinpath(artifact"win64", "liblit.dll")
+            return joinpath(artifact"artifacts", "liblit.dll")
         else
             @error "Unsupported OS: $(Sys.KERNEL) $(Sys.ARCH)"
         end
@@ -2039,6 +2039,8 @@ function start_app(script_path::String="app.jl"; host_name::String="localhost", 
     g.initialized = true
     g.script_path = joinpath(START_CWD, script_path)
 
+    mkpath(".Lit/served-files/cache/pages")
+
     # Dry run to try and initialize the app
     #-------------------------------------------
     dry_run_payload = Dict(
@@ -2093,7 +2095,6 @@ function start_app(script_path::String="app.jl"; host_name::String="localhost", 
     ipc_connection = accept(ipc_server)
     @info "NetLayerStarted\nNow serving at http://$(host_name):$(port)"
 
-    mkpath(".Lit/served-files/cache/pages")
     cp(joinpath(@__DIR__, "../served-files/LitPageTemplate.html"), ".Lit/served-files/cache/pages/first.html", force=true)
     push_uri_mapping("/", "/cache/pages/first.html")
 
