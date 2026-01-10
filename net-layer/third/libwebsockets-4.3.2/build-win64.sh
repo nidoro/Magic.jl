@@ -18,11 +18,9 @@ cd build
 
 cmake $THIS_DIR \
   -DCMAKE_INSTALL_PREFIX=.. \
-  -DCMAKE_C_FLAGS="-fPIC" \
-  -DCMAKE_CXX_FLAGS="-fPIC" \
   -DCMAKE_BUILD_TYPE=RELEASE \
   -DLWS_OPENSSL_INCLUDE_DIRS="../../openssl-OpenSSL_1_1_1t/include" \
-  -DLWS_OPENSSL_LIBRARIES="../../openssl-OpenSSL_1_1_1t/lib/libssl.dll.a;../../openssl-OpenSSL_1_1_1t/lib/libcrypto.dll.a" \
+  -DLWS_OPENSSL_LIBRARIES="../../openssl-OpenSSL_1_1_1t/lib/libssl.a;../../openssl-OpenSSL_1_1_1t/lib/libcrypto.a" \
   \
   -DCMAKE_SYSTEM_NAME=Windows \
   -DCMAKE_SYSTEM_PROCESSOR=x86_64 \
@@ -31,7 +29,10 @@ cmake $THIS_DIR \
   -DCMAKE_RC_COMPILER=x86_64-w64-mingw32-windres \
   -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
   -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
-  -DCMAKE_C_FLAGS="-Wno-enum-int-mismatch"
+  -DCMAKE_C_FLAGS="-Wno-enum-int-mismatch" \
+  \
+  -DLWS_WITH_SSL=ON \
+  -DOPENSSL_USE_STATIC_LIBS=TRUE
 
 make -j8
 make install

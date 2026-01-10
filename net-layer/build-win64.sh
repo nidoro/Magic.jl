@@ -28,19 +28,23 @@ x86_64-w64-mingw32-gcc \
         -L../build/win64/icu-release-78.1/lib \
     \
     -Wl,--whole-archive \
-        -l:libwebsockets.dll.a \
-        -l:libssl.dll.a \
-        -l:libcrypto.dll.a \
+        -l:libwebsockets_static.a \
+        -l:libssl.a \
+        -l:libcrypto.a \
     -Wl,--no-whole-archive \
     \
     -Wl,--start-group \
-        -l:libSqliteIcu.dll.a \
-        -l:libicuin.dll.a \
-        -l:libicuuc.dll.a \
-        -l:libicuio.dll.a \
-        -l:libsqlite3.dll.a \
+        -l:libSqliteIcu.a \
+        -l:libsicuin.a \
+        -l:libsicuuc.a \
+        -l:libsicuio.a \
+        -l:libsicudt.a \
+        -l:libsqlite3.a \
     -Wl,--end-group \
     \
-    src/Lit.cpp
+    src/Lit.cpp \
+    -lstdc++ \
+    -lcrypt32 \
+    -lws2_32
 
 popd
