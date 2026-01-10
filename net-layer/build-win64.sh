@@ -11,7 +11,6 @@ x86_64-w64-mingw32-gcc \
     -g \
     -static-libstdc++ \
     -static-libgcc \
-    -pthread \
     -Wno-unused-result \
     -shared \
     -fPIC \
@@ -43,8 +42,8 @@ x86_64-w64-mingw32-gcc \
     -Wl,--end-group \
     \
     src/Lit.cpp \
-    -lstdc++ \
-    -lcrypt32 \
-    -lws2_32
+    -Wl,-Bstatic -lstdc++ -lwinpthread \
+    -Wl,-Bdynamic -lcrypt32 -lws2_32
+
 
 popd
