@@ -73,7 +73,12 @@ struct LT_Global {
     pthread_t threadId;
     int ipcPort;
     char litPackageRootPath[PATH_MAX];
+
+#ifdef _WIN32
+    SOCKET fdSocket;
+#else
     int fdSocket;
+#endif
 
     char projectPath[PATH_MAX];
     char appHostName[PATH_MAX];
@@ -102,7 +107,20 @@ struct LT_Global {
 LT_Global g;
 
 LT_API void LT_WakeUpAppLayer() {
-    write(g.fdSocket, "", 1);
+#ifdef _WIN32
+    int sent = send(g.fdSocket, "x", 1, 0);
+    LU_Log(LU_Debug, "Send returned: %d\n", sent);
+    if (sent == SOCKET_ERROR) {
+        int err = WSAGetLastError();
+        LU_Log(LU_Debug, "Send error: %d\n", err);
+    }
+#else
+    ssize_t sent = write(g.fdSocket, "x", 1);
+    LU_Log(LU_Debug, "Write returned: %zd\n", sent);
+    if (sent < 0) {
+        LU_Log(LU_Debug, "Write error: %s\n", strerror(errno));
+    }
+#endif
 }
 
 LT_API LT_Client* LT_GetClient(int id) {
@@ -274,11 +292,11 @@ LT_API int HS_CALLBACK(handleEvent, args) {
 
         case LWS_CALLBACK_PROTOCOL_INIT: {
 #ifdef _WIN32
-            lws_sock_file_fd_type fd = {(long long unsigned int) g.fdSocket};
+            lws_sock_file_fd_type fd = {.sockfd=(long long unsigned int) g.fdSocket};
 #else
-            lws_sock_file_fd_type fd = {g.fdSocket};
+            lws_sock_file_fd_type fd = {.sockfd=g.fdSocket};
 #endif
-            lws* wsi = lws_adopt_descriptor_vhost(vhost->lwsVHost, LWS_ADOPT_RAW_FILE_DESC, fd, "ws", 0);
+            lws* wsi = lws_adopt_descriptor_vhost(vhost->lwsVHost, LWS_ADOPT_SOCKET, fd, "ws", 0);
         } break;
 
         case LWS_CALLBACK_CLOSED: {
@@ -287,7 +305,7 @@ LT_API int HS_CALLBACK(handleEvent, args) {
             free(wcClient->mutex);
         } break;
 
-        case LWS_CALLBACK_RAW_RX_FILE: {
+        case LWS_CALLBACK_RAW_RX: {
             char buf[1024] = {};
             read(g.fdSocket, buf, sizeof(buf));
 
@@ -351,15 +369,6 @@ LT_API void LT_HandleSigInt(void* data) {
     LU_Log(LU_Debug, "ServerLoopInterrupted");
 }
 
-// void LT_StartIPC() {
-//     g.fdSocket = socket(AF_INET, SOCK_STREAM, 0);
-//     sockaddr_in socketAddr = {};
-//     socketAddr.sin_family = AF_INET;
-//     socketAddr.sin_port = htons(g.ipcPort);
-//     inet_pton(AF_INET, "127.0.0.1", &socketAddr.sin_addr);
-//     connect(g.fdSocket, (sockaddr*)&socketAddr, sizeof(socketAddr));
-// }
-
 LT_API void LT_StartIPC(void) {
 #ifdef _WIN32
     static int wsa_initialized = 0;
@@ -373,11 +382,9 @@ LT_API void LT_StartIPC(void) {
 
     g.fdSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 #ifdef _WIN32
-    if (g.fdSocket == INVALID_SOCKET)
-        return;
+    DD_Assert(g.fdSocket != INVALID_SOCKET);
 #else
-    if (g.fdSocket < 0)
-        return;
+    DD_Assert(g.fdSocket >= 0);
 #endif
 
     struct sockaddr_in socketAddr = {0};
@@ -385,7 +392,13 @@ LT_API void LT_StartIPC(void) {
     socketAddr.sin_port = htons((uint16_t)g.ipcPort);
     inet_pton(AF_INET, "127.0.0.1", &socketAddr.sin_addr);
 
-    connect(g.fdSocket, (struct sockaddr *)&socketAddr, sizeof(socketAddr));
+    int result = connect(g.fdSocket, (struct sockaddr *)&socketAddr, sizeof(socketAddr));
+
+#ifdef _WIN32
+    DD_Assert(result != SOCKET_ERROR);
+#else
+    DD_Assert(result < 0);
+#endif
 }
 
 LT_API void* LT_RunServer(void*) {
