@@ -1,5 +1,15 @@
 # CHANGELOG
 
+### v0.2.5 (xxx)
+
+- Bug-fix: Invalid URIs used to return HTTP status 200 with empty HTML. That
+has been fixed to return 404 and a proper 404.html page.
+- Bug-fix: Lit is distributed with its own docs, but not with its built docs,
+so in order for it to be served, the user has to specify a path where it has
+been built. So we added the ability to do so.
+- Bug-fix: To-Do now handles `nothing` as a possible value returned by the
+text box. [Issue #4](https://github.com/nidoro/Lit.jl/issues/4)
+
 ### v0.2.4 (2026-01-10)
 
 - Hot-fix: solved liblit.so compatibility issues with older linux versions.
