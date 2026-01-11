@@ -32,6 +32,7 @@ using Tables
 using DataFrames
 using Random
 using Artifacts
+using TOML
 
 # Colored log utils
 #-------------------------
@@ -254,12 +255,14 @@ function get_dyn_lib_path()::String
             @error "Unsupported OS: $(Sys.KERNEL) $(Sys.ARCH)"
         end
     else
-        if Sys.islinux()
-            return joinpath(artifact"artifacts", "liblit.so")
-        elseif Sys.iswindows()
-            return joinpath(artifact"artifacts", "liblit.dll")
-        else
-            @error "Unsupported OS: $(Sys.KERNEL) $(Sys.ARCH)"
+        @static if isfile(joinpath(@__DIR__, "../Artifacts.toml"))
+            if Sys.islinux()
+                return joinpath(artifact"artifacts", "liblit.so")
+            elseif Sys.iswindows()
+                return joinpath(artifact"artifacts", "liblit.dll")
+            else
+                @error "Unsupported OS: $(Sys.KERNEL) $(Sys.ARCH)"
+            end
         end
     end
     return ""
@@ -271,6 +274,7 @@ LIT_SO    = nothing
 LIBLIT    = nothing
 START_CWD = pwd()
 USER_TYPES= Dict{Symbol,DataType}()
+VERSION   = VersionNumber(TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))["version"])
 
 # Container
 #-----------
@@ -2123,7 +2127,13 @@ function start_app(script_path::String="app.jl"; host_name::String="localhost", 
     ipc_server = listen(IPv4(127,0,0,1), 0)
     ipc_port = getsockname(ipc_server)[2]
 
-    init_net_layer(host_name, port, realpath(docs_path), Int(ipc_port), joinpath(@__DIR__, ".."), g.verbose, g.dev_mode)
+    if docs_path === nothing
+        docs_path = ""
+    else
+        docs_path = realpath(docs_path)
+    end
+
+    init_net_layer(host_name, port, docs_path, Int(ipc_port), joinpath(@__DIR__, ".."), g.verbose, g.dev_mode)
 
     ipc_connection = accept(ipc_server)
     @info "NetLayerStarted\nNow serving at http://$(host_name):$(port)"
