@@ -2047,7 +2047,7 @@ function is_rerun_request_valid(session::Session, request::RerunRequest)::Bool
     return true
 end
 
-function start_app(script_path::String="app.jl"; host_name::String="localhost", port::Int=3443, docs::Bool=false, verbose::Bool=false, dev_mode::Bool=false)::Nothing
+function start_app(script_path::String="app.jl"; host_name::String="localhost", port::Int=3443, docs_path::Union{String, Nothing}=nothing, verbose::Bool=false, dev_mode::Bool=false)::Nothing
     if !isfile(script_path)
         @error "File not found: '$(script_path)'"
         return nothing
@@ -2123,7 +2123,7 @@ function start_app(script_path::String="app.jl"; host_name::String="localhost", 
     ipc_server = listen(IPv4(127,0,0,1), 0)
     ipc_port = getsockname(ipc_server)[2]
 
-    init_net_layer(host_name, port, docs, Int(ipc_port), joinpath(@__DIR__, ".."), g.verbose, g.dev_mode)
+    init_net_layer(host_name, port, realpath(docs_path), Int(ipc_port), joinpath(@__DIR__, ".."), g.verbose, g.dev_mode)
 
     ipc_connection = accept(ipc_server)
     @info "NetLayerStarted\nNow serving at http://$(host_name):$(port)"
@@ -2280,12 +2280,12 @@ function destroy_net_event(ev::NetEvent)::Nothing
     ccall((:LT_DestroyNetEvent, LIT_SO), Cvoid, (NetEvent,), ev)
 end
 
-function init_net_layer(host_name::String, port::Int, docs::Bool, ipc_port::Int, package_root_dir::String, verbose::Bool, dev_mode::Bool)
+function init_net_layer(host_name::String, port::Int, docs_path::String, ipc_port::Int, package_root_dir::String, verbose::Bool, dev_mode::Bool)
     ccall(
         (:LT_InitNetLayer, LIT_SO),
         Cvoid,
-        (Cstring, Cint, Cint, Cint, Cint, Cstring, Cint, Cint, Cint),
-        host_name, Cint(sizeof(host_name)), port, Cint(docs), Cint(ipc_port), package_root_dir, Cint(sizeof(package_root_dir)), Cint(verbose), Cint(dev_mode)
+        (Cstring, Cint, Cint, Cstring, Cint, Cint, Cstring, Cint, Cint, Cint),
+        host_name, Cint(sizeof(host_name)), port, docs_path, Cint(sizeof(docs_path)), Cint(ipc_port), package_root_dir, Cint(sizeof(package_root_dir)), Cint(verbose), Cint(dev_mode)
     )
 end
 

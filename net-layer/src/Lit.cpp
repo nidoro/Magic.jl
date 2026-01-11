@@ -83,7 +83,8 @@ struct LT_Global {
     char projectPath[PATH_MAX];
     char appHostName[PATH_MAX];
     int appPort;
-    bool serveDocs;
+    char docsPath[PATH_MAX];
+    int  docsPathSize;
     bool verbose;
     bool devMode;
 
@@ -446,9 +447,9 @@ LT_API void* LT_RunServer(void*) {
         HS_DisableFileCache(&g.hserver, "lit-app");
     }
 
-    if (g.serveDocs) {
-        snprintf(tempBuffer, sizeof(tempBuffer), "%s/%s", g.litPackageRootPath, "docs");
-        HS_AddServedFilesDir(&g.hserver, "lit-app", "/docs", tempBuffer);
+    if (g.docsPath) {
+        printf("%s\n", g.docsPath);
+        HS_AddServedFilesDir(&g.hserver, "lit-app", "/docs", g.docsPath);
     }
 
     if (HS_IsRegularFile(".Lit/companion-host.json")) {
@@ -470,7 +471,18 @@ LT_API void* LT_RunServer(void*) {
     return 0;
 }
 
-LT_API void LT_InitNetLayer(const char* hostName, int hostNameSize, int port, bool serveDocs, int ipcPort, const char* litPackageRootPath, int litPackageRootPathSize, bool verbose, bool devMode) {
+LT_API void LT_InitNetLayer(
+    const char* hostName,
+    int hostNameSize,
+    int port,
+    const char* docsPath,
+    int docsPathSize,
+    int ipcPort,
+    const char* litPackageRootPath,
+    int litPackageRootPathSize,
+    bool verbose,
+    bool devMode
+) {
     LU_Disable(&LU_GlobalLogFile);
     LU_EnableStdout(&LU_GlobalLogFile);
     LU_DisableStderr(&LU_GlobalLogFile);
@@ -482,8 +494,8 @@ LT_API void LT_InitNetLayer(const char* hostName, int hostNameSize, int port, bo
     }
 
     strncpy(g.appHostName, hostName, hostNameSize);
+    strncpy(g.docsPath, docsPath, docsPathSize);
     g.appPort = port;
-    g.serveDocs = serveDocs;
     g.verbose = verbose;
     g.devMode = devMode;
     g.ipcPort = ipcPort;
