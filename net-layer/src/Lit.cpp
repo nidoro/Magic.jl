@@ -448,7 +448,6 @@ LT_API void* LT_RunServer(void*) {
     }
 
     if (g.docsPath) {
-        printf("%s\n", g.docsPath);
         HS_AddServedFilesDir(&g.hserver, "lit-app", "/docs", g.docsPath);
     }
 
