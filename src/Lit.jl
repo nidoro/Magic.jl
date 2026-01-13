@@ -227,6 +227,7 @@ end
     pages::Vector{PageConfig} = Vector{PageConfig}()
     verbose::Bool = false
     dev_mode::Bool = false
+    ipc_connection::Union{TCPSocket, Nothing} = nothing
 end
 
 g = Global()
@@ -2051,7 +2052,31 @@ function is_rerun_request_valid(session::Session, request::RerunRequest)::Bool
     return true
 end
 
-function start_app(script_path::String="app.jl"; host_name::String="localhost", port::Int=3443, docs_path::Union{String, Nothing}=nothing, verbose::Bool=false, dev_mode::Bool=false)::Nothing
+function return_invalid_request(client_id::Cint, request_id::Int)::Nothing
+    payload = Dict(
+        "type" => "response_rerun",
+        "dev_mode" => g.dev_mode,
+        "request_id" => request_id,
+        "error" => Dict(
+            "type" => "InvalidState",
+        )
+    )
+    payload_string = JSON.json(payload)
+    app_event = create_app_event(AppEventType_NewPayload, client_id, payload_string)
+    push_app_event(app_event)
+    write(g.ipc_connection, " ")
+    return nothing
+end
+
+function start_app(
+    script_path::String="app.jl";
+    host_name::String="localhost",
+    port::Int=3443,
+    docs_path::Union{String, Nothing}=nothing,
+    verbose::Bool=false,
+    dev_mode::Bool=false
+)::Nothing
+
     if !isfile(script_path)
         @error "File not found: '$(script_path)'"
         return nothing
@@ -2135,7 +2160,7 @@ function start_app(script_path::String="app.jl"; host_name::String="localhost", 
 
     init_net_layer(host_name, port, docs_path, Int(ipc_port), joinpath(@__DIR__, ".."), g.verbose, g.dev_mode)
 
-    ipc_connection = accept(ipc_server)
+    g.ipc_connection = accept(ipc_server)
     @info "NetLayerStarted\nNow serving at http://$(host_name):$(port)"
 
     cp(joinpath(@__DIR__, "../served-files/LitPageTemplate.html"), ".Lit/served-files/cache/pages/first.html", force=true)
@@ -2173,8 +2198,8 @@ function start_app(script_path::String="app.jl"; host_name::String="localhost", 
     Threads.@spawn begin
         stop_loop = false
 
-        while isopen(ipc_connection) && !stop_loop
-            read(ipc_connection, UInt8)
+        while isopen(g.ipc_connection) && !stop_loop
+            read(g.ipc_connection, UInt8)
 
             ev = pop_net_event()
             while ev.ev_type != NetEventType_None
@@ -2194,7 +2219,7 @@ function start_app(script_path::String="app.jl"; host_name::String="localhost", 
     # events (e.g. rerun finished).
     #---------------------------------------------------------------------------
     try
-        while isopen(ipc_connection)
+        while isopen(g.ipc_connection)
             ev = take!(g.internal_events)
 
             if ev.ev_type == InternalEventType_Network
@@ -2214,8 +2239,13 @@ function start_app(script_path::String="app.jl"; host_name::String="localhost", 
                     session = g.sessions[ev.data.client_id]
 
                     if payload["type"] == "request_rerun"
+                        rerun_request = RerunRequest(payload)
                         if session.rerun_task === nothing
-                            rerun(ev.data.client_id, payload)
+                            if is_rerun_request_valid(session, rerun_request)
+                                rerun(ev.data.client_id, payload)
+                            else
+                                return_invalid_request(ev.data.client_id, payload["request_id"])
+                            end
                         else
                             @debug "Rerun already happening. Queueing rerun request. Current queue size: $(length(session.rerun_queue))"
                             push!(session.rerun_queue, RerunRequest(payload))
@@ -2225,7 +2255,7 @@ function start_app(script_path::String="app.jl"; host_name::String="localhost", 
                     end
                 elseif ev.data.ev_type == NetEventType_ServerLoopInterrupted
                     @info "NetEventType_ServerLoopInterrupted"
-                    close(ipc_connection)
+                    close(g.ipc_connection)
                 end
             elseif ev.ev_type == InternalEventType_Task && ev.data.client_id != Cint(0)
                 @debug "TaskFinished $(ev.data.client_id)"
@@ -2243,7 +2273,7 @@ function start_app(script_path::String="app.jl"; host_name::String="localhost", 
                 app_event = create_app_event(AppEventType_NewPayload, session.client_id, payload_string)
                 push_app_event(app_event)
 
-                write(ipc_connection, " ")
+                write(g.ipc_connection, " ")
 
                 session.rerun_task = nothing
 
@@ -2256,18 +2286,7 @@ function start_app(script_path::String="app.jl"; host_name::String="localhost", 
                         rerun(session.client_id, rerun_request.payload)
                     else
                         @debug "Next rerun request in queue is invalid"
-                        payload = Dict(
-                            "type" => "response_rerun",
-                            "dev_mode" => g.dev_mode,
-                            "request_id" => ev.data.payload["request_id"],
-                            "error" => Dict(
-                                "type" => "InvalidState",
-                            )
-                        )
-                        payload_string = JSON.json(payload)
-                        app_event = create_app_event(AppEventType_NewPayload, session.client_id, payload_string)
-                        push_app_event(app_event)
-                        write(ipc_connection, " ")
+                        return_invalid_request(session.client_id, ev.data.payload["request_id"])
                     end
                 end
             end
