@@ -1847,6 +1847,7 @@ int HS_GetFileByURI(HS_CallbackArgs* args) {
         HS_AddHTTPHeader(client, WSI_TOKEN_HTTP_CONTENT_LENGTH, client->fileSize);
         HS_AddHTTPHeader(client, WSI_TOKEN_HTTP_CONTENT_TYPE, mimeType);
         HS_AddHTTPHeader(client, WSI_TOKEN_HTTP_CACHE_CONTROL, cacheControl);
+        HS_AddHTTPHeader(client, "X-Content-Type-Options", "nosniff"); // ZAP recommendation
 
         // TODO: Connection: keep-alive is not allowed in http 2. I couldn't find
         // a way to detect if the connection is using h1 or h2, so I'm removing
@@ -2075,10 +2076,10 @@ int HS_HTTPCallback(lws* socket, lws_callback_reasons reason, void* userData, vo
      && reason != LWS_CALLBACK_CHANGE_MODE_POLL_FD
      && reason != LWS_CALLBACK_VHOST_CERT_AGING
      && reason != LWS_CALLBACK_LOCK_POLL
-     && reason != LWS_CALLBACK_UNLOCK_POLL) {
-        if (server->verbosity) {
-            printf("%s %s -- wsi %p\n", server->name, HS_ToString(reason), socket);
-        }
+     && reason != LWS_CALLBACK_UNLOCK_POLL
+     && reason != LWS_CALLBACK_HTTP_WRITEABLE
+    ) {
+        lwsl_debug("HS_HTTPCallback | VHost=%s | Reason=%s | WSI=%p\n", server->name, HS_ToString(reason), socket);
     }
 
     switch (reason) {
@@ -2144,11 +2145,9 @@ int HS_HTTPCallback(lws* socket, lws_callback_reasons reason, void* userData, vo
         sprintf(uri, "%.*s", (int)len, (char*)in);
         strcpy(client->uri, uri);
         client->uriSize = strlen(client->uri);
-        
-        if (server->verbosity) {
-            printf("%s %s\n", client->httpMethod, uri);
-        }
-        
+
+        lwsl_debug("HTTPMethod=%s | URI=%s\n", client->httpMethod, uri);
+
         // Plugins
         //---------
         for (int i = 0; i < server->pluginCount; ++i) {
@@ -2180,7 +2179,8 @@ int HS_HTTPCallback(lws* socket, lws_callback_reasons reason, void* userData, vo
                     server->httpGetHandler(&args);
                 }
             }
-
+        // Is OPTIONS method?
+        //--------------------
         } else if (strcmp(client->httpMethod, "OPTIONS")==0) {
             char methods[256] = {};
             int methodsSize = sprintf(methods, "OPTIONS");
@@ -2203,19 +2203,20 @@ int HS_HTTPCallback(lws* socket, lws_callback_reasons reason, void* userData, vo
             HS_WriteResponse(client);
         } else {
             // Other methods: POST / DELETE
+            //-----------------------------
             bool validEndpoint = false;
             if (strcmp(client->httpMethod, "POST")==0 && server->httpPostHandler) {
-                if (server->httpPostEndpointChecker) {
-                    validEndpoint = server->httpPostEndpointChecker(&args);
-                } else if (server->postEndpointsSize) {
+                if (server->postEndpointsSize) {
                     for (int i = 0; i < server->postEndpointsSize; ++i) {
                         if (HS_StartsWith(uri, server->postEndpoints[i])) {
                             validEndpoint = true;
                             break;
                         }
                     }
-                } else {
-                    validEndpoint = true;
+                }
+
+                if (!validEndpoint) {
+                    validEndpoint = server->httpPostEndpointChecker(&args);
                 }
                 
                 if (validEndpoint) {
@@ -2226,27 +2227,28 @@ int HS_HTTPCallback(lws* socket, lws_callback_reasons reason, void* userData, vo
                     return -1;
                 }
             } else if (strcmp(client->httpMethod, "DELETE")==0 && server->httpDeleteHandler) {
-                if (server->httpDeleteEndpointChecker) {
-                    validEndpoint = server->httpDeleteEndpointChecker(&args);
-                } else if (server->deleteEndpointsSize) {
+                if (server->deleteEndpointsSize) {
                     for (int i = 0; i < server->deleteEndpointsSize; ++i) {
-                        if (strcmp(uri, server->deleteEndpoints[i])==0) {
+                        if (HS_StartsWith(uri, server->deleteEndpoints[i])) {
                             validEndpoint = true;
                             break;
                         }
                     }
-                } else {
-                    validEndpoint = true;
                 }
-                
+
+                if (!validEndpoint) {
+                    validEndpoint = server->httpDeleteEndpointChecker(&args);
+                }
+
                 if (validEndpoint) {
                     if (server->sessionDataSize) {
                         client->sessionData = calloc(1, server->sessionDataSize);
                     }
-                    callbackResult = server->httpDeleteHandler(&args);
                 } else {
                     return -1;
                 }
+            } else {
+                return -1;
             }
         }
       } break;
@@ -2279,7 +2281,11 @@ int HS_HTTPCallback(lws* socket, lws_callback_reasons reason, void* userData, vo
             lws_return_http_status(socket, client->closeStatus, 0);
         } else if (client->fileBuffer) {
             int remaining = client->fileSize - client->at;
-            
+
+            if (client->at == 0) {
+                lwsl_debug("HS_HTTPCallback | VHost=%s | Reason=%s | Size=%d | WSI=%p\n", server->name, HS_ToString(reason), client->fileSize, socket);
+            }
+
             if (remaining) {
                 int amount = HS_Min(remaining, server->h2MaxFrameSize);
                 bool finalWrite = client->at + amount >= client->fileSize;
@@ -2290,6 +2296,7 @@ int HS_HTTPCallback(lws* socket, lws_callback_reasons reason, void* userData, vo
                 client->at += amount;
                 
                 if (finalWrite) {
+                    lwsl_debug("WriteFinished | VHost=%s | WSI=%p\n", server->name, socket);
                     client->closeStatus = (http_status) 0;
                     callbackResult = -1;
                 } else {
@@ -2814,6 +2821,10 @@ lws_protocols* HS_GetProtocol(HS_Server* server, const char* vhostName, const ch
     return 0;
 }
 
+int HS_RejectAllEndpoints(HS_CallbackArgs* args) {
+    return false;
+}
+
 bool HS_AddVHost(HS_Server* server, const char* name) {
     HS_VHost& v = server->vhosts[server->vhostsCount++];
     
@@ -2835,6 +2846,8 @@ bool HS_AddVHost(HS_Server* server, const char* name) {
     v.lwsContextInfo.mounts = v.lwsMounts;
     
     v.verbosity = server->verbosity;
+    v.httpPostEndpointChecker = HS_RejectAllEndpoints;
+    v.httpDeleteEndpointChecker = HS_RejectAllEndpoints;
     HS__AddProtocol(server, name, "HTTP", HS_HTTPCallback, sizeof(HS_HTTPClient));
     
     return true;
@@ -2915,7 +2928,6 @@ void HS_SetCertificate(HS_Server* server, const char* vhostName, const char* ssl
 
     v->lwsContextInfo.ssl_cert_filepath = v->sslPublicKeyPath;
     v->lwsContextInfo.ssl_private_key_filepath = v->sslPrivateKeyPath;
-    v->lwsContextInfo.ssl_ca_filepath = v->sslPrivateKeyPath;
 }
 
 void HS_SetLogLevel(int level) {
@@ -2982,7 +2994,7 @@ void HS_AddRedirToHTTPSVHost(HS_Server* server, const char* vhostName, const cha
     vhost->lwsContextInfo.vhost_name = fromHostname;
     vhost->lwsContextInfo.port = fromPort;
     vhost->lwsContextInfo.protocols = {};
-    
+
     // Redir Mount
     //-------------------
     lws_http_mount& redirectMount = vhost->lwsMounts[vhost->lwsMountsSize++];
@@ -3188,9 +3200,9 @@ bool HS_InitFileServer(HS_Server* server, const char* vhostName, const char* con
         HS_SetVHostHostName(server, vhostName, vhost->hostName);
         HS_SetVHostPort(server, vhostName, vhost->port);
 
-        vhost->lwsContextInfo.ssl_cert_filepath = vhost->sslPublicKeyPath;
-        vhost->lwsContextInfo.ssl_private_key_filepath = vhost->sslPrivateKeyPath;
-        vhost->lwsContextInfo.ssl_ca_filepath = vhost->sslPrivateKeyPath;
+        if (vhost->sslPublicKeyPath[0]) vhost->lwsContextInfo.ssl_cert_filepath = vhost->sslPublicKeyPath;
+        if (vhost->sslPrivateKeyPath[0]) vhost->lwsContextInfo.ssl_private_key_filepath = vhost->sslPrivateKeyPath;
+        if (vhost->sslCABundlePath[0]) vhost->lwsContextInfo.ssl_ca_filepath = vhost->sslCABundlePath;
         
         HS_RealPath(servedFilesRootDir, vhost->servedFilesRootDir);
         

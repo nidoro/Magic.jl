@@ -110,16 +110,14 @@ LT_Global g;
 LT_API void LT_WakeUpAppLayer() {
 #ifdef _WIN32
     int sent = send(g.fdSocket, "x", 1, 0);
-    LU_Log(LU_Debug, "Send returned: %d\n", sent);
     if (sent == SOCKET_ERROR) {
         int err = WSAGetLastError();
-        LU_Log(LU_Debug, "Send error: %d\n", err);
+        LU_Log(LU_Debug, "Send error: %d", err);
     }
 #else
     ssize_t sent = write(g.fdSocket, "x", 1);
-    LU_Log(LU_Debug, "Write returned: %zd\n", sent);
     if (sent < 0) {
-        LU_Log(LU_Debug, "Write error: %s\n", strerror(errno));
+        LU_Log(LU_Debug, "Write error: %s", strerror(errno));
     }
 #endif
 }
@@ -403,8 +401,10 @@ LT_API void LT_StartIPC(void) {
 }
 
 LT_API void* LT_RunServer(void*) {
-    if (!g.verbose) {
-        HS_SetLogLevel(0);
+    if (g.verbose) {
+        HS_SetLogLevel(LLL_ERR | LLL_WARN | LLL_NOTICE | LLL_INFO | LLL_DEBUG);
+    } else {
+        HS_SetLogLevel(LLL_ERR | LLL_WARN);
     }
 
     g.nextClientId = 1;
