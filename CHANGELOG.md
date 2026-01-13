@@ -1,5 +1,9 @@
 # CHANGELOG
 
+### v0.3.1 (???)
+
+- Bug-fix: unqueued rerun request are now validated as well.
+
 ### v0.3.0 (2026-01-11)
 
 - Breaking-change: Lit is distributed with its own docs, but not with its built
