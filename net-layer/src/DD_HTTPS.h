@@ -1675,10 +1675,16 @@ int HS_GetFileByURI(HS_CallbackArgs* args) {
             // Cache busting
             //---------------
             bool needsCacheBusting = false;
-            if (strcmp(mimeType, "text/html")==0 || strcmp(mimeType, "text/javascript")==0) {
+            if (strcmp(mimeType, "text/html")==0 || strcmp(mimeType, "text/javascript")==0 || strcmp(mimeType, "text/css")==0) {
                 for (int i = 0; i < server->cacheBustSize; ++i) {
                     if (HS_EndsWith(server->cacheBust[i], "*")) {
                         if (HS_StartsWith(client->uri, server->cacheBust[i], strlen(server->cacheBust[i])-1)) {
+                            needsCacheBusting = true;
+                            break;
+                        }
+                    } else if (HS_StartsWith(server->cacheBust[i], "*")) {
+                        char* ending = server->cacheBust[i]+1;
+                        if (HS_EndsWith(client->uri, ending)) {
                             needsCacheBusting = true;
                             break;
                         }

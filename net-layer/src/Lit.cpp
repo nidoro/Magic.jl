@@ -424,6 +424,7 @@ LT_API void* LT_RunServer(void*) {
     HS_SetVHostHostName(&g.hserver, "lit-app", g.appHostName);
     HS_SetVHostPort(&g.hserver, "lit-app", g.appPort);
     HS_AddProtocol(&g.hserver, "lit-app", "ws", handleEvent, LT_Client);
+    HS_PushCacheBust(&g.hserver, "lit-app", "*.html");
     HS_PushCacheControlMapping(&g.hserver, "lit-app", "*.html", "no-cache, no-store, must-revalidate");
     HS_PushCacheControlMapping(&g.hserver, "lit-app", "/*", "max-age=2592000");
     if (!disableSSL) {
