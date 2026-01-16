@@ -56,7 +56,7 @@ From REPL (recommended for faster app restart during development):
 > start_app()
 ```
 
-Or from the terminal:
+Or from the terminal (requires Julia 1.12):
 
 ```bash
 $ julia -m Lit

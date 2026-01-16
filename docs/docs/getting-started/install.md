@@ -78,7 +78,8 @@ In summary, this is the basic web app development workflow:
 
 ### Option 2: From the terminal
 
-`Lit.jl` can be executed as a command line tool using the `-m` julia flag.
+Starting from Julia 1.12, `Lit.jl` can be executed as a command line tool using
+the `-m` julia flag.
 
 ```bash
 $ julia --project -m Lit
