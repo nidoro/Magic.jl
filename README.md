@@ -1,6 +1,9 @@
-# ✨ Lit.jl
+<p align="center">
+  <img src="served-files/images/lit-logo-and-text.svg" alt="Logo" height="100"><br/>
+  <span>A new way of creating Julia web apps!</span>
+</p>
 
-## A new way of creating Julia web apps!
+---
 
 Made for scientists and researchers, `Lit.jl` is a web app framework for Julia
 that makes it easy for you to build awesome interactable web pages in no time!
