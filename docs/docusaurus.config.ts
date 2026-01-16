@@ -46,14 +46,14 @@ const config: Config = {
           //editUrl:
           //  'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
           lastVersion: 'current',
-          versions: {
-            current: {
-              label: 'Next',
-            },
-            '0.1.0': {
-              label: '0.1.0',
-            },
-          },
+          // versions: {
+          //   current: {
+          //     label: 'Next',
+          //   },
+          //   '0.1.0': {
+          //     label: '0.1.0',
+          //   },
+          // },
         },
         blog: {
           showReadingTime: true,
