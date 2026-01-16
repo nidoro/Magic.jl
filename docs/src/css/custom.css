@@ -35,6 +35,7 @@
   align-items: center;
   gap: 1rem;
   color: white;
+  -webkit-text-stroke: 2px grey;
 }
 
 .hero__title img {

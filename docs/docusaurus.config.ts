@@ -87,7 +87,7 @@ const config: Config = {
       title: 'Lit.jl',
       logo: {
         alt: 'My Site Logo',
-        src: 'img/lit-logo.png',
+        src: 'img/lit-logo-borderless.svg',
       },
       items: [
         {
