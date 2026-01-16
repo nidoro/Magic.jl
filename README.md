@@ -111,7 +111,7 @@ vulnerability since the first public release, tests are still being implemented
 to ensure that. Meanwhile, our advice is that you don't host your Lit web app
 along with sensitive data and don't use it for anything safety-critical. If you
 want to be extra safe, you can run it inside a sandbox like
-[NSJail](https://github.com/google/nsjail)).
+[NSJail](https://github.com/google/nsjail).
 
 
 
