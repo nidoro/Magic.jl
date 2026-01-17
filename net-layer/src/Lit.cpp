@@ -46,6 +46,7 @@ struct LT_Client {
 enum LT_NetEventType {
     LT_NetEventType_None,
     LT_NetEventType_NewClient,
+    LT_NetEventType_ClientLeft,
     LT_NetEventType_NewPayload,
     LT_NetEventType_ServerLoopInterrupted
 };
@@ -299,6 +300,13 @@ LT_API int HS_CALLBACK(handleEvent, args) {
         } break;
 
         case LWS_CALLBACK_CLOSED: {
+            LT_PushNetEvent({
+                .type = LT_NetEventType_ClientLeft,
+                .clientId = wcClient->id,
+            });
+
+            LT_WakeUpAppLayer();
+
             pthread_mutex_lock(wcClient->mutex);
             arrremovematch(g.clients, wcClient);
             free(wcClient->mutex);
@@ -435,7 +443,7 @@ LT_API void* LT_RunServer(void*) {
 
     snprintf(tempBuffer, sizeof(tempBuffer), "%s/%s", g.projectPath, ".Lit/served-files");
     HS_SetServedFilesRootDir(&g.hserver, "lit-app", tempBuffer);
-    HS_Set404File(&g.hserver, "lit-app", "/cache/pages/404.html");
+    HS_Set404File(&g.hserver, "lit-app", "/generated/app/pages/404.html");
 
     snprintf(tempBuffer, sizeof(tempBuffer), "%s/%s", g.litPackageRootPath, "served-files");
     HS_AddServedFilesDir(&g.hserver, "lit-app", "/Lit.jl", tempBuffer);

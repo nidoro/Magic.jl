@@ -153,6 +153,8 @@ end
     container_props::Dict = Dict()
 end
 
+struct StopTask <: Exception end
+
 @with_kw mutable struct AppTask
     task::Union{Task, Nothing} = nothing
     client_id::Cint = 0
@@ -168,8 +170,9 @@ end
 const NetEventType            = Cint
 const NetEventType_None       = Cint(0)
 const NetEventType_NewClient  = Cint(1)
-const NetEventType_NewPayload = Cint(2)
-const NetEventType_ServerLoopInterrupted = Cint(3)
+const NetEventType_ClientLeft = Cint(2)
+const NetEventType_NewPayload = Cint(3)
+const NetEventType_ServerLoopInterrupted = Cint(4)
 
 @with_kw mutable struct NetEvent
     ev_type::NetEventType = NetEventType_None
@@ -213,6 +216,7 @@ end
     rerun_task::Union{Task, Nothing} = nothing
     rerun_queue::Vector{RerunRequest} = Vector{RerunRequest}()
     waiting_invalid_state_ack::Bool = false
+    client_left::Bool = false
 end
 
 @with_kw mutable struct Global
@@ -1246,9 +1250,14 @@ function get_random_string(n::Integer)::String
     return String(rand(CHARSET, n))
 end
 
-function gen_resource_path(extension::String)::String
+function gen_resource_path(extension::String; lifetime::String="session")::String
     task = task_local_storage("app_task")
-    return ".Lit/served-files/cache/$(task.client_id)-$(get_random_string(32)).$(replace(extension, "." => ""))"
+    file_name = "$(get_random_string(32)).$(replace(extension, "." => ""))"
+    dir_path = ".Lit/served-files/generated/session-$(task.client_id)"
+    if lifetime == "app"
+        dir_path = ".Lit/served-files/generated/app"
+    end
+    return "$(dir_path)/$(file_name)"
 end
 
 # Dataframe
@@ -1682,7 +1691,7 @@ function end_page_config()::Nothing
     return nothing
 end
 
-function new_client(client_id::Cint)::Nothing
+function handle_new_client(client_id::Cint)::Nothing
     session = Session()
     session.client_id = client_id
     session.first_pass = true
@@ -1712,6 +1721,17 @@ function new_client(client_id::Cint)::Nothing
     session.fragments[""] = root_frag
 
     g.sessions[client_id] = session
+
+    mkpath(".Lit/served-files/generated/session-$(client_id)")
+
+    return nothing
+end
+
+function handle_client_left(client_id::Cint)::Nothing
+    session = g.sessions[client_id]
+    session.client_left = true
+    rm(".Lit/served-files/generated/session-$(client_id)", recursive=true, force=true)
+    delete!(g.sessions, client_id)
     return nothing
 end
 
@@ -1785,16 +1805,6 @@ function rerun(client_id::Cint, payload::Dict)::Task
     session = g.sessions[client_id]
 
     session.rerun_task = Threads.@spawn try
-        # TODO: No more than one update task should be allowed to run on a
-        # session at any given moment. Queue the updates if needed. And the main
-        # event loop should only touch the session at the creation moment.
-        #
-        # TODO: Because the task depend on the session associated with the
-        # client, at the end of a session (i.e. client disconnection), we should
-        # first send an interrupt signal to the task associated with the
-        # session, if any. Then wait for the task to end (forcefully or not).
-        # And only then remove the client and session from the global vector.
-        #
         task = AppTask()
         task_local_storage("app_task", task)
         task.task = current_task()
@@ -1909,22 +1919,26 @@ function rerun(client_id::Cint, payload::Dict)::Task
         end
 
     catch e
-        bt = catch_backtrace()
-        frames = filtered_stacktrace(bt; cutoff_file = "LitUserSpace.jl")
-        err_message = remove_lines_starting_with(sprint(showerror, e), "in expression starting")
-        st = sprint(Base.show_backtrace, frames)
+        if !task.session.client_left
+            bt = catch_backtrace()
+            frames = filtered_stacktrace(bt; cutoff_file = "LitUserSpace.jl")
+            err_message = remove_lines_starting_with(sprint(showerror, e), "in expression starting")
+            st = sprint(Base.show_backtrace, frames)
 
-        println(stderr, err_message)
-        println(stderr, st)
+            println(stderr, err_message)
+            println(stderr, st)
 
-        column(gap=".3em", padding="1em", margin="0 0 2rem 0", fill_width=true, css=Dict("font-family" => "monospace", "white-space" => "pre", "background" => "#fdeded", "color" => "#89454a", "overflow-x" => "auto")) do
-            html("span", err_message)
-            html("span", st)
+            column(gap=".3em", padding="1em", margin="0 0 2rem 0", fill_width=true, css=Dict("font-family" => "monospace", "white-space" => "pre", "background" => "#fdeded", "color" => "#89454a", "overflow-x" => "auto")) do
+                html("span", err_message)
+                html("span", st)
+            end
+
+            task = task_local_storage("app_task")
+            filter!(p -> p.second.alive, task.session.widgets)
+            put!(g.internal_events, InternalEvent(InternalEventType_Task, task))
+        else
+            @debug "TaskStoped | Client=$(client_id)"
         end
-
-        task = task_local_storage("app_task")
-        filter!(p -> p.second.alive, task.session.widgets)
-        put!(g.internal_events, InternalEvent(InternalEventType_Task, task))
     end
 
     return session.rerun_task
@@ -2099,8 +2113,8 @@ function start_app(
     g.initialized = true
     g.script_path = joinpath(START_CWD, script_path)
 
-    rm(".Lit/served-files/cache", recursive=true, force=true)
-    mkpath(".Lit/served-files/cache/pages")
+    rm(".Lit/served-files/generated", recursive=true, force=true)
+    mkpath(".Lit/served-files/generated/app/pages")
 
     g.base_page_config.title = "Lit App"
     g.base_page_config.description = "Web app made with Lit.jl"
@@ -2119,7 +2133,7 @@ function start_app(
         )
     )
 
-    new_client(Cint(0))
+    handle_new_client(Cint(0))
     add_page("/", title="Lit App", description="Lit App")
 
     @info "Dry Run: First pass over '$(script_path)'.\n$(AC_Green("@app_startup")) code blocks will run now."
@@ -2149,6 +2163,8 @@ function start_app(
         end
     end
 
+    handle_client_left(Cint(0))
+
     # Setup net layer connection
     #--------------------------------
     ipc_server = listen(IPv4(127,0,0,1), 0)
@@ -2165,15 +2181,15 @@ function start_app(
     g.ipc_connection = accept(ipc_server)
     @info "NetLayerStarted\nNow serving at http://$(host_name):$(port)"
 
-    cp(joinpath(@__DIR__, "../served-files/LitPageTemplate.html"), ".Lit/served-files/cache/pages/first.html", force=true)
-    push_uri_mapping("/", "/cache/pages/first.html")
+    cp(joinpath(@__DIR__, "../served-files/LitPageTemplate.html"), ".Lit/served-files/generated/app/pages/first.html", force=true)
+    push_uri_mapping("/", "/generated/app/pages/first.html")
 
     # Configure pages after dry runs
     #---------------------
-    create_page_html(g.base_page_config, ".Lit/served-files/cache/pages/base.html")
+    create_page_html(g.base_page_config, ".Lit/served-files/generated/app/pages/base.html")
 
     for page in g.pages
-        create_page_html(page, ".Lit/served-files/cache/pages/$(page.id).html")
+        create_page_html(page, ".Lit/served-files/generated/app/pages/$(page.id).html")
     end
 
     clear_uri_mapping()
@@ -2191,7 +2207,7 @@ function start_app(
 
     # Create 404.html
     #-------------------
-    create_404_html(".Lit/served-files/cache/pages/404.html")
+    create_404_html(".Lit/served-files/generated/app/pages/404.html")
 
     # Net-layer IPC listener loop.
     # When a net-layer event happens, it forwards the event to the App-layer
@@ -2227,7 +2243,10 @@ function start_app(
             if ev.ev_type == InternalEventType_Network
                 if ev.data.ev_type == NetEventType_NewClient
                     @debug "NetEventType_NewClient | $(ev.data.client_id)"
-                    new_client(ev.data.client_id)
+                    handle_new_client(ev.data.client_id)
+                elseif ev.data.ev_type == NetEventType_ClientLeft
+                    @debug "NetEventType_ClientLeft | $(ev.data.client_id)"
+                    handle_client_left(ev.data.client_id)
                 elseif ev.data.ev_type == NetEventType_NewPayload
                     @debug "NetEventType_NewPayload | $(ev.data.client_id)"
                     payload_string = unsafe_string(ev.data.payload, ev.data.payload_size)
@@ -2265,36 +2284,44 @@ function start_app(
                     @info "NetEventType_ServerLoopInterrupted"
                     close(g.ipc_connection)
                 end
-            elseif ev.ev_type == InternalEventType_Task && ev.data.client_id != Cint(0)
-                @debug "TaskFinished $(ev.data.client_id)"
-                session = g.sessions[ev.data.client_id]
+            elseif ev.ev_type == InternalEventType_Task
+                if ev.data.client_id != Cint(0)
+                    session = ev.data.session
 
-                payload = Dict(
-                    "type" => "response_rerun",
-                    "dev_mode" => g.dev_mode,
-                    "request_id" => ev.data.payload["request_id"],
-                    "root" => ev.data.state["root"],
-                    "error" => nothing
-                )
+                    if !session.client_left
+                        @debug "TaskFinished $(ev.data.client_id)"
 
-                payload_string = JSON.json(payload)
-                app_event = create_app_event(AppEventType_NewPayload, session.client_id, payload_string)
-                push_app_event(app_event)
+                        payload = Dict(
+                            "type" => "response_rerun",
+                            "dev_mode" => g.dev_mode,
+                            "request_id" => ev.data.payload["request_id"],
+                            "root" => ev.data.state["root"],
+                            "error" => nothing
+                        )
 
-                write(g.ipc_connection, " ")
+                        payload_string = JSON.json(payload)
+                        app_event = create_app_event(AppEventType_NewPayload, session.client_id, payload_string)
+                        push_app_event(app_event)
 
-                session.rerun_task = nothing
+                        write(g.ipc_connection, " ")
 
-                # Start next rerun request on queue, if any
-                #-------------------------------------------
-                if length(session.rerun_queue) > 0
-                    rerun_request = popfirst!(session.rerun_queue)
-                    if is_rerun_request_valid(session, rerun_request)
-                        @debug "Running next rerun request in queue"
-                        rerun(session.client_id, rerun_request.payload)
+                        session.rerun_task = nothing
+
+                        # Start next rerun request on queue, if any
+                        #-------------------------------------------
+                        if length(session.rerun_queue) > 0
+                            rerun_request = popfirst!(session.rerun_queue)
+                            if is_rerun_request_valid(session, rerun_request)
+                                @debug "Running next rerun request in queue"
+                                rerun(session.client_id, rerun_request.payload)
+                            else
+                                @debug "Next rerun request in queue is invalid"
+                                return_invalid_request(session.client_id, ev.data.payload["request_id"])
+                            end
+                        end
                     else
-                        @debug "Next rerun request in queue is invalid"
-                        return_invalid_request(session.client_id, ev.data.payload["request_id"])
+                        @debug "ClientlessTaskFinished $(ev.data.client_id)"
+                        rm(".Lit/served-files/generated/session-$(session.client_id)", recursive=true, force=true)
                     end
                 end
             end

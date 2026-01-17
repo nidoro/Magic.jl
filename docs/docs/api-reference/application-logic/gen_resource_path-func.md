@@ -46,12 +46,13 @@ prevents that from happening.
 ### Function Signature
 
 ```julia
-function gen_resource_path(extension::String)::String
+function gen_resource_path(extension::String; lifetime::String="session")::String
 ```
 
  Argument  | Description
 ---------- |-------------
- `extension` | File extension to be appended to the randomly generated path.
+ `extension` | File extension `String` to be appended to the randomly generated path.
+ `lifetime` | A `String` indicating the lifetime of the resource. Possible values: `"session"` (default) or `"app"`. If `"session"` is provided, the file will become unavailable after the session is ended. If `"app"` is provided, the file will become unavailable after the app is stopped.
 
 ### Return Value
 

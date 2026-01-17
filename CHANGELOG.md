@@ -1,5 +1,9 @@
 # CHANGELOG
 
+### v0.3.2 (xxx)
+
+- New: Introduced `lifetime` argument to `gen_resource_path()`.
+
 ### v0.3.1 (2026-01-16)
 
 - Bug-fix: Unqueued rerun request are now validated as well.
