@@ -2240,17 +2240,21 @@ function start_app(
 
                     session = g.sessions[ev.data.client_id]
 
-                    if payload["type"] == "request_rerun" && !session.waiting_invalid_state_ack
-                        rerun_request = RerunRequest(payload)
-                        if session.rerun_task === nothing
-                            if is_rerun_request_valid(session, rerun_request)
-                                rerun(ev.data.client_id, payload)
+                    if payload["type"] == "request_rerun"
+                        if !session.waiting_invalid_state_ack
+                            rerun_request = RerunRequest(payload)
+                            if session.rerun_task === nothing
+                                if is_rerun_request_valid(session, rerun_request)
+                                    rerun(ev.data.client_id, payload)
+                                else
+                                    return_invalid_request(ev.data.client_id, payload["request_id"])
+                                end
                             else
-                                return_invalid_request(ev.data.client_id, payload["request_id"])
+                                @debug "Rerun already happening. Queueing rerun request. Current queue size: $(length(session.rerun_queue))"
+                                push!(session.rerun_queue, RerunRequest(payload))
                             end
                         else
-                            @debug "Rerun already happening. Queueing rerun request. Current queue size: $(length(session.rerun_queue))"
-                            push!(session.rerun_queue, RerunRequest(payload))
+                            # Nothing to do. Just wait for ack.
                         end
                     elseif payload["type"] == "ack_invalid_state"
                         session.waiting_invalid_state_ack = false
