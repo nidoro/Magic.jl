@@ -24,3 +24,5 @@ net-layer/third/icu-release-78.1/**/*.o
 net-layer/third/icu-release-78.1/install/
 net-layer/third/icu-release-78.1/test/
 net-layer/third/icu-release-78.1/.github
+
+net-layer/third/libwebsockets-4.3.2/minimal-examples
