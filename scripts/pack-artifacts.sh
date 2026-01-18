@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ -z "$1" ]; then
-    echo "Error: Version string required. Example: v1.0.0"
+    echo "Error: Version string required. Example: 1.0.0"
     echo "Usage: $0 <version>"
     exit 1
 fi
@@ -43,7 +43,7 @@ os = \"linux\"
 arch = \"x86_64\"
 
     [[artifacts.download]]
-    url = \"https://github.com/nidoro/Magic.jl/releases/download/$VERSION_STRING/artifacts-linux-x86_64.tar.gz\"
+    url = \"https://github.com/nidoro/Magic.jl/releases/download/v$VERSION_STRING/artifacts-linux-x86_64.tar.gz\"
     sha256 = \"$LINUX_X86_64_SHA256\"
 
 [[artifacts]]
@@ -52,7 +52,7 @@ os = \"windows\"
 arch = \"x86_64\"
 
     [[artifacts.download]]
-    url = \"https://github.com/nidoro/Magic.jl/releases/download/$VERSION_STRING/artifacts-win64.tar.gz\"
+    url = \"https://github.com/nidoro/Magic.jl/releases/download/v$VERSION_STRING/artifacts-win64.tar.gz\"
     sha256 = \"$WIN64_SHA256\"
 " > Artifacts.toml
 
