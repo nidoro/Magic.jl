@@ -1,6 +1,6 @@
 # CHANGELOG
 
-### v0.4.0 (2026-01-17)
+### v0.4.0 (2026-01-18)
 
 - Breaking-change: Package name change from Lit.jl to Magic.jl.
 - New: Introduced `lifetime` argument to `gen_resource_path()`.
