@@ -4,6 +4,8 @@ build
 Manifest.toml
 .kate*
 
+.cache-bust
+
 examples/Manifest*
 examples/.Magic/companion-host.json
 examples/.Magic/certs
