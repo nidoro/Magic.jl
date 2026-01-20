@@ -1727,10 +1727,19 @@ function handle_new_client(client_id::Cint)::Nothing
     return nothing
 end
 
+function try_rm(path::String; kwargs...)::Bool
+    try
+        rm(path; kwargs...)
+        return true
+    catch e
+        return false
+    end
+end
+
 function handle_client_left(client_id::Cint)::Nothing
     session = g.sessions[client_id]
     session.client_left = true
-    rm(".Magic/served-files/generated/session-$(client_id)", recursive=true, force=true)
+    try_rm(".Magic/served-files/generated/session-$(client_id)", recursive=true, force=true)
     delete!(g.sessions, client_id)
     return nothing
 end
@@ -2114,7 +2123,7 @@ function start_app(
     g.initialized = true
     g.script_path = joinpath(START_CWD, script_path)
 
-    rm(".Magic/served-files/generated", recursive=true, force=true)
+    try_rm(".Magic/served-files/generated", recursive=true, force=true)
     mkpath(".Magic/served-files/generated/app/pages")
 
     g.base_page_config.title = "Magic App"
@@ -2322,7 +2331,7 @@ function start_app(
                         end
                     else
                         @debug "ClientlessTaskFinished $(ev.data.client_id)"
-                        rm(".Magic/served-files/generated/session-$(session.client_id)", recursive=true, force=true)
+                        try_rm(".Magic/served-files/generated/session-$(session.client_id)", recursive=true, force=true)
                     end
                 end
             end
