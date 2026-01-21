@@ -5,6 +5,7 @@ Manifest.toml
 .kate*
 
 .cache-bust
+.ssi-parsed
 
 examples/Manifest*
 examples/.Magic/companion-host.json
