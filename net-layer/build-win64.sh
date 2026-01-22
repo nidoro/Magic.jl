@@ -13,7 +13,6 @@ x86_64-w64-mingw32-gcc \
     -static-libgcc \
     -Wno-unused-result \
     -shared \
-    -fPIC \
     -o ../build/win64/artifacts-win64/libmagic.dll \
     \
         -I../build/win64/openssl-1.1.1t/include \
@@ -28,18 +27,16 @@ x86_64-w64-mingw32-gcc \
     \
     -Wl,--whole-archive \
         -l:libwebsockets_static.a \
-        -l:libssl.a \
-        -l:libcrypto.a \
     -Wl,--no-whole-archive \
-    \
     -Wl,--start-group \
         -l:libSqliteIcu.a \
         -l:libsicuin.a \
         -l:libsicuuc.a \
-        -l:libsicuio.a \
         -l:libsicudt.a \
         -l:libsqlite3.a \
     -Wl,--end-group \
+    -l:libssl.a \
+    -l:libcrypto.a \
     \
     src/Magic.cpp \
     -Wl,-Bstatic -lstdc++ -lwinpthread \

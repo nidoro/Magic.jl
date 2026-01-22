@@ -10,7 +10,7 @@ NATIVE_BUILD=$THIS_DIR/../../build/linux-x86_64/icu-release-78.1
 
 pushd $THIS_DIR/icu-release-78.1
 
-#make clean
+make clean
 mkdir -p $DEST_DIR
 mkdir -p $DEST_DIR/bin
 mkdir -p $DEST_DIR/lib
@@ -22,10 +22,8 @@ mkdir -p $DEST_DIR/include
     --build=x86_64-linux-gnu \
     --prefix=$DEST_DIR \
     --enable-static \
-    --disable-tests \
-    --disable-samples \
+    --disable-shared \
     --disable-tools \
-    --disable-layout \
     --disable-extras \
     LDFLAGS="-lwinpthread" \
     CFLAGS="-fPIC" \
