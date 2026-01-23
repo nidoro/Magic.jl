@@ -1,5 +1,12 @@
 # CHANGELOG
 
+### v0.4.2 (xxx)
+
+- Bug-fix: Fixes catch block of rerun not reporting the error to the user.
+https://github.com/nidoro/Magic.jl/issues/7
+- Bug-fix: After introduction of the `docs_path` argument to `start_app()` on
+v0.3.0, we didn't update the CLI arguments to mirror that change.
+
 ### v0.4.1 (2026-01-20)
 
 - Hot-fix: Fixes server crash after session is closed

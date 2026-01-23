@@ -2390,7 +2390,7 @@ function __init__()
     end
 end
 
-function main(args::Vector{String})
+function main(_args::Vector{String} #= not used =#)
     cli = ArgParseSettings()
 
     @add_arg_table cli begin
@@ -2409,9 +2409,10 @@ function main(args::Vector{String})
             arg_type = Int
             default = 3443
 
-        "--docs", "-d"
-            help = "Serve Magic.jl documentation at /docs/build/"
-            action = :store_true
+        "--docs_path", "-d"
+            help = "Path to built Magic.jl documentation to be served"
+            arg_type = String
+            default = nothing
 
         "--dev", "-D"
             help = "Enable development mode"
@@ -2421,7 +2422,7 @@ function main(args::Vector{String})
     parsed = parse_args(cli)
 
     if parsed["script"] != nothing
-        start_app(parsed["script"]; host_name=parsed["hostname"], port=parsed["port"], docs=parsed["docs"], dev_mode=parsed["dev"])
+        start_app(parsed["script"]; host_name=parsed["hostname"], port=parsed["port"], docs_path=parsed["docs_path"], dev_mode=parsed["dev"])
     end
 end
 
