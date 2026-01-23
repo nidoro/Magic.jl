@@ -1,7 +1,9 @@
 # CHANGELOG
 
-### v0.4.2 (xxx)
+### v0.4.2 (2026-01-22)
 
+- Updates documentation installation instructions now that the package is
+registered in the julia General registry.
 - Bug-fix: Fixes catch block of rerun not reporting the error to the user.
 https://github.com/nidoro/Magic.jl/issues/7
 - Bug-fix: After introduction of the `docs_path` argument to `start_app()` on
