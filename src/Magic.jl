@@ -58,17 +58,18 @@ const AC_Cyan    = (text::String) -> AC_CodeCyan    * text * AC_Reset
 
 # WidgetKind
 #------------
-const WidgetKind             = Int
-const WidgetKind_None        = 0
-const WidgetKind_Button      = 1
-const WidgetKind_Selectbox   = 2
-const WidgetKind_Checkboxes  = 3
-const WidgetKind_Radio       = 4
-const WidgetKind_Image       = 5
-const WidgetKind_DataFrame   = 6
-const WidgetKind_TextInput   = 7
-const WidgetKind_ColorPicker = 8
-const WidgetKind_Code = 9
+const WidgetKind                = Int
+const WidgetKind_None           = 0
+const WidgetKind_Button         = 1
+const WidgetKind_Selectbox      = 2
+const WidgetKind_Checkboxes     = 3
+const WidgetKind_Radio          = 4
+const WidgetKind_Image          = 5
+const WidgetKind_DataFrame      = 6
+const WidgetKind_TextInput      = 7
+const WidgetKind_ColorPicker    = 8
+const WidgetKind_Code           = 9
+const WidgetKind_FileUploader   = 10
 
 @with_kw mutable struct ContainerInterface
     container::Union{Dict, Nothing} = nothing
@@ -1315,14 +1316,15 @@ end
 # Dataframe
 #--------------------
 function create_dataframe(
-        widgets::Dict{String, Widget},
-        parent::Dict, user_id::Any,
-        data::DataFrame,
-        column_config::Dict,
-        height::String,
-        onchange::Function,
-        args::Vector
-    )::DataFrame
+    widgets::Dict{String, Widget},
+    parent::Dict,
+    user_id::Any,
+    data::DataFrame,
+    column_config::Dict,
+    height::String,
+    onchange::Function,
+    args::Vector
+)::DataFrame
 
     props = Dict(
         "type" => "dataframe",
@@ -1417,15 +1419,78 @@ mutable struct UploadedFile
     bytes::Vector{UInt8}
 end
 
-function file_uploader(
+function create_file_uploader(
+    widgets::Dict{String, Widget},
+    parent::Dict,
+    user_id::Any,
     label::String,
+    onchange::Function,
+    args::Vector,
+    css::Dict
+)::Union{UploadedFile, Nothing}
+
+    props = Dict(
+        "type" => "file_uploader",
+        "user_id" => user_id,
+        "label" => label,
+        "css" => css,
+    )
+
+    props["local_id"] = bytes2hex(sha256(JSON.json(props)))
+    props["container_id"] = parent["id"]
+    props["id"] = "$(props["container_id"])/$(props["local_id"])"
+
+    push!(parent["children"], props)
+
+    widget = nothing
+
+    if haskey(widgets, props["id"])
+        widget = widgets[props["id"]]
+        widget.alive = true
+    else
+        widget = Widget()
+        widget.kind = WidgetKind_FileUploader
+        widget.id = props["id"]
+        widget.fragment_id = top_fragment().id
+        widget.user_id = props["user_id"]
+        widget.onchange = onchange
+        widget.args = args
+        widget.value = nothing #TODO
+        widgets[props["id"]] = widget
+    end
+
+    widget.props = props
+
+    return widget.value
+end
+
+function file_uploader(
+    label::String;
     formats::Vector{String}=Vector{String}(),
+    fill_width::Bool=false,
+    show_label::Bool=true,
     id::Union{String, Nothing}=nothing,
     onchange::Function=(args...; kwargs...)->(),
-    args::Vector=Vector()
+    args::Vector=Vector(),
+    css::Dict=Dict(),
 )::Union{UploadedFile, Nothing}
-    # TODO
-    return nothing
+
+    task = task_local_storage("app_task")
+    widgets = task.session.widgets
+    parent = top_container()
+
+    container_css = Dict()
+    set_css_to_achieve_layout(container_css, parent, fill_width, false)
+
+    if !isempty(label) && show_label
+        col = column(gap="0.3em", css=container_css)
+        col.html("label", label, css=Dict("font-size" => "0.9rem"))
+        parent = col.container
+    end
+
+    merge!(css, container_css)
+
+    return create_file_uploader(widgets, parent, id, label, onchange, args, css)
 end
 
 # HTML
@@ -1816,6 +1881,7 @@ function handle_client_left(client_id::Cint)::Nothing
     session.client_left = true
     try_rm(".Magic/served-files/generated/session-$(client_id)", recursive=true, force=true)
     try_rm(".Magic/served-files/generated/$(session.session_id)", recursive=true, force=true)
+    try_rm(".Magic/uploaded-files/$(session.session_id)", recursive=true, force=true)
     delete!(g.sessions, client_id)
     return nothing
 end

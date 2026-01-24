@@ -706,6 +706,32 @@ function createAppElement(parent, props, fragmentId) {
         }
 
         newElements.push(elem);
+    } else if (props.type == "file_uploader") {
+        let elem = document.querySelector(`[data-mg-id="${props.id}"]`);
+
+        if (!elem) {
+            elem = document.createElement("dd-file-uploader");
+            applyCSS(elem, props.css);
+
+            elem.innerHTML = `
+                <div class="mg-icon-container">
+                    <mg-icon mg-icon="material/upload"></mg-icon>
+                </div>
+                <div class="mg-inner-label">
+                    <p>
+                        <b>Drag and drop</b> a file here <br/>
+                        or <b>Click</b> to open the file browser
+                    </p>
+                </div>
+            `;
+
+            elem.classList.add("mg-file-uploader");
+
+            newElements.push(elem);
+        } else {
+            // TODO
+            newElements.push(elem);
+        }
 
     } else if (props.type == "code") {
         const elem = document.createElement("div");
@@ -734,7 +760,6 @@ function createAppElement(parent, props, fragmentId) {
             cm.setValue(props.initial_value);
         });
 
-        newElements.push(elem);
         newElements.push(elem);
     } else {
         console.error(`Unknown element type '${props.type}'`);
