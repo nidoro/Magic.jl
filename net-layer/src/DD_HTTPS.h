@@ -1881,7 +1881,7 @@ void HS_GetPathNodes(char* path, char** nodes) {
     // We don't check if the passed buffers for each
     // path node has sufficient space to receive the data.
     char buffer[PATH_MAX] = {};
-    strcpy(buffer, path);
+    strncpy(buffer, path, PATH_MAX-1);
     char* entry = strtok(buffer, "/");
     
     if (entry[0] == 0) {
@@ -1894,7 +1894,7 @@ void HS_GetPathNodes(char* path, char** nodes) {
             break;
         }
         
-        strcpy(nodes[i], entry);
+        strncpy(nodes[i], entry, PATH_MAX-1);
         entry = strtok(0, "/");
         ++i;
     }
