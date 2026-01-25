@@ -460,6 +460,8 @@ dd-button.mg-button, a.mg-link {
     border-radius: .5em;
     text-align: center;
     color: #555;
+    --dragover-outline: 5px solid #4b92e7;
+    --dragover-outline-offset: -5px;
 }
 
 .mg-file-uploader mg-icon {
