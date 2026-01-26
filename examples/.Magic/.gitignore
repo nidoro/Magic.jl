@@ -1,0 +1,7 @@
+.cache-bust
+.ssi-parsed
+
+companion-host.json
+certs
+served-files/generated
+uploaded-files
