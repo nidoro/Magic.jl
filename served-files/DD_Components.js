@@ -3015,6 +3015,7 @@ class DD_FileUploader extends DD_Button {
         this.input.setAttribute("multiple", "");
         this.input.style.display = "none";
         this.continueSpinner = false;
+        this.defaultInnerHTML = "";
         this.files = [];
 
         let thisElem = this;
@@ -3047,6 +3048,11 @@ class DD_FileUploader extends DD_Button {
     }
 
     connectedCallback() {
+        if (this.hasAttribute("dd-reconnecting")) {
+            this.removeAttribute("dd-reconnecting");
+            return;
+        }
+
         this.initializeButton();
         if (this.hasAttribute("dd-accept")) this.input.setAttribute("accept", this.getAttribute("accept"));
         this.appendChild(this.input);
@@ -3090,22 +3096,20 @@ class DD_FileUploader extends DD_Button {
     }
 
     startSpinner() {
-        this.originalInnerHTML = this.innerHTML;
+        if (!this.defaultInnerHTML) {
+            this.defaultInnerHTML = this.innerHTML;
+        }
         this.innerHTML = `<span class="dd-spinner"></span>`;
         this.setAttribute("disabled", "");
     }
 
     stopSpinner() {
-        this.innerHTML = this.originalInnerHTML;
+        this.innerHTML = this.defaultInnerHTML;
         this.removeAttribute("disabled");
     }
 
-    async processFiles(files) {
-        this.startSpinner();
-        const oldValue = this.files;
-        this.files = await this.readFilesAsArrayBuffers(files);
+    callChangeEventHandler(oldValue, newValue) {
         if (this.hasAttribute("dd-onchange")) {
-            const newValue = this.files;
             DD_Components.executeFunctionByName(this.getAttribute("dd-onchange"), window, this, oldValue, newValue);
             if (!this.continueSpinner) {
                 this.stopSpinner();
@@ -3114,12 +3118,22 @@ class DD_FileUploader extends DD_Button {
         }
     }
 
+    async processFiles(files) {
+        this.startSpinner();
+        const oldValue = this.files;
+        const newValue = await this.readFilesAsArrayBuffers(files);
+        this.files = newValue;
+        this.callChangeEventHandler(oldValue, newValue);
+    }
+
     get value() {
         return this.files;
     }
 
-    set value(files) {
-        this.files = v;
+    set value(newValue) {
+        const oldValue = this.files;
+        this.files = newValue;
+        this.callChangeEventHandler(oldValue, newValue);
     }
 }
 

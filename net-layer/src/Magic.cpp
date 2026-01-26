@@ -362,7 +362,7 @@ MG_API int HS_CALLBACK(MG_PostRequestHandler, args) {
                 FU_WriteEntireFile(filePath, client->receivedBuffer, client->receivedSize);
 
                 HS_InitResponseBuffer(client, 512);
-                client->fileSize = sprintf(client->fileContent, R"({"file_id": "%s"})", fileId);
+                client->fileSize = sprintf(client->fileContent, R"({"file_id": "%s", "extension": "%s"})", fileId, ext);
                 HS_AddHTTPHeaderStatus(client, 200);
                 HS_AddHTTPHeader(client, WSI_TOKEN_HTTP_CONTENT_LENGTH, client->fileSize);
                 HS_AddHTTPHeader(client, WSI_TOKEN_HTTP_CONTENT_TYPE, "application/json");

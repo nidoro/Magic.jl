@@ -36,6 +36,15 @@ using TOML
 
 const MG_SESSION_ID_SIZE = 32-1
 
+const DOT_MAGIC_GITIGNORE = """.cache-bust
+.ssi-parsed
+
+certs
+served-files/generated
+uploaded-files
+companion-host.json
+"""
+
 # Colored log utils
 #-------------------------
 const AC_Reset         = "\x1b[0m"
@@ -1412,11 +1421,14 @@ end
 
 # File uploader
 #-----------------
-mutable struct UploadedFile
-    name::String
-    format::String
-    size::Int
-    bytes::Vector{UInt8}
+@with_kw mutable struct UploadedFile
+    id::String          = ""
+    name::String        = ""
+    extension::String   = ""
+    path::String        = ""
+    type::String        = ""
+    size::Int           = 0
+    last_modified::Int  = 0
 end
 
 function create_file_uploader(
@@ -1424,15 +1436,17 @@ function create_file_uploader(
     parent::Dict,
     user_id::Any,
     label::String,
+    multiple::Bool,
     onchange::Function,
     args::Vector,
     css::Dict
-)::Union{UploadedFile, Nothing}
+)::Union{Vector{UploadedFile}, UploadedFile, Nothing}
 
     props = Dict(
         "type" => "file_uploader",
         "user_id" => user_id,
         "label" => label,
+        "multiple" => multiple,
         "css" => css,
     )
 
@@ -1455,7 +1469,7 @@ function create_file_uploader(
         widget.user_id = props["user_id"]
         widget.onchange = onchange
         widget.args = args
-        widget.value = nothing #TODO
+        widget.value = nothing
         widgets[props["id"]] = widget
     end
 
@@ -1467,13 +1481,14 @@ end
 function file_uploader(
     label::String;
     formats::Vector{String}=Vector{String}(),
+    multiple::Bool=false,
     fill_width::Bool=false,
     show_label::Bool=true,
     id::Union{String, Nothing}=nothing,
     onchange::Function=(args...; kwargs...)->(),
     args::Vector=Vector(),
     css::Dict=Dict(),
-)::Union{UploadedFile, Nothing}
+)::Union{Vector{UploadedFile}, UploadedFile, Nothing}
 
     task = task_local_storage("app_task")
     widgets = task.session.widgets
@@ -1490,7 +1505,7 @@ function file_uploader(
 
     merge!(css, container_css)
 
-    return create_file_uploader(widgets, parent, id, label, onchange, args, css)
+    return create_file_uploader(widgets, parent, id, label, multiple, onchange, args, css)
 end
 
 # HTML
@@ -1987,8 +2002,6 @@ function rerun(client_id::Cint, payload::Dict)::Task
         if g.dry_run_error !== nothing
             display_rerun_error(g.dry_run_error)
         else
-            g.dry_run_error = nothing
-
             # Handle events
             #------------------
             for widget in values(session.widgets)
@@ -2018,6 +2031,34 @@ function rerun(client_id::Cint, payload::Dict)::Task
                         else
                             widget.value = (length(front_event["new_value"]) > 0)
                         end
+                        invokelatest(widget.onchange, widget.args...)
+                    elseif widget.kind == WidgetKind_FileUploader
+                        new_value = nothing
+
+                        if length(front_event["new_value"]) > 0
+                            new_value = Vector{UploadedFile}()
+
+                            for entry in front_event["new_value"]
+                                file = UploadedFile()
+                                file.id = entry["id"]
+                                file.name = entry["name"]
+                                file.extension = entry["extension"]
+                                file.path = ".Magic/uploaded-files/$(task.session.session_id)/$(file.id)$(file.extension)"
+                                file.type = entry["type"]
+                                file.size = entry["size"]
+                                file.last_modified = entry["last_modified"]
+
+                                if widget.props["multiple"]
+                                    push!(new_value, file)
+                                else
+                                    new_value = file
+                                    break
+                                end
+                            end
+                        end
+
+                        widget.value = new_value
+
                         invokelatest(widget.onchange, widget.args...)
                     elseif widget.kind == WidgetKind_Selectbox || widget.kind == WidgetKind_Radio || widget.kind == WidgetKind_TextInput || widget.kind == WidgetKind_ColorPicker
                         widget.value = front_event["new_value"]
@@ -2371,6 +2412,7 @@ function start_app(
     try_rm(".Magic/uploaded-files", recursive=true, force=true)
     mkpath(".Magic/served-files/generated/app/pages")
     cp(joinpath(@__DIR__, "../served-files/MagicPageTemplate.html"), ".Magic/served-files/generated/app/pages/first.html", force=true)
+    write(".Magic/.gitignore", DOT_MAGIC_GITIGNORE)
 
     g.base_page_config.title = "Magic App"
     g.base_page_config.description = "Web app made with Magic.jl"

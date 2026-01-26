@@ -13,6 +13,18 @@ class MG_Icon extends HTMLElement {
     }
 }
 
+const FILE_UPLOADER_DEFAULT_INNER_HTML = `
+    <div class="mg-icon-container">
+        <mg-icon mg-icon="material/upload"></mg-icon>
+    </div>
+    <div class="mg-inner-label">
+        <p>
+            <b>Drag and drop</b> a file here <br/>
+            or <b>Click</b> to open the file browser
+        </p>
+    </div>
+`;
+
 var g = {
     ws: null,
     devMode: false,
@@ -55,7 +67,17 @@ function ackInvalidState() {
     });
 }
 
+function btnClearFileUploader(event) {
+    event.stopPropagation();
+    event.preventDefault();
+
+    const elem = event.currentTarget.parentElement;
+    elem.value = [];
+}
+
 async function uplChange(elem, oldValue, newValue) {
+    const mgFiles = [];
+
     for (const file of newValue) {
         const endpoint = `/.Magic/uploaded-files/${g.sessionId}?file_name=${file.name}&type=${file.type}`;
         const response = await fetch(endpoint, {
@@ -66,8 +88,60 @@ async function uplChange(elem, oldValue, newValue) {
             body: file.arrayBuffer
         });
 
-        console.log(await response.json());
+        file.arrayBuffer = null; // Free bytes now that the file is stored in the backend
+
+        if (response.ok) {
+            const payload = await response.json();
+            mgFiles.push({
+                id: payload.file_id,
+                extension: payload.extension,
+                name: file.name,
+                last_modified: file.lastModified,
+                size: file.size,
+                type: file.type,
+            });
+        } else {
+            // TODO: Something bad happened while posting a file. We should
+            // cancel the whole operation and notify the user.
+            break;
+        }
+
+        if (!elem.hasAttribute("data-mg-multiple")) {
+            break;
+        }
     }
+
+    if (mgFiles.length) {
+        let fileNamesCSV = mgFiles[0].name;
+
+        for (let i = 1; i < mgFiles.length; ++i) {
+            if (i >= 4-1) {
+                const remaining = mgFiles.length - i;
+                fileNamesCSV += ` and ${remaining} more`;
+                break;
+            }
+            fileNamesCSV += ", " + mgFiles[i].name;
+        }
+
+        elem.innerHTML = `
+            <dd-button class="mg-clear-button mg-icon-container" onclick="btnClearFileUploader(event)">
+                <mg-icon mg-icon="material/cancel"></mg-icon>
+            </dd-button>
+            <div class="mg-inner-label">
+                <p>
+                    Selected files (${mgFiles.length}): <br/>
+                    ${fileNamesCSV}
+                </p>
+            </div>
+        `;
+    }
+
+    requestUpdate([{
+        type: "change",
+        widget_id: elem.getAttribute("data-mg-id"),
+        fragment_id: elem.getAttribute("data-mg-fragment-id"),
+        new_value: mgFiles,
+    }]);
 }
 
 function btnClick(event) {
@@ -726,29 +800,30 @@ function createAppElement(parent, props, fragmentId) {
 
         if (!elem) {
             elem = document.createElement("dd-file-uploader");
+
+            elem.setAttribute("data-mg-container-id", props.container_id);
+            elem.setAttribute("data-mg-local-id", props.local_id);
+            elem.setAttribute("data-mg-id", props.id);
+            if (props.multiple) {
+                elem.setAttribute("data-mg-multiple", props.multiple);
+            }
             elem.setAttribute("dd-onchange", "uplChange()");
-            applyCSS(elem, props.css);
-
-            elem.innerHTML = `
-                <div class="mg-icon-container">
-                    <mg-icon mg-icon="material/upload"></mg-icon>
-                </div>
-                <div class="mg-inner-label">
-                    <p>
-                        <b>Drag and drop</b> a file here <br/>
-                        or <b>Click</b> to open the file browser
-                    </p>
-                </div>
-            `;
-
             elem.classList.add("mg-file-uploader");
 
-            newElements.push(elem);
+            applyCSS(elem, props.css);
+
+            elem.innerHTML = FILE_UPLOADER_DEFAULT_INNER_HTML;
+            elem.defaultInnerHTML = FILE_UPLOADER_DEFAULT_INNER_HTML;
         } else {
-            // TODO
-            newElements.push(elem);
+            elem.setAttribute("dd-reconnecting", "");
+            if (DD_Components.isFocused(elem)) {
+                requestAnimationFrame(()=>{
+                    elem.focus();
+                });
+            }
         }
 
+        newElements.push(elem);
     } else if (props.type == "code") {
         const elem = document.createElement("div");
         applyCSS(elem, props.css);

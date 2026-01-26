@@ -471,6 +471,13 @@ dd-button.mg-button, a.mg-link {
 .mg-file-uploader .mg-inner-label {
     display: flex;
     justify-content: center;
+    align-items: center;
     flex-grow: 1;
     line-height: 1.4;
+    padding: .4em;
+    height: 100%;
+}
+
+.mg-file-uploader .mg-clear-button {
+    --button-hover-color: black;
 }
