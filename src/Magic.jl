@@ -16,7 +16,8 @@ columns, container, @push, @pop, push_container, pop_container
 export start_app, @app_startup, @page_startup, @session_startup, @once,
 set_app_data, get_app_data, set_page_data, get_page_data, set_session_data,
 get_session_data, get_default_value, set_default_value,
-is_app_first_pass, is_page_first_pass, is_session_first_pass, gen_resource_path,
+is_app_first_pass, is_page_first_pass, is_session_first_pass,
+gen_serveable_path, make_serveable_copy, move_to_serveable_dir,
 fragment, @fragment, get_url_path, is_on_page, get_current_page, add_page,
 add_css_rule, add_font, begin_page_config, end_page_config, set_title,
 set_description
@@ -1298,6 +1299,10 @@ function image(src_or_path::String; fill_width::Bool=false, max_width::String="1
         css["max-width"] = max_width
     end
 
+    if !startswith(src_or_path, ".Magic/served-files") && isfile(src_or_path)
+        src_or_path = make_serveable_copy(src_or_path)
+    end
+
     src = src_or_path
     if startswith(src_or_path, ".Magic/served-files")
         src = replace(src_or_path, ".Magic/served-files" => "")
@@ -1311,15 +1316,33 @@ function get_random_string(n::Integer)::String
     return String(rand(CHARSET, n))
 end
 
-function gen_resource_path(extension::String; lifetime::String="session")::String
+function gen_serveable_path(extension::String=""; lifetime::String="session")::String
     task = task_local_storage("app_task")
-    file_name = "$(get_random_string(32)).$(replace(extension, "." => ""))"
-    dir_path = ".Magic/served-files/generated/session-$(task.client_id)"
+    if length(extension) > 0
+        if extension[1] != "."
+            extension = "." * extension
+        end
+    end
+
+    file_name = "$(get_random_string(32))$(extension)"
     dir_path = ".Magic/served-files/generated/$(task.session.session_id)"
     if lifetime == "app"
         dir_path = ".Magic/served-files/generated/app"
     end
+
     return "$(dir_path)/$(file_name)"
+end
+
+function make_serveable_copy(file_path::String; lifetime::String="session")::String
+    serveable_path = gen_serveable_path(lifetime=lifetime) * splitext(file_path)[2]
+    cp(file_path, serveable_path, force=true)
+    return serveable_path
+end
+
+function move_to_serveable_dir(file_path::String; lifetime::String="session")::String
+    serveable_path = gen_serveable_path(lifetime=lifetime) * splitext(file_path)[2]
+    mv(file_path, serveable_path, force=true)
+    return serveable_path
 end
 
 # Dataframe
@@ -1875,7 +1898,6 @@ function handle_new_client(client_id::Cint, session_id::String)::Nothing
 
     g.sessions[client_id] = session
 
-    mkpath(".Magic/served-files/generated/session-$(client_id)")
     mkpath(".Magic/served-files/generated/$(session_id)")
     mkpath(".Magic/uploaded-files/$(session_id)")
 
@@ -1894,7 +1916,6 @@ end
 function handle_client_left(client_id::Cint)::Nothing
     session = g.sessions[client_id]
     session.client_left = true
-    try_rm(".Magic/served-files/generated/session-$(client_id)", recursive=true, force=true)
     try_rm(".Magic/served-files/generated/$(session.session_id)", recursive=true, force=true)
     try_rm(".Magic/uploaded-files/$(session.session_id)", recursive=true, force=true)
     delete!(g.sessions, client_id)
@@ -2412,7 +2433,10 @@ function start_app(
     try_rm(".Magic/uploaded-files", recursive=true, force=true)
     mkpath(".Magic/served-files/generated/app/pages")
     cp(joinpath(@__DIR__, "../served-files/MagicPageTemplate.html"), ".Magic/served-files/generated/app/pages/first.html", force=true)
-    write(".Magic/.gitignore", DOT_MAGIC_GITIGNORE)
+
+    if !isfile(".Magic/.gitignore")
+        write(".Magic/.gitignore", DOT_MAGIC_GITIGNORE)
+    end
 
     g.base_page_config.title = "Magic App"
     g.base_page_config.description = "Web app made with Magic.jl"
@@ -2559,7 +2583,6 @@ function start_app(
                         end
                     else
                         @debug "ClientlessTaskFinished | Client=$(ev.data.client_id)"
-                        try_rm(".Magic/served-files/generated/session-$(session.client_id)", recursive=true, force=true)
                         try_rm(".Magic/served-files/generated/$(session.session_id)", recursive=true, force=true)
                     end
                 end

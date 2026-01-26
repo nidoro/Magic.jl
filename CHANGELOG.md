@@ -2,10 +2,21 @@
 
 ### Next (---)
 
-- New: `build-third.sh` script to build all third party libraries within docker.
-- New: Dry-run errors do not kill the server anymore. Rather, the user can see
-the error when accessing the web app, and work on the fix while using the hot-
-reloading mechanism.
+- Breaking-change: renamed `gen_resource_path` to `gen_serveable_path`.
+Additionally, the function now generates file names without extension when
+an empty string is passed to extension, which is now the default value of the
+argument.
+- New: Widget `file_uploader()`.
+- New: Function `make_serveable_copy()`.
+- New: Function `move_to_serveable_dir()`.
+- New: A `.gitignore` file is now automatically generated within `.Magic` if
+it doesn't exist.
+- New: `build-third.sh` script to build all third party libraries using docker.
+- Change: if a non-serveable path is passed to `image()` and the path points
+to an existing file, a serveable copy is created using `make_serveable_copy()`.
+- Change: Dry-run errors do not kill the server anymore. Rather, the user can
+see the error when accessing the web app, and work on the fix while using the
+hot-reloading mechanism.
 
 ### v0.4.2 (2026-01-22)
 
