@@ -18,6 +18,10 @@ to an existing file, a serveable copy is automatically created using
 - Change: Dry-run errors do not kill the server anymore. Rather, the user can
 see the error when accessing the web app, and work on the fix while using the
 hot-reloading mechanism.
+- Performance: The temporary module where the user script is evaluated is now
+session-persistent rather then recreated on every rerun.
+- Deprecated: `@once` macro is deprecated, as it turns out it is not needed now
+that the app module is session-persistent.
 
 ### v0.4.2 (2026-01-22)
 
