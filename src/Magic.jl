@@ -1740,6 +1740,13 @@ function get_value(user_id::String)::Any
     widget = get_widget_by_user_id(task.session.widgets, user_id)
     if widget === missing
         return get_default_value(user_id)
+    elseif widget.value === nothing
+        def_value = get_default_value(user_id)
+        if def_value !== missing
+            return def_value
+        else
+            return nothing
+        end
     end
     return widget.value
 end
