@@ -30,13 +30,16 @@
 #endif
 
 #define MG_SESSION_ID_SIZE 32-1
+#define MG_WIDGET_ID_MAX_SIZE 256-1
 #define MG_FILE_ID_SIZE 32-1
+#define MG_PATH_MAX 4096-1
 
 extern "C" {
 
 struct MG_Client {
     int id;
     char sessionId[MG_SESSION_ID_SIZE+1];
+    char widgetId[MG_WIDGET_ID_MAX_SIZE+1];
 
     HS_PacketQueue writeQueue;
 
@@ -44,10 +47,9 @@ struct MG_Client {
     int   readCap;
     int   readSize;
 
-    void* statePtr;
-    JS_JSON* jState;
-
     pthread_mutex_t* mutex;
+
+    HS_HTTPClient** waitingDownload;
 };
 
 enum MG_NetEventType {
@@ -69,6 +71,7 @@ struct MG_NetEvent {
 enum MG_AppEventType {
     MG_AppEventType_None,
     MG_AppEventType_NewPayload,
+    MG_AppEventType_DownloadReady,
 };
 
 struct MG_AppEvent {
@@ -76,6 +79,7 @@ struct MG_AppEvent {
     int clientId;
     char* payload;
     int payloadSize;
+    char downloadPath[MG_PATH_MAX+1];
 };
 
 struct MG_Global {
@@ -98,11 +102,6 @@ struct MG_Global {
     bool devMode;
 
     HS_Server hserver;
-
-    size_t appStateSize;
-    void (*appInit)();
-    void (*appNewClient)(void* statePtr);
-    void (*appUpdate)(void* statePtr);
 
     MG_NetEvent* netEvents;
     MG_AppEvent* appEvents;
@@ -173,7 +172,7 @@ MG_Client* MG_GetClientBySessionId(char* sessionId) {
 
 // NOTE: Net events are created and pushed by the network layer and poped and
 // destroyed by the app layer.
-MG_API MG_NetEvent MG_CreateNetEvent(MG_NetEventType type, int clientId, char* sessionId, char* payload, int payloadSize) {
+MG_NetEvent MG_CreateNetEvent(MG_NetEventType type, int clientId, char* sessionId, char* payload, int payloadSize) {
     MG_NetEvent ev = {
         .type=type,
         .clientId=clientId,
@@ -198,7 +197,7 @@ MG_API void MG_DestroyNetEvent(MG_NetEvent ev) {
     }
 }
 
-MG_API void MG_PushNetEvent(MG_NetEvent ev) {
+void MG_PushNetEvent(MG_NetEvent ev) {
     pthread_mutex_lock(&g.netEventsMutex);
     arradd(g.netEvents, ev);
     pthread_mutex_unlock(&g.netEventsMutex);
@@ -337,7 +336,65 @@ const char* MG_GetExtension(const char* fileName, bool withDot=true) {
     return dot + 1;
 }
 
-MG_API int HS_CALLBACK(MG_PostRequestHandler, args) {
+int HS_CALLBACK(MG_GetRequestHandler, args) {
+    HS_VHost* vhost = HS_GetVHost(args->socket);
+    HS_HTTPClient* client = HS_GetHTTPClientData(args);
+
+    char ignore[PATH_MAX] = {};
+    char sessionId[PATH_MAX] = {};
+    char widgetId[MG_WIDGET_ID_MAX_SIZE+1] = {};
+    char fragmentId[MG_WIDGET_ID_MAX_SIZE+1] = {};
+    char requestId[64] = {};
+
+    if (SU_StartsWith(client->uri, "/.Magic/served-files/_download/")) {
+        char* nodes[] = {ignore, ignore, ignore, sessionId, 0};
+        HS_GetPathNodes(client->uri, nodes);
+
+        if (!SU_IsEmpty(sessionId)) {
+            MG_Client* mgClient = MG_GetClientBySessionId(sessionId);
+
+            if (mgClient) {
+                HS_GetQueryStringValue(client, "request_id", requestId, sizeof(requestId));
+                HS_GetQueryStringValue(client, "widget_id", widgetId, sizeof(widgetId));
+                HS_GetQueryStringValue(client, "fragment_id", fragmentId, sizeof(fragmentId));
+
+                if (!SU_IsEmpty(requestId) && !SU_IsEmpty(widgetId)) {
+                    LU_Log(LU_Debug, "DownloadRequest | SessionId=%s | WidgetId=%s | RequestId=%s", sessionId, widgetId, requestId);
+
+                    char payload[1024] = {};
+                    int payloadSize = sprintf(payload, R"({"type": "request_rerun", "location": null, "request_id": %s, "events": [{"type": "click", "widget_id": "%s", "fragment_id": "%s"}]})", requestId, widgetId, fragmentId);
+
+                    MG_NetEvent ev = MG_CreateNetEvent(MG_NetEventType_NewPayload, mgClient->id, sessionId, payload, payloadSize);
+                    MG_PushNetEvent(ev);
+                    MG_WakeUpAppLayer();
+
+                    arradd(mgClient->waitingDownload, client);
+
+                    // NOTE: The app can take an arbitrary amount of time to generate
+                    // the download file, so we set a huge timeout of 1h
+                    lws_set_timeout(args->socket, PENDING_TIMEOUT_HTTP_CONTENT, 60*60);
+                    return 0;
+                } else {
+                    // TODO: Malformed request: missing query parameters.
+                    HS_CloseConnection(client, 400);
+                    return 0;
+                }
+            } else {
+                // TODO: Session does not exist.
+                HS_CloseConnection(client, 404);
+                return 0;
+            }
+        } else {
+            // TODO: Malformed URL - missing session id.
+            HS_CloseConnection(client, 400);
+            return 0;
+        }
+    } else {
+        return HS_GetFileByURI(args);
+    }
+}
+
+int HS_CALLBACK(MG_PostRequestHandler, args) {
     HS_HTTPClient* client = HS_GetHTTPClientData(args);
 
     char ignore[PATH_MAX] = {};
@@ -347,7 +404,7 @@ MG_API int HS_CALLBACK(MG_PostRequestHandler, args) {
     char fileName[PATH_MAX] = {};
 
     if (SU_StartsWith(client->uri, "/.Magic/uploaded-files/")) {
-        char* nodes[] = {ignore, ignore, sessionId};
+        char* nodes[] = {ignore, ignore, sessionId, 0};
         HS_GetPathNodes(client->uri, nodes);
         MG_Client* mgClient = MG_GetClientBySessionId(sessionId);
 
@@ -399,6 +456,7 @@ MG_API int HS_CALLBACK(MG_WSEventsHandler, args) {
         case LWS_CALLBACK_ESTABLISHED: {
             mgClient->id = g.nextClientId++;
             MG_GenSessionId(mgClient->sessionId);
+            mgClient->waitingDownload = arralloc(HS_HTTPClient*, 3);
             mgClient->writeQueue = HS_CreatePacketQueue(args->socket, 128);
             mgClient->mutex = (pthread_mutex_t*) malloc(sizeof(pthread_mutex_t));
             pthread_mutex_init(mgClient->mutex, 0);
@@ -426,6 +484,13 @@ MG_API int HS_CALLBACK(MG_WSEventsHandler, args) {
 
             MG_WakeUpAppLayer();
 
+            for (int i = 0; i < arrcount(mgClient->waitingDownload); ++i) {
+                HS_HTTPClient* wc = mgClient->waitingDownload[i];
+                HS_CloseConnection(wc, 400);
+            }
+
+            arrfree(mgClient->waitingDownload);
+
             pthread_mutex_lock(mgClient->mutex);
             arrremovematch(g.clients, mgClient);
             free(mgClient->mutex);
@@ -452,6 +517,41 @@ MG_API int HS_CALLBACK(MG_WSEventsHandler, args) {
 
                         HS_SendPacket(&mgClient->writeQueue, packet);
                         MG_DestroyAppEvent(ev);
+                    } else if (ev.type == MG_AppEventType_DownloadReady) {
+                        LU_Log(LU_Debug, "AppEventType_DownloadReady | %d | %s", ev.clientId, ev.downloadPath);
+
+                        if (arrcount(mgClient->waitingDownload)) {
+                            HS_HTTPClient* waiting = mgClient->waitingDownload[0];
+
+                            if (SU_StartsWith(ev.downloadPath, ".Magic/served-files/")) {
+                                FILE* file = fopen(ev.downloadPath, "rb");
+
+                                if (file) {
+                                    fseek(file, 0, SEEK_END);
+                                    waiting->fileSize = ftell(file);
+                                    fseek(file, 0, SEEK_SET);
+
+                                    HS_InitResponseBuffer(waiting, waiting->fileSize);
+                                    fread(waiting->fileContent, waiting->fileSize, 1, file);
+                                    HS_AddHTTPHeaderStatus(waiting, 200);
+                                    HS_AddHTTPHeader(waiting, WSI_TOKEN_HTTP_CONTENT_LENGTH, waiting->fileSize);
+                                    // TODO: mimetype
+                                    HS_AddHTTPHeader(waiting, WSI_TOKEN_HTTP_CONTENT_TYPE, "application/octet-stream");
+                                    HS_AddHTTPHeader(waiting, WSI_TOKEN_HTTP_CACHE_CONTROL, "no-cache, no-store, must-revalidate");
+                                    HS_WriteResponse(waiting);
+
+                                    fclose(file);
+                                } else {
+                                    // TODO: Warn the user that the file couldn't be open.
+                                }
+
+                                arrremove(mgClient->waitingDownload, 0);
+                            } else {
+                                // TODO: Warn user that the provided downloadPath is not a serveable path.
+                            }
+                        } else {
+                            // Nothing to do?
+                        }
                     } else {
                         DD_Assert2(0, "Unknown event %d", ev.type);
                     }
@@ -477,10 +577,6 @@ MG_API void MG_PushURIMapping(const char* uri, int uriSize, const char* filePath
 
 MG_API void MG_ClearURIMapping() {
     HS_ClearURIMapping(&g.hserver, "magic-app");
-}
-
-MG_API void MG_SetStateSize(size_t size) {
-    g.appStateSize = size;
 }
 
 MG_API void MG_HandleSigInt(void* data) {
@@ -549,7 +645,7 @@ MG_API void* MG_RunServer(void*) {
     HS_SetVHostPort(&g.hserver, "magic-app", g.appPort);
     HS_SetLWSVHostConfig(&g.hserver, "magic-app", pt_serv_buf_size, HS_KILO_BYTES(12));
     HS_SetLWSProtocolConfig(&g.hserver, "magic-app", "HTTP", rx_buffer_size, HS_KILO_BYTES(12));
-    HS_SetHTTPGetHandler(&g.hserver, "magic-app", HS_GetFileByURI);
+    HS_SetHTTPGetHandler(&g.hserver, "magic-app", MG_GetRequestHandler);
     HS_SetHTTPPostEndpointChecker(&g.hserver, "magic-app", MG_PostRequestChecker);
     HS_SetHTTPPostHandler(&g.hserver, "magic-app", MG_PostRequestHandler);
     HS_AddProtocol(&g.hserver, "magic-app", "ws", MG_WSEventsHandler, MG_Client);

@@ -1657,18 +1657,14 @@ int HS_GetFileByURI(HS_CallbackArgs* args) {
             if (!mimeType) {
                 if (HS_EndsWith(client->filePath, ".wasm")) {
                     mimeType = "application/wasm";
-                } else if (HS_EndsWith(client->filePath, ".woff2")) {
-                    mimeType = "font/woff2";
                 } else if (HS_EndsWith(client->filePath, ".map")) {
                     mimeType = "application/json";
                 } else if (HS_EndsWith(client->filePath, ".zip")) {
                     mimeType = "application/zip";
                 } else if (HS_EndsWith(client->filePath, ".pdf")) {
                     mimeType = "application/pdf";
-                } else if (HS_EndsWith(client->filePath, ".txt")) {
-                    mimeType = "text/plain";
                 } else {
-                    mimeType = "text/html";
+                    mimeType = "application/octet-stream";
                 }
             }
 
@@ -1813,7 +1809,6 @@ int HS_GetFileByURI(HS_CallbackArgs* args) {
 
             if (server->disableFileCache || (server->memCacheMaxSizeMB > 0 && (int)client->fileSize > HS_MEGA_BYTES(server->memCacheMaxSizeMB))) {
                 // Don't cache
-                // TODO: Make this work on windows
                 HS_RmDir("%s/.cache-bust", rootDir);
                 HS_RmDir("%s/.ssi-parsed", rootDir);
             } else if (!fileEntry) {
@@ -2510,7 +2505,6 @@ void HS_DelayBodyFree(HS_Request* request) {
     request->delayBodyFree = true;
 }
 
-//#define HS_GetOriginalClient(type, request) (type*) lws_wsi_user((request)->originSocket)
 #define HS_GetOriginalClient(request) (HS_HTTPClient*) lws_wsi_user((request)->originSocket)
 
 bool HS_AddHTTPHeader(HS_Request* request, const char* formatString, ...) {

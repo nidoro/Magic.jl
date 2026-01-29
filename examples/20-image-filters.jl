@@ -14,7 +14,7 @@ end
     session = Session(nothing)
     set_session_data(session)
 
-    set_default_value("slc_filter", "Sketch")
+    set_default_value("slc_filter", "Sepia")
 end
 
 function upl_image()
@@ -33,14 +33,18 @@ cols(1) do
 end
 
 if session.input_img !== nothing
-    cols(2) do
-        selectbox("Filter", ["Sketch", "Sobel", "Oil Painting"], id="slc_filter")
-    end
+    @push cols[2]
+        @push row(align_items="flex-end")
+            selected_filter = selectbox("Filter", ["Sepia", "Sketch", "Sobel", "Posterize", "Pixelate"], id="slc_filter")
+            download_slot = row()
+        @pop
+    @pop
 
     cols = columns(2)
 
     cols(1) do
         column(fill_width=true, align_items="flex-end") do
+            text("Before")
             image(session.input_img.path)
         end
     end
@@ -49,7 +53,7 @@ if session.input_img !== nothing
         img = load(session.input_img.path)
         result = nothing
 
-        if get_value("slc_filter") == "Sobel"
+        if selected_filter == "Sobel"
             gray_img = Gray.(img)
 
             gx = imfilter(gray_img, Kernel.sobel()[1])
@@ -63,7 +67,7 @@ if session.input_img !== nothing
 
             # Clamp to [0, 1] range
             result = clamp01nan.(enhanced)
-        elseif get_value("slc_filter") == "Sketch"
+        elseif selected_filter == "Sketch"
             blur_sigma=10.0
             blend_intensity=1.0
 
@@ -82,7 +86,7 @@ if session.input_img !== nothing
 
             # Clamp to [0, 1] range
             result = clamp01nan.(sketch)
-        elseif get_value("slc_filter") == "Oil Painting"
+        elseif selected_filter == "Oil Painting" # NOTE: This is expensive!
             radius=4
             intensity_levels=30
 
@@ -143,10 +147,100 @@ if session.input_img !== nothing
                     end
                 end
             end
+
+        elseif selected_filter == "Posterize"
+            levels=8  # Number of color levels per channel
+
+            # Convert to RGB to ensure color image
+            rgb_img = RGB.(img)
+
+            height, width = size(rgb_img)
+            result = similar(rgb_img)
+
+            # Quantize each color channel
+            for i in 1:height
+                for j in 1:width
+                    px = rgb_img[i, j]
+
+                    # Quantize each channel independently
+                    r_quantized = round(px.r * (levels - 1)) / (levels - 1)
+                    g_quantized = round(px.g * (levels - 1)) / (levels - 1)
+                    b_quantized = round(px.b * (levels - 1)) / (levels - 1)
+
+                    result[i, j] = RGB(r_quantized, g_quantized, b_quantized)
+                end
+            end
+        elseif selected_filter == "Sepia"
+            # Convert to RGB
+            rgb_img = RGB.(img)
+
+            height, width = size(rgb_img)
+            result = similar(rgb_img)
+
+            # Apply sepia tone transformation
+            for i in 1:height
+                for j in 1:width
+                    px = rgb_img[i, j]
+
+                    # Standard sepia transformation matrix
+                    r_new = 0.393 * px.r + 0.769 * px.g + 0.189 * px.b
+                    g_new = 0.349 * px.r + 0.686 * px.g + 0.168 * px.b
+                    b_new = 0.272 * px.r + 0.534 * px.g + 0.131 * px.b
+
+                    # Clamp values to [0, 1] range
+                    result[i, j] = RGB(
+                        clamp(r_new, 0.0, 1.0),
+                        clamp(g_new, 0.0, 1.0),
+                        clamp(b_new, 0.0, 1.0)
+                    )
+                end
+            end
+        elseif selected_filter == "Pixelate"
+            block_size=10  # Size of each pixel block
+
+            # Convert to RGB
+            rgb_img = RGB.(img)
+
+            height, width = size(rgb_img)
+            result = similar(rgb_img)
+
+            # Process image in blocks
+            for i in 1:block_size:height
+                for j in 1:block_size:width
+                    # Define block bounds
+                    i_end = min(i + block_size - 1, height)
+                    j_end = min(j + block_size - 1, width)
+
+                    # Extract block
+                    block = rgb_img[i:i_end, j:j_end]
+
+                    # Calculate average color of the block
+                    r_sum, g_sum, b_sum = 0.0, 0.0, 0.0
+                    count = length(block)
+
+                    for px in block
+                        r_sum += px.r
+                        g_sum += px.g
+                        b_sum += px.b
+                    end
+
+                    avg_color = RGB(r_sum/count, g_sum/count, b_sum/count)
+
+                    # Fill the entire block with the average color
+                    for bi in i:i_end
+                        for bj in j:j_end
+                            result[bi, bj] = avg_color
+                        end
+                    end
+                end
+            end
         end
 
         serveable_path = gen_serveable_path(session.input_img.extension)
         save(serveable_path, result)
+        text("After")
         image(serveable_path)
+
+        download_slot.download_button("Download", serveable_path, file_name=selected_filter * session.input_img.extension)
     end
 end

@@ -2,9 +2,9 @@ module Magic
 
 # Interface Elements
 #--------------------
-export html, text, h1, h2, h3, h4, h5, h6, link, space, metric, button, image,
-dataframe, selectbox, radio, checkbox, checkboxes, text_input, file_uploader,
-code, color_picker, get_value, set_value, get_changes
+export html, text, h1, h2, h3, h4, h5, h6, link, space, metric, button,
+download_button, image, dataframe, selectbox, radio, checkbox, checkboxes,
+text_input, file_uploader, code, color_picker, get_value, set_value, get_changes
 
 # Layout Elements
 #-------------------
@@ -36,6 +36,8 @@ using Artifacts
 using TOML
 
 const MG_SESSION_ID_SIZE = 32-1
+const MG_WIDGET_ID_MAX_SIZE = 256-1
+const MG_PATH_MAX = 4096-1
 
 const DOT_MAGIC_GITIGNORE = """.cache-bust
 .ssi-parsed
@@ -88,6 +90,7 @@ const WidgetKind_FileUploader   = 10
     column::Function = (args...; kwargs...)->()
     row::Function = (args...; kwargs...)->()
     button::Function = (args...; kwargs...)->()
+    download_button::Function = (args...; kwargs...)->()
     image::Function = (args...; kwargs...)->()
     html::Function = (args...; kwargs...)->()
     h1::Function = (args...; kwargs...)->()
@@ -113,7 +116,7 @@ const WidgetKind_FileUploader   = 10
 end
 
 CONTAINER_INTERFACE_FUNCS = [
-    :columns, :column, :row, :button, :image, :html, :radio, :selectbox,
+    :columns, :column, :row, :button, :download_button, :image, :html, :radio, :selectbox,
     :h1, :h2, :h3, :h4, :h5, :h6, :dataframe, :checkbox, :checkboxes,
     :file_uploader, :text_input, :link, :color_picker, :text, :metric, :code,
     :icon, :space
@@ -206,20 +209,22 @@ const NetEventType_ServerLoopInterrupted = Cint(4)
 @with_kw mutable struct NetEvent
     ev_type::NetEventType = NetEventType_None
     client_id::Cint = 0
-    session_id::NTuple{MG_SESSION_ID_SIZE, UInt8} = ntuple(_ -> 0x00, MG_SESSION_ID_SIZE)
+    session_id::NTuple{MG_SESSION_ID_SIZE+1, UInt8} = ntuple(_ -> 0x00, MG_SESSION_ID_SIZE+1)
     payload::Ptr{Cchar} = Ptr{Cchar}(0)
     payload_size::Cint = 0
 end
 
-const AppEventType            = Cint
-const AppEventType_None       = Cint(0)
-const AppEventType_NewPayload = Cint(1)
+const AppEventType                  = Cint
+const AppEventType_None             = Cint(0)
+const AppEventType_NewPayload       = Cint(1)
+const AppEventType_DownloadReady    = Cint(2)
 
 @with_kw mutable struct AppEvent
     ev_type::AppEventType = AppEventType_None
     client_id::Cint = 0
     payload::Ptr{Cchar} = Ptr{Cchar}(0)
     payload_size::Cint = 0
+    download_path::NTuple{MG_PATH_MAX+1, UInt8} = ntuple(_ -> 0x00, MG_PATH_MAX+1)
 end
 
 const InternalEventType          = Cint
@@ -246,6 +251,7 @@ end
     session_id::String = ""
     widgets::Dict{String, Widget} = Dict{String, Widget}()
     fragments::Dict{String, Fragment} = Dict{String, Fragment}()
+    location::Dict = Dict()
     user_session_data::Any = nothing
     first_pass::Bool = true
     widget_defaults::Dict{String, Any} = Dict{String, Any}()
@@ -303,6 +309,19 @@ function buffer_to_string(buffer::NTuple{N, UInt8}) where N
         # Convert only up to null terminator
         return String(collect(buffer[1:null_pos-1]))
     end
+end
+
+function string_to_buffer(::Val{N}, s::AbstractString)::NTuple{N, UInt8} where N
+    bytes = codeunits(s)
+    maxlen = N - 1
+    len = min(length(bytes), maxlen)
+
+    return ntuple(i ->
+        i <= len ? bytes[i] :
+        i == len + 1 ? 0x00 :
+        0x00,
+        N
+    )
 end
 
 function get_rerun_error(e::Exception)::RerunError
@@ -779,8 +798,19 @@ end
 
 # Button
 #-----------
-function create_button(widgets::Dict{String, Widget}, parent::Dict, label::String, style::String, icon::String, onclick::Function, args::Vector)::Bool
-    props = Dict(
+function create_button(
+    widgets::Dict{String, Widget},
+    parent::Dict,
+    label::String,
+    style::String,
+    icon::String,
+    onclick::Function,
+    args::Vector,
+    download_path::Union{String, Function, Nothing},
+    download_name::Union{String, Nothing}
+)::Bool
+
+    props = Dict{String, Any}(
         "type" => "button",
         "label" => label,
         "style" => style,
@@ -790,6 +820,9 @@ function create_button(widgets::Dict{String, Widget}, parent::Dict, label::Strin
     props["local_id"] = bytes2hex(sha256(JSON.json(props)))
     props["container_id"] = parent["id"]
     props["id"] = "$(props["container_id"])/$(props["local_id"])"
+
+    props["download_path"] = download_path
+    props["download_name"] = download_name
 
     push!(parent["children"], props)
 
@@ -817,7 +850,27 @@ end
 function button(label::String=""; style::String="secondary", icon::String="", onclick::Function=(args...; kwargs...)->(), args::Vector=Vector())::Bool
     task = task_local_storage("app_task")
     widgets = task.session.widgets
-    return create_button(widgets, top_container(), label, style, icon, onclick, args)
+    return create_button(widgets, top_container(), label, style, icon, onclick, args, nothing, nothing)
+end
+
+# Download Button
+#-----------------
+function download_button(
+    label::String,
+    file_path::Union{String, Function};
+    file_name::Union{String, Nothing}=nothing,
+    style::String="secondary",
+    icon::String="material/download",
+    onclick::Function=(args...; kwargs...)->(),
+    args::Vector=Vector()
+)::Bool
+
+    task = task_local_storage("app_task")
+    widgets = task.session.widgets
+    if file_name === nothing
+        file_name = basename(file_path)
+    end
+    return create_button(widgets, top_container(), label, style, icon, onclick, args, file_path, file_name)
 end
 
 # Text Input
@@ -1332,13 +1385,16 @@ end
 
 function gen_serveable_path(extension::String=""; lifetime::String="session")::String
     task = task_local_storage("app_task")
+    @show extension
     if length(extension) > 0
-        if extension[1] != "."
-            extension = "." * extension
+        if extension[1] != '.'
+            extension = '.' * extension
         end
     end
 
     file_name = "$(get_random_string(32))$(extension)"
+    @show extension
+    @show file_name
     dir_path = ".Magic/served-files/generated/$(task.session.session_id)"
     if lifetime == "app"
         dir_path = ".Magic/served-files/generated/app"
@@ -2015,6 +2071,10 @@ end
 function rerun(client_id::Cint, payload::Dict)::Task
     session = g.sessions[client_id]
 
+    if payload["location"] !== nothing
+        session.location = payload["location"]
+    end
+
     session.rerun_task = Threads.@spawn try
         task = AppTask()
         task_local_storage("app_task", task)
@@ -2224,7 +2284,7 @@ end
 
 function get_url_path()::String
     task = task_local_storage("app_task")
-    return task.payload["location"]["pathname"]
+    return task.session.location["pathname"]
 end
 
 get_current_page()::Union{PageConfig, Missing} = get_page(get_url_path())
@@ -2518,13 +2578,15 @@ function start_app(
                     destroy_net_event(ev.data)
 
                     payload = Dict(JSON.parse(payload_string))
-                    #@show payload
+                    @show payload
 
                     session = g.sessions[ev.data.client_id]
 
                     if payload["type"] == "request_rerun"
                         if !session.waiting_invalid_state_ack
                             rerun_request = RerunRequest(payload)
+
+                            println(keys(session.widgets))
 
                             if g.dry_run_error !== nothing
                                 if execute_dry_runs()
@@ -2589,7 +2651,6 @@ function start_app(
                         payload_string = JSON.json(payload)
                         app_event = create_app_event(AppEventType_NewPayload, session.client_id, payload_string)
                         push_app_event(app_event)
-                        write(g.ipc_connection, " ")
 
                         session.rerun_task = nothing
 
@@ -2605,6 +2666,21 @@ function start_app(
                                 return_invalid_request(session.client_id, ev.data.payload["request_id"])
                             end
                         end
+
+                        # Notify if download is ready
+                        #-------------------------------
+                        for front_event in ev.data.payload["events"]
+                            widget = session.widgets[front_event["widget_id"]]
+                            if widget.kind == WidgetKind_Button && typeof(widget.props["download_path"]) <: AbstractString
+                                if widget.clicked
+                                    app_event = create_app_event(AppEventType_DownloadReady, session.client_id, nothing)
+                                    app_event.download_path = string_to_buffer(Val(MG_PATH_MAX+1), widget.props["download_path"])
+                                    push_app_event(app_event)
+                                end
+                            end
+                        end
+
+                        write(g.ipc_connection, " ")
                     else
                         @debug "ClientlessTaskFinished | Client=$(ev.data.client_id)"
                         try_rm(".Magic/served-files/generated/$(session.session_id)", recursive=true, force=true)
@@ -2622,8 +2698,10 @@ function start_app(
     return nothing
 end
 
-function create_app_event(event_type::AppEventType, client_id::Cint, payload::String)::AppEvent
-    return ccall((:MG_CreateAppEvent, MAGIC_SO), AppEvent, (AppEventType, Cint, Ptr{Cchar}, Cint), event_type, client_id, payload, Cint(sizeof(payload)))
+function create_app_event(event_type::AppEventType, client_id::Cint, payload::Union{String, Nothing})::AppEvent
+    payload_ptr = payload !== nothing ? payload : Ptr{Cchar}(0)
+    payload_size = payload !== nothing ? Cint(sizeof(payload)) : Cint(0)
+    return ccall((:MG_CreateAppEvent, MAGIC_SO), AppEvent, (AppEventType, Cint, Ptr{Cchar}, Cint), event_type, client_id, payload_ptr, payload_size)
 end
 
 function destroy_net_event(ev::NetEvent)::Nothing

@@ -43,14 +43,18 @@ function getLocation() {
     }
 }
 
+function fadeFragment(fragmentId) {
+    const fragChildren = document.querySelectorAll(`.mg_fragment_container[data-mg-fragment-id="${fragmentId}"] > *`);
+    for (const child of fragChildren) {
+        child.style.setProperty("--opacity", 0.5);
+        child.style.setProperty("--transition-duration", "0.8s");
+    }
+}
+
 function requestUpdate(events) {
     if (events.length) {
         const fragmentId = events[0].fragment_id;
-        const fragChildren = document.querySelectorAll(`.mg_fragment_container[data-mg-fragment-id="${fragmentId}"] > *`);
-        for (const child of fragChildren) {
-            child.style.setProperty("--opacity", 0.5);
-            child.style.setProperty("--transition-duration", "0.8s");
-        }
+        fadeFragment(fragmentId);
     }
 
     wsSendObj({
@@ -146,11 +150,24 @@ async function uplChange(elem, oldValue, newValue) {
 }
 
 function btnClick(event) {
-    requestUpdate([{
-        type: "click",
-        widget_id: event.currentTarget.getAttribute("data-mg-id"),
-        fragment_id: event.currentTarget.getAttribute("data-mg-fragment-id"),
-    }]);
+    const elem = event.currentTarget;
+    const widgetId = elem.getAttribute("data-mg-id");
+    const fragmentId = elem.getAttribute("data-mg-fragment-id");
+
+    if (elem.hasAttribute("data-mg-download")) {
+        const a = document.createElement("a");
+        a.href = `/.Magic/served-files/_download/${g.sessionId}?request_id=${g.nextRequestId++}&fragment_id=${fragmentId}&widget_id=${widgetId}`;
+        a.download = elem.getAttribute("data-mg-download");
+        a.click();
+
+        fadeFragment(fragmentId);
+    } else {
+        requestUpdate([{
+            type: "click",
+            widget_id: widgetId,
+            fragment_id: fragmentId,
+        }]);
+    }
 }
 
 function mslChange(oldValue, newValue, elem) {
@@ -436,6 +453,11 @@ function createAppElement(parent, props, fragmentId) {
             elem.setAttribute("data-mg-container-id", props.container_id);
             elem.setAttribute("data-mg-local-id", props.local_id);
             elem.setAttribute("data-mg-id", props.id);
+
+            if (props.download_name) {
+                elem.setAttribute("data-mg-download", props.download_name);
+            }
+
             elem.addEventListener("click", btnClick);
         } else {
             elem.setAttribute("dd-reconnecting", "");
