@@ -1013,7 +1013,7 @@ bool HS_ConsumeDigits(char* begin, char* end, int* at, int digitsCount) {
     return true;
 }
 
-bool HS_EndsWith(char* string, int stringSize, const char* termination, int terminationSize) {
+bool HS_EndsWith(const char* string, int stringSize, const char* termination, int terminationSize) {
     if (stringSize >= terminationSize) {
         if (memcmp(string+stringSize-terminationSize, termination, terminationSize)==0) {
             return true;
@@ -1022,18 +1022,18 @@ bool HS_EndsWith(char* string, int stringSize, const char* termination, int term
     return false;
 }
 
-bool HS_EndsWith(char* string, const char* termination) {
+bool HS_EndsWith(const char* string, const char* termination) {
     int stringSize = strlen(string);
     int terminationSize = strlen(termination);
     return HS_EndsWith(string, stringSize, termination, terminationSize);
 }
 
-bool HS_EndsWith(char* string, const char* termination, int terminationSize) {
+bool HS_EndsWith(const char* string, const char* termination, int terminationSize) {
     int stringSize = strlen(string);
     return HS_EndsWith(string, stringSize, termination, terminationSize);
 }
 
-bool HS_StartsWith(char* string, int stringSize, const char* begining, int beginingSize) {
+bool HS_StartsWith(const char* string, int stringSize, const char* begining, int beginingSize) {
     if (stringSize >= beginingSize) {
         if (memcmp(string, begining, beginingSize)==0) {
             return true;
@@ -1042,13 +1042,13 @@ bool HS_StartsWith(char* string, int stringSize, const char* begining, int begin
     return false;
 }
 
-bool HS_StartsWith(char* string, const char* begining) {
+bool HS_StartsWith(const char* string, const char* begining) {
     int stringSize = strlen(string);
     int beginingSize = strlen(begining);
     return HS_StartsWith(string, stringSize, begining, beginingSize);
 }
 
-bool HS_StartsWith(char* string, const char* begining, int beginingSize) {
+bool HS_StartsWith(const char* string, const char* begining, int beginingSize) {
     int stringSize = strlen(string);
     return HS_StartsWith(string, stringSize, begining, beginingSize);
 }
@@ -1491,6 +1491,26 @@ bool HS_MaybeAddAllowOriginHeader(HS_HTTPClient* client) {
     return false;
 }
 
+const char* HS_GetMimeType(const char* filePath) {
+    const char* mimeType = lws_get_mimetype(filePath, 0);
+
+    if (!mimeType) {
+        if (HS_EndsWith(filePath, ".wasm")) {
+            mimeType = "application/wasm";
+        } else if (HS_EndsWith(filePath, ".map")) {
+            mimeType = "application/json";
+        } else if (HS_EndsWith(filePath, ".zip")) {
+            mimeType = "application/zip";
+        } else if (HS_EndsWith(filePath, ".pdf")) {
+            mimeType = "application/pdf";
+        } else {
+            mimeType = "application/octet-stream";
+        }
+    }
+
+    return mimeType;
+}
+
 int HS_GetFileByURI(HS_CallbackArgs* args) {
     HS_VHost* server = HS_GetVHost(args);
     HS_HTTPClient* client = HS_GetHTTPClientData(args);
@@ -1652,21 +1672,7 @@ int HS_GetFileByURI(HS_CallbackArgs* args) {
         if (httpStatus != 0) {
             // Get mimetype
             //----------------
-            mimeType = lws_get_mimetype(client->filePath, 0);
-
-            if (!mimeType) {
-                if (HS_EndsWith(client->filePath, ".wasm")) {
-                    mimeType = "application/wasm";
-                } else if (HS_EndsWith(client->filePath, ".map")) {
-                    mimeType = "application/json";
-                } else if (HS_EndsWith(client->filePath, ".zip")) {
-                    mimeType = "application/zip";
-                } else if (HS_EndsWith(client->filePath, ".pdf")) {
-                    mimeType = "application/pdf";
-                } else {
-                    mimeType = "application/octet-stream";
-                }
-            }
+            mimeType = HS_GetMimeType(client->filePath);
 
             // Cache busting
             //---------------

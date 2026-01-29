@@ -535,8 +535,7 @@ MG_API int HS_CALLBACK(MG_WSEventsHandler, args) {
                                     fread(waiting->fileContent, waiting->fileSize, 1, file);
                                     HS_AddHTTPHeaderStatus(waiting, 200);
                                     HS_AddHTTPHeader(waiting, WSI_TOKEN_HTTP_CONTENT_LENGTH, waiting->fileSize);
-                                    // TODO: mimetype
-                                    HS_AddHTTPHeader(waiting, WSI_TOKEN_HTTP_CONTENT_TYPE, "application/octet-stream");
+                                    HS_AddHTTPHeader(waiting, WSI_TOKEN_HTTP_CONTENT_TYPE, HS_GetMimeType(ev.downloadPath));
                                     HS_AddHTTPHeader(waiting, WSI_TOKEN_HTTP_CACHE_CONTROL, "no-cache, no-store, must-revalidate");
                                     HS_WriteResponse(waiting);
 
