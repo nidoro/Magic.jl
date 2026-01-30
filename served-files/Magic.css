@@ -478,6 +478,10 @@ dd-button.mg-button, a.mg-link {
     height: 100%;
 }
 
+.mg-file-uploader .mg-inner-label.mg-error {
+    color: #a40202;
+}
+
 .mg-file-uploader .mg-clear-button {
     --button-hover-color: black;
 }

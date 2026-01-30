@@ -1390,7 +1390,6 @@ end
 
 function gen_serveable_path(extension::String=""; lifetime::String="session")::String
     task = task_local_storage("app_task")
-    @show extension
     if length(extension) > 0
         if extension[1] != '.'
             extension = '.' * extension
@@ -1398,8 +1397,7 @@ function gen_serveable_path(extension::String=""; lifetime::String="session")::S
     end
 
     file_name = "$(get_random_string(32))$(extension)"
-    @show extension
-    @show file_name
+
     dir_path = ".Magic/served-files/generated/$(task.session.session_id)"
     if lifetime == "app"
         dir_path = ".Magic/served-files/generated/app"
@@ -2585,7 +2583,7 @@ function start_app(
                     destroy_net_event(ev.data)
 
                     payload = Dict(JSON.parse(payload_string))
-                    @show payload
+                    #@show payload
 
                     session = g.sessions[ev.data.client_id]
 
@@ -2628,6 +2626,7 @@ function start_app(
                             "type" => "response_hello",
                             "session_id" => session.session_id,
                             "dev_mode" => g.dev_mode,
+                            "upload_max_size" => g.upload_max_size,
                         )
                         payload_string = JSON.json(payload)
                         app_event = create_app_event(AppEventType_NewPayload, session.client_id, payload_string)

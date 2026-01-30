@@ -1,4 +1,8 @@
 
+const KiB = 1024;
+const MiB = 1024*KiB;
+const GiB = 1024*MiB;
+
 class MG_Icon extends HTMLElement {
     constructor() {
         super();
@@ -31,6 +35,7 @@ var g = {
     nextRequestId: 1,
     lastValidRerunResponse: null,
     sessionId: null,
+    uploadMaxSize: null,
 };
 
 function getLocation() {
@@ -74,7 +79,6 @@ function ackInvalidState() {
 function btnClearFileUploader(event) {
     event.stopPropagation();
     event.preventDefault();
-
     const elem = event.currentTarget.parentElement;
     elem.value = [];
 }
@@ -83,7 +87,37 @@ async function uplChange(elem, oldValue, newValue) {
     const mgFiles = [];
 
     for (const file of newValue) {
+        if (!file.supported) {
+            elem.stopSpinner();
+            elem.continueSpinner = true;
+
+            let errorMessage = "";
+            if (file.unsupportedReason == "TooBig") {
+                errorMessage = `${file.name} size (${(file.size/MiB).toFixed(0)} MiB) exceedes the maximum file size of ${(g.uploadMaxSize/MiB).toFixed(0)} MiB`;
+            } else {
+                const accept = elem.getAttribute("dd-accept");
+                errorMessage = `${file.name} type (${(file.type || 'application/octet-stream')}) is not one of these: ${accept.split(",").join(", ")}`;
+            }
+
+            elem.innerHTML = `
+                <dd-button class="mg-clear-button mg-icon-container" onclick="btnClearFileUploader(event)">
+                    <mg-icon mg-icon="material/cancel"></mg-icon>
+                </dd-button>
+                <div class="mg-inner-label mg-error">
+                    <p>
+                        ${errorMessage}
+                    </p>
+                </div>
+            `;
+
+            newValue = [];
+            break;
+        }
+    }
+
+    for (const file of newValue) {
         if (!file.supported) continue;
+
         const endpoint = `/.Magic/uploaded-files/${g.sessionId}?file_name=${file.name}&type=${file.type}`;
         const response = await fetch(endpoint, {
             method: 'POST',
@@ -109,6 +143,7 @@ async function uplChange(elem, oldValue, newValue) {
         } else {
             // TODO: Something bad happened while posting a file. We should
             // cancel the whole operation and notify the user.
+            console.error(`Failed to upload file ${file.name}`);
             break;
         }
 
@@ -828,6 +863,7 @@ function createAppElement(parent, props, fragmentId) {
             elem.setAttribute("data-mg-container-id", props.container_id);
             elem.setAttribute("data-mg-local-id", props.local_id);
             elem.setAttribute("data-mg-id", props.id);
+            elem.setAttribute("dd-max-size", g.uploadMaxSize);
             if (props.multiple) {
                 elem.setAttribute("data-mg-multiple", props.multiple);
             }
@@ -1017,6 +1053,8 @@ async function wsOnMessage(event) {
         location.reload();
     } else if (msg.type == "response_hello") {
         g.sessionId = msg.session_id;
+        g.devMode = msg.dev_mode;
+        g.uploadMaxSize = msg.upload_max_size;
         if (g.devMode) {
             console.log(`Session: ${g.sessionId}`);
         }

@@ -3058,17 +3058,20 @@ class DD_FileUploader extends DD_Button {
         this.appendChild(this.input);
     }
 
-    isFileSupported(file) {
+    isFileTypeSupported(file) {
         if (this.hasAttribute("dd-accept")) {
             const accept = this.getAttribute("dd-accept");
             const acceptEntries = accept.split(",");
             for (const entry of acceptEntries) {
-                if (entry.startsWith(".")) {
-                    return file.name.endsWith(entry.trim());
-                } else if (entry.endsWith("*")) {
-                    return file.type.startsWith(entry.substring(0, entry.length-1));
-                } else {
-                    return file.type == entry.trim();
+                if (entry.startsWith(".") && file.name.endsWith(entry.trim())) {
+                    // entry is an extension like .png
+                    return true;
+                } else if (entry.endsWith("*") && file.type.startsWith(entry.substring(0, entry.length-1))) {
+                    // entry like image/*
+                    return true;
+                } else if (file.type == entry.trim()) {
+                    // entry is a mimetype
+                    return true;
                 }
             }
             return false;
@@ -3081,15 +3084,30 @@ class DD_FileUploader extends DD_Button {
         const thisElem = this;
         const promises = Array.from(fileList).map(file => {
             return new Promise((resolve, reject) => {
-                file.supported = thisElem.isFileSupported(file);
+                file.supported = true;
+
+                if (this.hasAttribute("dd-max-size")) {
+                    const maxSize = parseInt(this.getAttribute("dd-max-size"));
+                    if (file.size > maxSize) {
+                        file.supported = false;
+                        file.unsupportedReason = "TooBig";
+                    }
+                }
+
                 if (file.supported) {
-                    const reader = new FileReader();
-                    reader.onload = () => {
-                        file.arrayBuffer = reader.result;
+                    file.supported = thisElem.isFileTypeSupported(file);
+                    if (file.supported) {
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                            file.arrayBuffer = reader.result;
+                            resolve(file);
+                        }
+                        reader.onerror = reject;
+                        reader.readAsArrayBuffer(file);
+                    } else {
+                        file.unsupportedReason = "InvalidType";
                         resolve(file);
                     }
-                    reader.onerror = reject;
-                    reader.readAsArrayBuffer(file);
                 } else {
                     resolve(file);
                 }

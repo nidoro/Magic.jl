@@ -39,7 +39,7 @@ x86_64-w64-mingw32-gcc \
     -l:libcrypto.a \
     \
     src/Magic.cpp \
-    -Wl,-Bstatic -lstdc++ -lwinpthread \
+    -Wl,-Bstatic -lstdc++ -lwinpthread -lbcrypt \
     -Wl,-Bdynamic -lcrypt32 -lws2_32
 
 popd

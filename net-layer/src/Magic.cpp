@@ -5,7 +5,7 @@
 #include "DD_SignalUtils.h"
 #include "DD_StringUtils.h"
 #include "DD_FileUtils.h"
-#include "DD_RandomUtils.h" // TODO: DD_RandomUtils is not cross-platform!
+#include "DD_RandomUtils.h"
 
 #ifdef _WIN32
     #include <winsock2.h>
@@ -728,9 +728,6 @@ MG_API void MG_InitNetLayer(
     bool verbose,
     bool devMode
 ) {
-    // TODO: DD_RandomUtils is not cross-platform!
-    RU_OpenURandomDevice();
-
     LU_Disable(&LU_GlobalLogFile);
     LU_EnableStdout(&LU_GlobalLogFile);
     LU_DisableStderr(&LU_GlobalLogFile);
