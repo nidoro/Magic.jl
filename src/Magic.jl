@@ -35,6 +35,10 @@ using Random
 using Artifacts
 using TOML
 
+const KiB = 1024
+const MiB = 1024*KiB
+const GiB = 1024*MiB
+
 const MG_SESSION_ID_SIZE = 32-1
 const MG_WIDGET_ID_MAX_SIZE = 256-1
 const MG_PATH_MAX = 4096-1
@@ -281,6 +285,7 @@ end
     dev_mode::Bool = false
     ipc_connection::Union{TCPSocket, Nothing} = nothing
     dry_run_error::Union{RerunError, Nothing} = nothing
+    upload_max_size::Int = 25*MiB
 end
 
 g = Global()
@@ -2470,6 +2475,7 @@ function start_app(
     host_name::String="localhost",
     port::Int=3443,
     docs_path::Union{String, Nothing}=nothing,
+    upload_max_size::Int=25*MiB,
     verbose::Bool=false,
     dev_mode::Bool=false
 )::Nothing
@@ -2495,6 +2501,7 @@ function start_app(
     g.script_path = joinpath(START_CWD, script_path)
     g.host_name = host_name
     g.port = port
+    g.upload_max_size = upload_max_size
 
     # Setup net layer connection
     #--------------------------------
@@ -2507,7 +2514,7 @@ function start_app(
         docs_path = realpath(docs_path)
     end
 
-    init_net_layer(host_name, port, docs_path, Int(ipc_port), joinpath(@__DIR__, ".."), g.verbose, g.dev_mode)
+    init_net_layer(host_name, port, docs_path, Int(ipc_port), joinpath(@__DIR__, ".."), g.upload_max_size, g.verbose, g.dev_mode)
     g.ipc_connection = accept(ipc_server)
     push_uri_mapping("/", "/generated/app/pages/first.html")
 
@@ -2708,12 +2715,12 @@ function destroy_net_event(ev::NetEvent)::Nothing
     ccall((:MG_DestroyNetEvent, MAGIC_SO), Cvoid, (NetEvent,), ev)
 end
 
-function init_net_layer(host_name::String, port::Int, docs_path::String, ipc_port::Int, package_root_dir::String, verbose::Bool, dev_mode::Bool)
+function init_net_layer(host_name::String, port::Int, docs_path::String, ipc_port::Int, package_root_dir::String, upload_max_size::Int, verbose::Bool, dev_mode::Bool)
     ccall(
         (:MG_InitNetLayer, MAGIC_SO),
         Cvoid,
-        (Cstring, Cint, Cint, Cstring, Cint, Cint, Cstring, Cint, Cint, Cint),
-        host_name, Cint(sizeof(host_name)), port, docs_path, Cint(sizeof(docs_path)), Cint(ipc_port), package_root_dir, Cint(sizeof(package_root_dir)), Cint(verbose), Cint(dev_mode)
+        (Cstring, Cint, Cint, Cstring, Cint, Cint, Cstring, Cint, Cint, Cint, Cint),
+        host_name, Cint(sizeof(host_name)), port, docs_path, Cint(sizeof(docs_path)), Cint(ipc_port), package_root_dir, Cint(sizeof(package_root_dir)), Cint(upload_max_size), Cint(verbose), Cint(dev_mode)
     )
 end
 

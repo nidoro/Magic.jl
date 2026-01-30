@@ -111,6 +111,8 @@ struct MG_Global {
 
     MG_Client** clients;
     int nextClientId;
+
+    int uploadMaxSize;
 };
 
 MG_Global g;
@@ -313,15 +315,25 @@ MG_API int HS_CALLBACK(MG_PostRequestChecker, args) {
     char sessionId[PATH_MAX] = {};
 
     if (SU_StartsWith(client->uri, "/.Magic/uploaded-files/")) {
-        char* nodes[] = {ignore, ignore, sessionId};
+        char* nodes[] = {ignore, ignore, sessionId, 0};
         HS_GetPathNodes(client->uri, nodes);
         MG_Client* mgClient = MG_GetClientBySessionId(sessionId);
 
         if (mgClient) {
-            return 1;
+            // Require that Content-Length header is present and that it is
+            // not greater than g.uploadMaxSize
+            if (client->contentLength > 0 && client->contentLength <= g.uploadMaxSize) {
+                return 1;
+            } else {
+                HS_CloseConnection(client, 400);
+                return 0;
+            }
         } else {
+            HS_CloseConnection(client, 404);
             return 0;
         }
+    } else {
+        HS_CloseConnection(client, 404);
     }
 
     return 0;
@@ -541,21 +553,21 @@ MG_API int HS_CALLBACK(MG_WSEventsHandler, args) {
 
                                     fclose(file);
                                 } else {
-                                    // TODO: Warn the user that the file couldn't be open.
+                                    LU_Log(LU_Important, "UserDownloadError | FileNotFound=%s", ev.downloadPath);
                                 }
 
                                 arrremove(mgClient->waitingDownload, 0);
                             } else {
-                                // TODO: Warn user that the provided downloadPath is not a serveable path.
+                                LU_Log(LU_Important, "UserDownloadError | FileNotServeable=%s", ev.downloadPath);
                             }
                         } else {
-                            // Nothing to do?
+                            // NOTE: No pending download response. Nothing to do.
                         }
                     } else {
-                        DD_Assert2(0, "Unknown event %d", ev.type);
+                        DD_Assert2(0, "Unreachable: Unknown event %d", ev.type);
                     }
                 } else {
-                    // TODO: What to do if mgClient is no longer online?
+                    // NOTE: Client is no longer online. Nothing to do.
                 }
             }
         } break;
@@ -712,6 +724,7 @@ MG_API void MG_InitNetLayer(
     int ipcPort,
     const char* magicPackageRootPath,
     int magicPackageRootPathSize,
+    int uploadMaxSize,
     bool verbose,
     bool devMode
 ) {
@@ -734,12 +747,15 @@ MG_API void MG_InitNetLayer(
     g.verbose = verbose;
     g.devMode = devMode;
     g.ipcPort = ipcPort;
+    g.uploadMaxSize = uploadMaxSize;
 
     strncpy(g.magicPackageRootPath, magicPackageRootPath, magicPackageRootPathSize);
     getcwd(g.projectPath, sizeof(g.projectPath));
 
     pthread_mutex_init(&g.netEventsMutex, 0);
     pthread_mutex_init(&g.appEventsMutex, 0);
+
+    LU_Log(LU_Debug, "uploadMaxSize=%d", uploadMaxSize);
 
     int result = pthread_create(&g.threadId, 0, MG_RunServer, 0);
 }

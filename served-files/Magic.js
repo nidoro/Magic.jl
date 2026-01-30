@@ -89,6 +89,7 @@ async function uplChange(elem, oldValue, newValue) {
             method: 'POST',
             headers: {
                 'Content-Type': file.type || 'application/octet-stream',
+                'Content-Length': file.size,
             },
             body: file.arrayBuffer
         });

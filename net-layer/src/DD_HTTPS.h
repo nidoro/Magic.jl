@@ -2230,8 +2230,14 @@ int HS_HTTPCallback(lws* socket, lws_callback_reasons reason, void* userData, vo
                     if (server->sessionDataSize) {
                         client->sessionData = calloc(1, server->sessionDataSize);
                     }
+                } else if (client->closeConnection) {
+                    // During check, the connection was gracefully closed.
+                    client->requestProcessed = true;
+                    return 0;
                 } else {
-                    return -1;
+                    client->requestProcessed = true;
+                    HS_CloseConnection(client, 400);
+                    return 0;
                 }
             } else if (strcmp(client->httpMethod, "DELETE")==0 && server->httpDeleteHandler) {
                 if (server->deleteEndpointsSize) {
