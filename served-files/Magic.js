@@ -525,6 +525,10 @@ function createAppElement(parent, props, fragmentId) {
 
             elem.addEventListener("click", btnClick);
         } else {
+            if (props.download_name) {
+                elem.setAttribute("data-mg-download", props.download_name);
+            }
+
             elem.setAttribute("dd-reconnecting", "");
             if (DD_Components.isFocused(elem)) {
                 requestAnimationFrame(()=>{
