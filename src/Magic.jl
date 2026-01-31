@@ -286,6 +286,7 @@ end
     ipc_connection::Union{TCPSocket, Nothing} = nothing
     dry_run_error::Union{RerunError, Nothing} = nothing
     upload_max_size::Int = 25*MiB
+    upload_max_files::Int = 10
 end
 
 g = Global()
@@ -344,7 +345,7 @@ function print_rerun_error(err::RerunError)::Nothing
 end
 
 function display_rerun_error(err::RerunError)::Nothing
-    column(gap=".3em", padding="1em", margin="0 0 2rem 0", fill_width=true, css=Dict("font-family" => "monospace", "white-space" => "pre", "background" => "#fdeded", "color" => "#89454a", "overflow-x" => "auto")) do
+    column(gap=".3em", padding="1em", margin="0 0 2rem 0", fill_width=true, max_width="100%", css=Dict("font-family" => "monospace", "white-space" => "pre", "background" => "#fdeded", "color" => "#89454a", "overflow-x" => "auto")) do
         html("span", err.message)
         html("span", err.stacktrace)
     end
@@ -987,7 +988,7 @@ function create_selectbox(
     )
 
     if props["placeholder"] == nothing
-        if props["default_value"] !== nothing
+        if props["default_value"] !== nothing && props["default_value"] !== missing
             if typeof(props["default_value"]) == String
                 props["placeholder"] = props["default_value"]
             else
@@ -1534,6 +1535,8 @@ function create_file_uploader(
     label::String,
     types::Vector{String},
     multiple::Bool,
+    max_file_size::Int,
+    max_files::Int,
     onchange::Function,
     args::Vector,
     css::Dict
@@ -1545,6 +1548,8 @@ function create_file_uploader(
         "label" => label,
         "types" => types,
         "multiple" => multiple,
+        "max_file_size" => max_file_size,
+        "max_files" => max_files,
         "css" => css,
     )
 
@@ -1580,6 +1585,8 @@ function file_uploader(
     label::String;
     types::Vector{String}=Vector{String}(),
     multiple::Bool=false,
+    max_file_size::Union{Int, Nothing}=nothing,
+    max_files::Union{Int, Nothing}=nothing,
     fill_width::Bool=false,
     show_label::Bool=true,
     id::Union{String, Nothing}=nothing,
@@ -1587,6 +1594,9 @@ function file_uploader(
     args::Vector=Vector(),
     css::Dict=Dict(),
 )::Union{Vector{UploadedFile}, UploadedFile, Nothing}
+
+    max_file_size = max_file_size === nothing ? g.upload_max_size : max_file_size
+    max_files = max_files === nothing ? g.upload_max_files : max_files
 
     task = task_local_storage("app_task")
     widgets = task.session.widgets
@@ -1603,7 +1613,7 @@ function file_uploader(
 
     merge!(css, container_css)
 
-    return create_file_uploader(widgets, parent, id, label, types, multiple, onchange, args, css)
+    return create_file_uploader(widgets, parent, id, label, types, multiple, max_file_size, max_files, onchange, args, css)
 end
 
 # HTML
@@ -2474,6 +2484,7 @@ function start_app(
     port::Int=3443,
     docs_path::Union{String, Nothing}=nothing,
     upload_max_size::Int=25*MiB,
+    upload_max_files::Int=10,
     verbose::Bool=false,
     dev_mode::Bool=false
 )::Nothing
@@ -2500,6 +2511,7 @@ function start_app(
     g.host_name = host_name
     g.port = port
     g.upload_max_size = upload_max_size
+    g.upload_max_files = upload_max_files
 
     # Setup net layer connection
     #--------------------------------
@@ -2591,8 +2603,6 @@ function start_app(
                         if !session.waiting_invalid_state_ack
                             rerun_request = RerunRequest(payload)
 
-                            println(keys(session.widgets))
-
                             if g.dry_run_error !== nothing
                                 if execute_dry_runs()
                                     create_static_pages()
@@ -2627,6 +2637,7 @@ function start_app(
                             "session_id" => session.session_id,
                             "dev_mode" => g.dev_mode,
                             "upload_max_size" => g.upload_max_size,
+                            "upload_max_files" => g.upload_max_files,
                         )
                         payload_string = JSON.json(payload)
                         app_event = create_app_event(AppEventType_NewPayload, session.client_id, payload_string)
@@ -2676,12 +2687,14 @@ function start_app(
                         # Notify if download is ready
                         #-------------------------------
                         for front_event in ev.data.payload["events"]
-                            widget = session.widgets[front_event["widget_id"]]
-                            if widget.kind == WidgetKind_Button && typeof(widget.props["download_path"]) <: AbstractString
-                                if widget.clicked
-                                    app_event = create_app_event(AppEventType_DownloadReady, session.client_id, nothing)
-                                    app_event.download_path = string_to_buffer(Val(MG_PATH_MAX+1), widget.props["download_path"])
-                                    push_app_event(app_event)
+                            if haskey(session.widgets, front_event["widget_id"])
+                                widget = session.widgets[front_event["widget_id"]]
+                                if widget.kind == WidgetKind_Button && typeof(widget.props["download_path"]) <: AbstractString
+                                    if widget.clicked
+                                        app_event = create_app_event(AppEventType_DownloadReady, session.client_id, nothing)
+                                        app_event.download_path = string_to_buffer(Val(MG_PATH_MAX+1), widget.props["download_path"])
+                                        push_app_event(app_event)
+                                    end
                                 end
                             end
                         end
@@ -2765,6 +2778,16 @@ function main(_args::Vector{String} #= not used =#)
             arg_type = Int
             default = 3443
 
+        "--upload-max-size", "-U"
+            help = "Maximum size of files provided via file_uploader"
+            arg_type = Int
+            default = 25*MiB
+
+        "--upload-max-files", "-F"
+            help = "Maximum number of files provided via file_uploader"
+            arg_type = Int
+            default = 10
+
         "--docs_path", "-d"
             help = "Path to built Magic.jl documentation to be served"
             arg_type = String
@@ -2778,7 +2801,7 @@ function main(_args::Vector{String} #= not used =#)
     parsed = parse_args(cli)
 
     if parsed["script"] != nothing
-        start_app(parsed["script"]; host_name=parsed["hostname"], port=parsed["port"], docs_path=parsed["docs_path"], dev_mode=parsed["dev"])
+        start_app(parsed["script"]; host_name=parsed["hostname"], port=parsed["port"], upload_max_size=parsed["upload-max-size"], upload_max_files=parsed["upload-max-files"],  docs_path=parsed["docs_path"], dev_mode=parsed["dev"])
     end
 end
 

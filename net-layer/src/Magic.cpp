@@ -358,7 +358,7 @@ int HS_CALLBACK(MG_GetRequestHandler, args) {
     char fragmentId[MG_WIDGET_ID_MAX_SIZE+1] = {};
     char requestId[64] = {};
 
-    if (SU_StartsWith(client->uri, "/.Magic/served-files/_download/")) {
+    if (SU_StartsWith(client->uri, "/.Magic/served-files/.download/")) {
         char* nodes[] = {ignore, ignore, ignore, sessionId, 0};
         HS_GetPathNodes(client->uri, nodes);
 
@@ -387,17 +387,17 @@ int HS_CALLBACK(MG_GetRequestHandler, args) {
                     lws_set_timeout(args->socket, PENDING_TIMEOUT_HTTP_CONTENT, 60*60);
                     return 0;
                 } else {
-                    // TODO: Malformed request: missing query parameters.
+                    // Malformed request: missing query parameters.
                     HS_CloseConnection(client, 400);
                     return 0;
                 }
             } else {
-                // TODO: Session does not exist.
+                // Session does not exist.
                 HS_CloseConnection(client, 404);
                 return 0;
             }
         } else {
-            // TODO: Malformed URL - missing session id.
+            // Malformed URL - missing session id.
             HS_CloseConnection(client, 400);
             return 0;
         }

@@ -23,7 +23,7 @@ const FILE_UPLOADER_DEFAULT_INNER_HTML = `
     </div>
     <div class="mg-inner-label">
         <p>
-            <b>Drag and drop</b> a file here <br/>
+            <b>Drag and drop</b> a file here
             or <b>Click</b> to open the file browser
         </p>
     </div>
@@ -36,6 +36,7 @@ var g = {
     lastValidRerunResponse: null,
     sessionId: null,
     uploadMaxSize: null,
+    uploadMaxFiles: null,
 };
 
 function getLocation() {
@@ -80,40 +81,65 @@ function btnClearFileUploader(event) {
     event.stopPropagation();
     event.preventDefault();
     const elem = event.currentTarget.parentElement;
-    elem.value = [];
+    elem.clear();
+}
+
+function sleep(seconds) {
+    // Just for testing long running operations
+    return new Promise(resolve => setTimeout(resolve, seconds*1000));
 }
 
 async function uplChange(elem, oldValue, newValue) {
     const mgFiles = [];
 
-    for (const file of newValue) {
-        if (!file.supported) {
-            elem.stopSpinner();
-            elem.continueSpinner = true;
+    let maxFiles = 1;
+    if (elem.hasAttribute("data-mg-multiple")) {
+        maxFiles = parseInt(elem.getAttribute("dd-max-files"));
+    }
 
-            let errorMessage = "";
-            if (file.unsupportedReason == "TooBig") {
-                errorMessage = `${file.name} size (${(file.size/MiB).toFixed(0)} MiB) exceedes the maximum file size of ${(g.uploadMaxSize/MiB).toFixed(0)} MiB`;
-            } else {
-                const accept = elem.getAttribute("dd-accept");
-                errorMessage = `${file.name} type (${(file.type || 'application/octet-stream')}) is not one of these: ${accept.split(",").join(", ")}`;
+    if (newValue.length > maxFiles) {
+        elem.innerHTML = `
+            <dd-button class="mg-clear-button mg-icon-container" onclick="btnClearFileUploader(event)">
+                <mg-icon mg-icon="material/cancel"></mg-icon>
+            </dd-button>
+            <div class="mg-inner-label mg-error">
+                <p>
+                    Please select up to ${maxFiles} file(s)
+                </p>
+            </div>
+        `;
+
+        newValue = [];
+    } else {
+        for (const file of newValue) {
+            if (!file.supported) {
+                let errorMessage = "";
+                if (file.unsupportedReason == "TooBig") {
+                    errorMessage = `${file.name} size (${(file.size/MiB).toFixed(0)} MiB) exceedes the maximum file size of ${(g.uploadMaxSize/MiB).toFixed(0)} MiB`;
+                } else {
+                    const accept = elem.getAttribute("dd-accept");
+                    errorMessage = `${file.name} type (${(file.type || 'application/octet-stream')}) is not one of these: ${accept.split(",").join(", ")}`;
+                }
+
+                elem.innerHTML = `
+                    <dd-button class="mg-clear-button mg-icon-container" onclick="btnClearFileUploader(event)">
+                        <mg-icon mg-icon="material/cancel"></mg-icon>
+                    </dd-button>
+                    <div class="mg-inner-label mg-error">
+                        <p>
+                            ${errorMessage}
+                        </p>
+                    </div>
+                `;
+
+                newValue = [];
+                break;
             }
-
-            elem.innerHTML = `
-                <dd-button class="mg-clear-button mg-icon-container" onclick="btnClearFileUploader(event)">
-                    <mg-icon mg-icon="material/cancel"></mg-icon>
-                </dd-button>
-                <div class="mg-inner-label mg-error">
-                    <p>
-                        ${errorMessage}
-                    </p>
-                </div>
-            `;
-
-            newValue = [];
-            break;
         }
     }
+
+    elem.continueSpinner = true;
+    fadeFragment(elem.getAttribute("data-mg-fragment-id"));
 
     for (const file of newValue) {
         if (!file.supported) continue;
@@ -141,8 +167,9 @@ async function uplChange(elem, oldValue, newValue) {
                 type: file.type,
             });
         } else {
-            // TODO: Something bad happened while posting a file. We should
+            // Something bad happened while posting a file. We should
             // cancel the whole operation and notify the user.
+            elem.clear();
             console.error(`Failed to upload file ${file.name}`);
             break;
         }
@@ -177,6 +204,8 @@ async function uplChange(elem, oldValue, newValue) {
         `;
     }
 
+    elem.removeAttribute("disabled");
+
     requestUpdate([{
         type: "change",
         widget_id: elem.getAttribute("data-mg-id"),
@@ -192,7 +221,7 @@ function btnClick(event) {
 
     if (elem.hasAttribute("data-mg-download")) {
         const a = document.createElement("a");
-        a.href = `/.Magic/served-files/_download/${g.sessionId}?request_id=${g.nextRequestId++}&fragment_id=${fragmentId}&widget_id=${widgetId}`;
+        a.href = `/.Magic/served-files/.download/${g.sessionId}?request_id=${g.nextRequestId++}&fragment_id=${fragmentId}&widget_id=${widgetId}`;
         a.download = elem.getAttribute("data-mg-download");
         a.click();
 
@@ -863,9 +892,10 @@ function createAppElement(parent, props, fragmentId) {
             elem.setAttribute("data-mg-container-id", props.container_id);
             elem.setAttribute("data-mg-local-id", props.local_id);
             elem.setAttribute("data-mg-id", props.id);
-            elem.setAttribute("dd-max-size", g.uploadMaxSize);
+            elem.setAttribute("dd-max-size", props.max_file_size);
             if (props.multiple) {
-                elem.setAttribute("data-mg-multiple", props.multiple);
+                elem.setAttribute("data-mg-multiple", "");
+                elem.setAttribute("dd-max-files", props.max_files);
             }
             elem.setAttribute("dd-onchange", "uplChange()");
             elem.classList.add("mg-file-uploader");
@@ -1055,6 +1085,7 @@ async function wsOnMessage(event) {
         g.sessionId = msg.session_id;
         g.devMode = msg.dev_mode;
         g.uploadMaxSize = msg.upload_max_size;
+        g.uploadMaxFiles = msg.upload_max_files;
         if (g.devMode) {
             console.log(`Session: ${g.sessionId}`);
         }

@@ -3130,6 +3130,11 @@ class DD_FileUploader extends DD_Button {
         this.removeAttribute("disabled");
     }
 
+    clear() {
+        this.value = [];
+        this.stopSpinner();
+    }
+
     callChangeEventHandler(oldValue, newValue) {
         if (this.hasAttribute("dd-onchange")) {
             DD_Components.executeFunctionByName(this.getAttribute("dd-onchange"), window, this, oldValue, newValue);

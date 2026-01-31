@@ -6,38 +6,16 @@ using ImageEdgeDetection
 using Colors
 using ColorVectorSpace
 
-mutable struct Session
-    input_img::Union{UploadedFile, Nothing}
-end
-
-@session_startup begin
-    session = Session(nothing)
-    set_session_data(session)
-
-    set_default_value("slc_filter", "Sepia")
-end
-
-function upl_image()
-    session = get_session_data()
-    session.input_img = get_value("upl_image")
-end
-
-session = get_session_data()
-
 h1("Image Filters")
 
 cols = columns(2, justify_content="flex-end")
 
-cols(1) do
-    file_uploader("Upload image", types=["image/*"], fill_width=true, onchange=upl_image, id="upl_image")
-end
+input_img = cols[1].file_uploader("Upload image", types=["image/*"], fill_width=true)
 
-if session.input_img !== nothing
+if input_img !== nothing
     @push cols[2]
-        @push row(align_items="flex-end")
-            selected_filter = selectbox("Filter", ["Sepia", "Sketch", "Sobel", "Posterize", "Pixelate"], id="slc_filter")
-            download_slot = row()
-        @pop
+        left_row = row(align_items="flex-end")
+        selected_filter = left_row.selectbox("Filter", ["Sepia", "Sketch", "Sobel", "Posterize", "Pixelate"], initial_value="Sepia", id="slc_filter")
     @pop
 
     cols = columns(2)
@@ -45,12 +23,12 @@ if session.input_img !== nothing
     cols(1) do
         column(fill_width=true, align_items="flex-end") do
             text("Before")
-            image(session.input_img.path)
+            image(input_img.path)
         end
     end
 
     cols(2) do
-        img = load(session.input_img.path)
+        img = load(input_img.path)
         result = nothing
 
         if selected_filter == "Sobel"
@@ -236,11 +214,13 @@ if session.input_img !== nothing
             end
         end
 
-        serveable_path = gen_serveable_path(session.input_img.extension)
-        save(serveable_path, result)
-        text("After")
-        image(serveable_path)
+        if selected_filter !== nothing
+            serveable_path = gen_serveable_path(input_img.extension)
+            save(serveable_path, result)
+            text("After")
+            image(serveable_path)
 
-        download_slot.download_button("Download", serveable_path, file_name=selected_filter * session.input_img.extension)
+            left_row.download_button("Download", serveable_path, file_name=selected_filter * input_img.extension)
+        end
     end
 end

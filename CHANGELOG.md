@@ -7,11 +7,13 @@ Additionally, this function now generates file names without extension when
 an empty string is passed to extension, which is now the default value of the
 argument.
 - New: Widget `file_uploader()`.
+- New: Widget `download_button()`.
 - New: Function `make_serveable_copy()`.
 - New: Function `move_to_serveable_dir()`.
 - New: A `.gitignore` file is now automatically generated within `.Magic` if
 it doesn't exist.
 - New: `build-third.sh` script to build all third party libraries using docker.
+- New: New `start_app()` arguments `upload_max_size` and `upload_max_files`.
 - Change: if a non-serveable path is passed to `image()` and the path points
 to an existing file, a serveable copy is automatically created using
 `make_serveable_copy()`.
