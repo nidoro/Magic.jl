@@ -28,9 +28,9 @@ app's logic will look something like this:
 
 ```julia
 plot_object = generate_fancy_plot(...)       # 1. Generate the plot
-serveable_path = gen_serveable_path("png")
-save_fancy_plot(plot_object, serveable_path) # 2. Save the plot
-image(plot_path)                             # 3. Serve the plot
+serveable_path = gen_serveable_path("png")   # 2. Generate a file path with `.png` extension
+save_fancy_plot(plot_object, serveable_path) # 3. Save the plot at `serveable_path`
+image(plot_path)                             # 4. Serve the plot image
 ```
 
 ### 2. Avoid Browser Caching

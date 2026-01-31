@@ -10,7 +10,8 @@ argument.
 - New: Widget `download_button()`.
 - New: Function `make_serveable_copy()`.
 - New: Function `move_to_serveable_dir()`.
-- New: A `.gitignore` file is now automatically generated within `.Magic` if
+- New: Example `image-filters.jl`.
+- New: A `.gitignore` file is now automatically generated inside `.Magic` if
 it doesn't exist.
 - New: `build-third.sh` script to build all third party libraries using docker.
 - New: New `start_app()` arguments `upload_max_size` and `upload_max_files`.

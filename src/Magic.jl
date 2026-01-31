@@ -812,7 +812,7 @@ function create_button(
     icon::String,
     onclick::Function,
     args::Vector,
-    download_path::Union{String, Function, Nothing},
+    download_path::Union{String, Nothing},
     download_name::Union{String, Nothing}
 )::Bool
 
@@ -863,7 +863,7 @@ end
 #-----------------
 function download_button(
     label::String,
-    file_path::Union{String, Function};
+    file_path::String;
     file_name::Union{String, Nothing}=nothing,
     style::String="secondary",
     icon::String="material/download",
@@ -2482,9 +2482,9 @@ function start_app(
     script_path::String="app.jl";
     host_name::String="localhost",
     port::Int=3443,
-    docs_path::Union{String, Nothing}=nothing,
     upload_max_size::Int=25*MiB,
     upload_max_files::Int=10,
+    docs_path::Union{String, Nothing}=nothing,
     verbose::Bool=false,
     dev_mode::Bool=false
 )::Nothing
