@@ -90,14 +90,18 @@ if is_on_page("/")
             link("Open", "/forecast", style="primary")
         end
 
-        cols = columns(2)
+        cols = columns(2, show_border=true, padding=".8rem", justify_content="space-between")
 
         cols(1) do
-            column(show_border=true, padding=".8rem", justify_content="space-between") do
-                h5("Seattle Weather")
-                text("Dashboard with metric, checkboxes, plots and dataframe")
-                link("Open", "/seattle-weather", style="primary")
-            end
+            h5("Seattle Weather")
+            text("Dashboard with metric, checkboxes, plots and dataframe")
+            link("Open", "/seattle-weather", style="primary")
+        end
+
+        cols(2) do
+            h5("Image Filters")
+            text("file_uploader and download_button")
+            link("Open", "/image-filters", style="primary")
         end
 
         space(height="1rem")
