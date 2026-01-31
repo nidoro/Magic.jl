@@ -11,6 +11,7 @@ VERSION_STRING=$1
 THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 pushd $THIS_DIR/.. # Repo's root
 
+#----------------------------
 # Linux x86_64
 #----------------------------
 
@@ -23,6 +24,7 @@ tar -czf "$ARTIFACTS_DIR.tar.gz" -C "$ARTIFACTS_DIR" .
 LINUX_X86_64_TREE_SHA1=$(julia -e "using Pkg; using Pkg.GitTools; println(bytes2hex(Pkg.GitTools.tree_hash(\"$ARTIFACTS_DIR\")))")
 LINUX_X86_64_SHA256=$(sha256sum "$ARTIFACTS_DIR.tar.gz" | cut -d' ' -f1)
 
+#----------------------------
 # Windows 64-bit
 #----------------------------
 net-layer/build-win64.sh
