@@ -23,10 +23,10 @@ elseif is_on_page("/todo")
 elseif is_on_page("/avatar")
     page_script = "10-avatar.jl"
 elseif is_on_page("/forecast")
-    #page_script = "13-forecast.jl"
+    page_script = "13-forecast.jl"
     layout_style = "wide"
 elseif is_on_page("/seattle-weather")
-    #page_script = "15-seattle-weather.jl"
+    page_script = "15-seattle-weather.jl"
     layout_style = "wide"
 elseif is_on_page("/image-filters")
     page_script = "20-image-filters.jl"
