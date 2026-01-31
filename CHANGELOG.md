@@ -1,6 +1,6 @@
 # CHANGELOG
 
-### v0.5.0 (---)
+### v0.5.0 (2026-01-31)
 
 - Breaking-change: renamed `gen_resource_path` to `gen_serveable_path`.
 Additionally, this function now generates file names without extension when
@@ -13,7 +13,6 @@ argument.
 - New: Example `image-filters.jl`.
 - New: A `.gitignore` file is now automatically generated inside `.Magic` if
 it doesn't exist.
-- New: `build-third.sh` script to build all third party libraries using docker.
 - New: New `start_app()` arguments `upload_max_size` and `upload_max_files`.
 - Change: if a non-serveable path is passed to `image()` and the path points
 to an existing file, a serveable copy is automatically created using
