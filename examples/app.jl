@@ -36,7 +36,7 @@ elseif is_on_page("/fragment-example")
 end
 
 set_page_layout(
-    style=layout_style,
+    layout_style,
     left_sidebar_initial_state="open",
     right_sidebar_initial_state="closed",
     right_sidebar_position="overlay",

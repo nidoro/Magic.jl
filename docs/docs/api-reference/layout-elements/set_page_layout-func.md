@@ -16,8 +16,7 @@ function that returns a `ContainerInterface`. See usage example below.
 
 ```julia
 function set_page_layout(
-    inner_func                    ::Function               =()->();
-    style                         ::String                 ="basic",
+    style                         ::String                 ="basic";
     max_width                     ::String                 ="600px",
 
     left_sidebar_initial_state    ::Union{Nothing, String} =nothing,
@@ -34,7 +33,6 @@ function set_page_layout(
 
  Argument                              | Description
 ------------------------------------ |-------------
- `inner_func`                      | An optional do-block `Function`, so you can define the page main area and its children like this: <pre>set_page_layout("centered") do<br/>  # main area content<br/>end</pre> which is basically the same as: <pre>@push set_page_layout("centered")<br/># main area content<br/>@pop</pre>In both cases, elements created inside the `do-end`/`push-pop` blocks will be placed inside the container returned by `main_area()`, with the difference that `push-pop` does not define a new scope, and thus variables created inside that block can be accessed after `@pop`.
  `style`                           | A `String` for selecting the overall layout style. The default `"basic"` style imposes minimal layout behaviour on the `main_area()` container.
  `max_width`                      | A `String` specifying the maximum width of the container returned by `main_area()`.
  `left_sidebar_initial_state`   | Either `nothing` or a `String` specifying the initial state of the left sidebar (`"open"` or `"closed"`). If `nothing`, the sidebar is disabled.

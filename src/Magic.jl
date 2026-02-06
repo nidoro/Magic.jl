@@ -689,20 +689,19 @@ function create_sidebar(initial_state::String, side::String, initial_width::Stri
 end
 
 function set_page_layout(
-        inner_func::Function=()->();
-        style::String="basic",
-        max_width::String="600px",
+    style::String="basic";
+    max_width::String="600px",
 
-        left_sidebar_initial_state::Union{Nothing, String}=nothing,
-        left_sidebar_initial_width::String="300px",
-        left_sidebar_position::String="slide-out",
-        left_sidebar_toggle_labels::Tuple{Union{String, Nothing}, Union{String, Nothing}}=(nothing, nothing),
+    left_sidebar_initial_state::Union{Nothing, String}=nothing,
+    left_sidebar_initial_width::String="300px",
+    left_sidebar_position::String="slide-out",
+    left_sidebar_toggle_labels::Tuple{Union{String, Nothing}, Union{String, Nothing}}=(nothing, nothing),
 
-        right_sidebar_initial_state::Union{Nothing, String}=nothing,
-        right_sidebar_initial_width::String="300px",
-        right_sidebar_position::String="slide-out",
-        right_sidebar_toggle_labels::Tuple{Union{String, Nothing}, Union{String, Nothing}}=(nothing, nothing),
-    )::Containers
+    right_sidebar_initial_state::Union{Nothing, String}=nothing,
+    right_sidebar_initial_width::String="300px",
+    right_sidebar_position::String="slide-out",
+    right_sidebar_toggle_labels::Tuple{Union{String, Nothing}, Union{String, Nothing}}=(nothing, nothing),
+)::Containers
 
     # Initialize sidebars
     #------------------------
@@ -739,9 +738,8 @@ function set_page_layout(
     end
 
     push_container(main_area)
-    inner_func()
-    # NOTE: we don't pop the container, so main_area() is essentially the new
-    # root where top-level elements are placed.
+    # NOTE: here we don't pop the container, so main_area() is essentially the
+    # new root container where top-level elements are placed.
 
     containers = Containers()
     containers.containers = [main_area, left_sidebar, right_sidebar]

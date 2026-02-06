@@ -1,5 +1,12 @@
 # CHANGELOG
 
+### v0.6.0 (---)
+
+- Breaking-change: Removed argument `inner_func` from `set_page_layout()` and
+thus the ability to have a `do-end` block with this function. If you want a
+`do-end` block that does the same, implement it with `main_area()` instead,
+after calling `set_page_layout()`.
+
 ### v0.5.0 (2026-01-31)
 
 - Breaking-change: renamed `gen_resource_path` to `gen_serveable_path`.
