@@ -3021,7 +3021,9 @@ class DD_FileUploader extends DD_Button {
         let thisElem = this;
 
         this.input.addEventListener('change', function() {
-            thisElem.processFiles(this.files);
+            if (this.files.length) {
+                thisElem.processFiles(this.files);
+            }
         });
 
         this.addEventListener("click", function(event) {
@@ -3043,7 +3045,9 @@ class DD_FileUploader extends DD_Button {
         // Handle drop
         this.addEventListener('drop', async (event) => {
             const files = event.dataTransfer.files;
-            this.processFiles(files);
+            if (files.length) {
+                this.processFiles(files);
+            }
         });
     }
 
@@ -3132,6 +3136,7 @@ class DD_FileUploader extends DD_Button {
 
     clear() {
         this.value = [];
+        this.input.value = "";
         this.stopSpinner();
     }
 
