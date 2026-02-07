@@ -4,7 +4,8 @@ module Magic
 #--------------------
 export html, text, h1, h2, h3, h4, h5, h6, link, space, metric, button,
 download_button, image, dataframe, selectbox, radio, checkbox, checkboxes,
-text_input, file_uploader, code, color_picker, get_value, set_value, get_changes
+text_input, number_input, file_uploader, code, color_picker, get_value,
+set_value, get_changes
 
 # Layout Elements
 #-------------------
@@ -83,9 +84,10 @@ const WidgetKind_Radio          = 4
 const WidgetKind_Image          = 5
 const WidgetKind_DataFrame      = 6
 const WidgetKind_TextInput      = 7
-const WidgetKind_ColorPicker    = 8
-const WidgetKind_Code           = 9
-const WidgetKind_FileUploader   = 10
+const WidgetKind_NumberInput    = 8
+const WidgetKind_ColorPicker    = 9
+const WidgetKind_Code           = 10
+const WidgetKind_FileUploader   = 11
 
 @with_kw mutable struct ContainerInterface
     container::Union{Dict, Nothing} = nothing
@@ -880,14 +882,14 @@ end
 # Text Input
 #-----------
 function create_text_input(
-        widgets::Dict{String, Widget},
-        parent::Dict,
-        user_id::Any,
-        label::String,
-        initial_value::Union{String, Nothing},
-        placeholder::Union{String, Nothing},
-        css=Dict
-    )::Union{String, Nothing}
+    widgets::Dict{String, Widget},
+    parent::Dict,
+    user_id::Any,
+    label::String,
+    initial_value::Union{String, Nothing},
+    placeholder::Union{String, Nothing},
+    css=Dict
+)::Union{String, Nothing}
 
     props = Dict(
         "type" => "text_input",
@@ -931,14 +933,14 @@ function create_text_input(
 end
 
 function text_input(
-        label::String;
-        id::Any=nothing,
-        show_label::Bool=true,
-        fill_width::Bool=false,
-        initial_value::Union{String, Nothing}=nothing,
-        placeholder::Union{String, Nothing}=nothing,
-        css::Dict=Dict()
-    )::Union{String, Nothing}
+    label::String;
+    id::Any=nothing,
+    show_label::Bool=true,
+    fill_width::Bool=false,
+    initial_value::Union{String, Nothing}=nothing,
+    placeholder::Union{String, Nothing}=nothing,
+    css::Dict=Dict()
+)::Union{String, Nothing}
 
     task = task_local_storage("app_task")
     parent = top_container()
@@ -958,20 +960,107 @@ function text_input(
     return create_text_input(widgets, parent, id, label, initial_value, placeholder, css)
 end
 
+# Number Input
+#-----------
+function create_number_input(
+    widgets::Dict{String, Widget},
+    parent::Dict,
+    user_id::Any,
+    label::String,
+    initial_value::Union{Number, Nothing},
+    placeholder::Union{String, Nothing},
+    decimal_separator::String,
+    thousands_separator::String,
+    css=Dict
+)::Union{Number, Nothing}
+
+    props = Dict(
+        "type" => "number_input",
+        "user_id" => user_id,
+        "label" => label,
+        "default_value" => maybe_get_default_value(user_id),
+        "initial_value" => initial_value,
+        "placeholder" => placeholder,
+        "decimal_separator" => decimal_separator,
+        "thousands_separator" => thousands_separator,
+        "css" => css,
+    )
+
+    if props["placeholder"] == nothing
+        props["placeholder"] = coalesce(props["default_value"], "")
+    end
+
+    props["local_id"] = bytes2hex(sha256(JSON.json(props)))
+    props["container_id"] = parent["id"]
+    props["id"] = "$(props["container_id"])/$(props["local_id"])"
+
+    push!(parent["children"], props)
+
+    widget = nothing
+
+    if haskey(widgets, props["id"])
+        widget = widgets[props["id"]]
+        widget.alive = true
+    else
+        widget = Widget()
+        widget.kind = WidgetKind_NumberInput
+        widget.id = props["id"]
+        widget.fragment_id = top_fragment().id
+        widget.user_id = props["user_id"]
+        widget.value = props["initial_value"]
+        widgets[props["id"]] = widget
+    end
+
+    props["value"] = widget.value
+    widget.props = props
+
+    return coalesce(widget.value, props["default_value"])
+end
+
+function number_input(
+    label::String;
+    initial_value::Union{Number, Nothing}=nothing,
+    placeholder::Union{String, Nothing}=nothing,
+    decimal_separator::String=".",
+    thousands_separator::String=",",
+    show_label::Bool=true,
+    fill_width::Bool=false,
+    id::Any=nothing,
+    css::Dict=Dict()
+)::Union{Number, Nothing}
+
+    task = task_local_storage("app_task")
+    parent = top_container()
+    widgets = task.session.widgets
+
+    container_css = Dict()
+    set_css_to_achieve_layout(container_css, parent, fill_width, false)
+
+    if !isempty(label) && show_label
+        col = column(gap="0.3em", css=container_css)
+        col.html("label", label, css=Dict("font-size" => "0.9rem"))
+        parent = col.container
+    else
+        merge!(css, container_css)
+    end
+
+    return create_number_input(widgets, parent, id, label, initial_value, placeholder, decimal_separator, thousands_separator, css)
+end
+
 # Selectbox
 #-----------
 function create_selectbox(
-        widgets::Dict{String, Widget},
-        parent::Dict,
-        user_id::Any,
-        label::String,
-        options::Vector,
-        initial_value::Union{String, Vector, Nothing},
-        multiple::Bool,
-        placeholder::Union{String, Nothing},
-        onchange::Function,
-        css=Dict
-    )::Union{String, Vector, Nothing}
+    widgets::Dict{String, Widget},
+    parent::Dict,
+    user_id::Any,
+    label::String,
+    options::Vector,
+    initial_value::Union{String, Vector, Nothing},
+    multiple::Bool,
+    placeholder::Union{String, Nothing},
+    onchange::Function,
+    css=Dict
+)::Union{String, Vector, Nothing}
 
     props = Dict(
         "type" => "selectbox",
@@ -2411,11 +2500,11 @@ function execute_dry_runs()::Bool
     handle_new_client(Cint(0), "0")
     @info "Dry Run: First pass over '$(g.script_path)'.\n$(AC_Green("@app_startup")) code blocks will run now."
     wait(rerun(Cint(0), dry_run_payload))
+    rerun_error = g.sessions[Cint(0)].rerun_error
     handle_client_left(Cint(0))
 
-    if is_app_first_pass()
+    if rerun_error !== nothing
         @error "Dry run of app '$(g.script_path)' failed."
-        g.dry_run_error = g.sessions[Cint(0)].rerun_error
     else
         if length(g.pages) > 1
             popfirst!(g.pages)
@@ -2429,17 +2518,18 @@ function execute_dry_runs()::Bool
             dry_run_payload["location"]["pathname"] = page.uris[1]
 
             wait(rerun(Cint(0), dry_run_payload))
+            rerun_error = g.sessions[Cint(0)].rerun_error
             handle_client_left(Cint(0))
 
-            if page.first_pass
+            if rerun_error !== nothing
                 @error "Dry run of page '$(page.uris[1])' failed."
-                g.dry_run_error = g.sessions[Cint(0)].rerun_error
                 break
             end
         end
     end
 
-    if g.dry_run_error !== nothing
+    if rerun_error !== nothing
+        g.dry_run_error = rerun_error
         g.first_pass = true
         g.pages = Vector{PageConfig}()
         return false

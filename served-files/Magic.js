@@ -557,8 +557,43 @@ function createAppElement(parent, props, fragmentId) {
 
             elem.setAttribute("placeholder", props.placeholder);
 
-            //elem.setAttribute("oninput", "inpInput(event)");
             elem.setAttribute("onchange", "inpChange(event)");
+        } else {
+            elem.setAttribute("dd-reconnecting", "");
+
+            if (props.value && elem.input.value != props.value) {
+                elem.setAttribute("value", props.value);
+            } else if (!props.value && elem.input.value) {
+                elem.setAttribute("value", "");
+            }
+
+            if (DD_Components.isFocused(elem.input)) {
+                requestAnimationFrame(()=>{
+                    elem.input.focus();
+                });
+            }
+        }
+
+        newElements.push(elem);
+    } else if (props.type == "number_input") {
+        let elem = document.querySelector(`[data-mg-id="${props.id}"]`);
+
+        if (!elem) {
+            elem = document.createElement("dd-input");
+            elem.setAttribute("dd-type", "number");
+            elem.setAttribute("dd-decimal-separator", props.decimal_separator);
+            elem.setAttribute("dd-thousands-separator", props.thousands_separator);
+            elem.classList.add("mg-text-input");
+
+            elem.setAttribute("data-mg-id", props.id);
+
+            if (props.value != null) {
+                elem.setAttribute("value", props.value);
+            }
+
+            elem.setAttribute("placeholder", props.placeholder);
+
+            //elem.setAttribute("onchange", "inpChange(event)");
         } else {
             elem.setAttribute("dd-reconnecting", "");
 

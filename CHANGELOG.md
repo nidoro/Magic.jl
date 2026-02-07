@@ -11,6 +11,8 @@ selection and selecting the same file didn't work.
 https://github.com/nidoro/Magic.jl/issues/8
 - Bug-fix: Fixes `file_uploader()` bug where canceling the file dialog when a
 file was selected triggered a change callback, when it shouldn't.
+- Bug-fix: Dry-run logic was breaking trying to access session 0 after the
+`handle_client_left(Cint(0))` has been called.
 
 ### v0.5.0 (2026-01-31)
 
