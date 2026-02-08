@@ -584,6 +584,8 @@ function createAppElement(parent, props, fragmentId) {
             elem.setAttribute("dd-thousands-separator", props.thousands_separator);
             elem.setAttribute("dd-precision", props.precision);
             elem.setAttribute("dd-step", props.step);
+            if (props.min != null) elem.setAttribute("dd-min", props.min);
+            if (props.max != null) elem.setAttribute("dd-max", props.max);
             elem.classList.add("mg-text-input");
 
             elem.setAttribute("data-mg-id", props.id);

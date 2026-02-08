@@ -971,6 +971,8 @@ function create_number_input(
     placeholder::Union{String, Nothing},
     num_type::Type{<:Real},
     precision::Int,
+    min::Union{Real, Nothing},
+    max::Union{Real, Nothing},
     step::Real,
     decimal_separator::String,
     thousands_separator::String,
@@ -986,6 +988,8 @@ function create_number_input(
         "placeholder" => placeholder,
         "num_type" => num_type,
         "precision" => num_type <: Integer ? 0 : precision,
+        "min" => min,
+        "max" => max,
         "step" => step,
         "decimal_separator" => decimal_separator,
         "thousands_separator" => thousands_separator,
@@ -1028,7 +1032,9 @@ function number_input(
     initial_value::Union{Real, Nothing}=nothing,
     placeholder::Union{String, Nothing}=nothing,
     num_type::Type{<:Real}=Float64,
-    precision::Integer=2,
+    precision::Integer=1,
+    min::Union{Real, Nothing}=nothing,
+    max::Union{Real, Nothing}=nothing,
     step::Real=1.0,
     decimal_separator::String=".",
     thousands_separator::String=",",
@@ -1060,7 +1066,7 @@ function number_input(
         merge!(css, container_css)
     end
 
-    return create_number_input(widgets, parent, id, label, initial_value, placeholder, num_type, precision, step, decimal_separator, thousands_separator, css)
+    return create_number_input(widgets, parent, id, label, initial_value, placeholder, num_type, precision, min, max, step, decimal_separator, thousands_separator, css)
 end
 
 # Selectbox
