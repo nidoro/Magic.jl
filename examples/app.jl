@@ -3,8 +3,9 @@ using Magic
 @app_startup begin
     add_page("/")
     add_page("/counter")
-    add_page("/avatar")
     add_page("/todo")
+    add_page("/probability-density")
+    add_page("/avatar")
     add_page("/forecast")
     add_page("/seattle-weather")
     add_page("/image-filters")
@@ -20,6 +21,8 @@ elseif is_on_page("/counter")
     page_script = "01-counter.jl"
 elseif is_on_page("/todo")
     page_script = "02-todo.jl"
+elseif is_on_page("/probability-density")
+    page_script = "05-probability.jl"
 elseif is_on_page("/avatar")
     page_script = "10-avatar.jl"
 elseif is_on_page("/forecast")
@@ -79,29 +82,39 @@ if is_on_page("/")
         cols = columns(2, show_border=true, padding=".8rem", justify_content="space-between")
 
         cols(1) do
+            h5("Probability Viewer")
+            text("number_input and selectbox")
+            link("Open", "/probability-density", style="primary")
+        end
+
+        cols(2) do
             h5("Avatar Creator")
             text("image, selectbox, color_picker and custom fonts")
             link("Open", "/avatar", style="primary")
         end
 
-        cols(2) do
+        cols = columns(2, show_border=true, padding=".8rem", justify_content="space-between")
+
+        cols(1) do
             h5("Brazil Forecast")
             text("Interactive dataframe, image and integration with other libraries")
             link("Open", "/forecast", style="primary")
         end
 
-        cols = columns(2, show_border=true, padding=".8rem", justify_content="space-between")
-
-        cols(1) do
+        cols(2) do
             h5("Seattle Weather")
             text("Dashboard with metric, checkboxes, plots and dataframe")
             link("Open", "/seattle-weather", style="primary")
         end
 
-        cols(2) do
-            h5("Image Filters")
-            text("file_uploader and download_button")
-            link("Open", "/image-filters", style="primary")
+        cols = columns(2)
+
+        cols(1) do
+            column(fill_width=true, show_border=true, padding=".8rem", justify_content="space-between") do
+                h5("Image Filters")
+                text("file_uploader and download_button")
+                link("Open", "/image-filters", style="primary")
+            end
         end
 
         space(height="1rem")
@@ -123,6 +136,7 @@ left_sidebar() do
         link("Overview", "/", style="naked", fill_width=true, css=Dict("justify-content" => "flex-start"))
         link("Counter", "/counter", style="naked", fill_width=true, css=Dict("justify-content" => "flex-start"))
         link("To-Do List", "/todo", style="naked", fill_width=true, css=Dict("justify-content" => "flex-start"))
+        link("Probability Viewer", "/probability-density", style="naked", fill_width=true, css=Dict("justify-content" => "flex-start"))
         link("Avatar Creator", "/avatar", style="naked", fill_width=true, css=Dict("justify-content" => "flex-start"))
         link("Brazil Forecast", "/forecast", style="naked", fill_width=true, css=Dict("justify-content" => "flex-start"))
         link("Seattle Weather", "/seattle-weather", style="naked", fill_width=true, css=Dict("justify-content" => "flex-start"))
