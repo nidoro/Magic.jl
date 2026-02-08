@@ -309,6 +309,15 @@ dd-input.mg-text-input {
     --input-padding: 4px 0;
 }
 
+dd-input .dd-increment-button {
+    width: 32px;
+    font-size: 1.5em;
+    border-radius: .5rem;
+    --button-color: #666;
+    --button-hover-color: black;
+    --button-hover-bg: #ddd;
+}
+
 /* BUTTON */
 /* BUTTON */
 /* BUTTON */

@@ -382,16 +382,15 @@ function inpInput(event) {
     }]);
 }
 
-function inpChange(event) {
-    const newValue = event.currentTarget.value;
-    const id = event.currentTarget.parentElement.parentElement.getAttribute("data-mg-id");
-    const fragmentId = event.currentTarget.parentElement.parentElement.getAttribute("data-mg-fragment-id");
+function inpChange(elem, oldValue, newValue) {
+    const id = elem.getAttribute("data-mg-id");
+    const fragmentId = elem.getAttribute("data-mg-fragment-id");
 
     requestUpdate([{
         type: "change",
         widget_id: id,
         fragment_id: fragmentId,
-        new_value: newValue == "" ? null : newValue,
+        new_value: elem.input.value == "" ? null : newValue,
     }]);
 }
 
@@ -557,7 +556,7 @@ function createAppElement(parent, props, fragmentId) {
 
             elem.setAttribute("placeholder", props.placeholder);
 
-            elem.setAttribute("onchange", "inpChange(event)");
+            elem.setAttribute("dd-onchange", "inpChange(event)");
         } else {
             elem.setAttribute("dd-reconnecting", "");
 
@@ -580,9 +579,10 @@ function createAppElement(parent, props, fragmentId) {
 
         if (!elem) {
             elem = document.createElement("dd-input");
-            elem.setAttribute("dd-type", "number");
+            elem.setAttribute("type", "number");
             elem.setAttribute("dd-decimal-separator", props.decimal_separator);
             elem.setAttribute("dd-thousands-separator", props.thousands_separator);
+            elem.setAttribute("dd-precision", props.precision);
             elem.classList.add("mg-text-input");
 
             elem.setAttribute("data-mg-id", props.id);
@@ -593,11 +593,11 @@ function createAppElement(parent, props, fragmentId) {
 
             elem.setAttribute("placeholder", props.placeholder);
 
-            //elem.setAttribute("onchange", "inpChange(event)");
+            elem.setAttribute("dd-onchange", "inpChange(event)");
         } else {
             elem.setAttribute("dd-reconnecting", "");
 
-            if (props.value && elem.input.value != props.value) {
+            if (props.value && elem.value != props.value) {
                 elem.setAttribute("value", props.value);
             } else if (!props.value && elem.input.value) {
                 elem.setAttribute("value", "");

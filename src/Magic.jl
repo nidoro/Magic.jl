@@ -969,6 +969,8 @@ function create_number_input(
     label::String,
     initial_value::Union{Number, Nothing},
     placeholder::Union{String, Nothing},
+    num_type::Type{<:Number},
+    precision::Int,
     decimal_separator::String,
     thousands_separator::String,
     css=Dict
@@ -981,6 +983,8 @@ function create_number_input(
         "default_value" => maybe_get_default_value(user_id),
         "initial_value" => initial_value,
         "placeholder" => placeholder,
+        "num_type" => num_type,
+        "precision" => num_type <: Integer ? 0 : precision,
         "decimal_separator" => decimal_separator,
         "thousands_separator" => thousands_separator,
         "css" => css,
@@ -1021,6 +1025,8 @@ function number_input(
     label::String;
     initial_value::Union{Number, Nothing}=nothing,
     placeholder::Union{String, Nothing}=nothing,
+    num_type::Type{<:Number}=Float64,
+    precision::Integer=2,
     decimal_separator::String=".",
     thousands_separator::String=",",
     show_label::Bool=true,
@@ -1044,7 +1050,7 @@ function number_input(
         merge!(css, container_css)
     end
 
-    return create_number_input(widgets, parent, id, label, initial_value, placeholder, decimal_separator, thousands_separator, css)
+    return create_number_input(widgets, parent, id, label, initial_value, placeholder, num_type, precision, decimal_separator, thousands_separator, css)
 end
 
 # Selectbox
@@ -2267,6 +2273,17 @@ function rerun(client_id::Cint, payload::Dict)::Task
                         invokelatest(widget.onchange, widget.args...)
                     elseif widget.kind == WidgetKind_Selectbox || widget.kind == WidgetKind_Radio || widget.kind == WidgetKind_TextInput || widget.kind == WidgetKind_ColorPicker
                         widget.value = front_event["new_value"]
+                        invokelatest(widget.onchange, widget.args...)
+                    elseif widget.kind == WidgetKind_NumberInput
+                        new_value = front_event["new_value"]
+                        if new_value != nothing
+                            if widget.props["num_type"] <: Integer
+                                new_value = round(widget.props["num_type"], new_value)
+                            else
+                                new_value = convert(widget.props["num_type"], new_value)
+                            end
+                        end
+                        widget.value = new_value
                         invokelatest(widget.onchange, widget.args...)
                     elseif widget.kind == WidgetKind_DataFrame
                         for change in front_event["changes"]
