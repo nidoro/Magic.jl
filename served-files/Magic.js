@@ -583,6 +583,7 @@ function createAppElement(parent, props, fragmentId) {
             elem.setAttribute("dd-decimal-separator", props.decimal_separator);
             elem.setAttribute("dd-thousands-separator", props.thousands_separator);
             elem.setAttribute("dd-precision", props.precision);
+            elem.setAttribute("dd-step", props.step);
             elem.classList.add("mg-text-input");
 
             elem.setAttribute("data-mg-id", props.id);

@@ -6,6 +6,7 @@
 thus the ability to have a `do-end` block with this function. If you want a
 `do-end` block that does the same, implement it with `main_area()` instead,
 after calling `set_page_layout()`.
+- New: New widget `number_input()`.
 - Bug-fix: Fixes `file_uploader()` bug where selecting a file, clearing the
 selection and selecting the same file didn't work.
 https://github.com/nidoro/Magic.jl/issues/8

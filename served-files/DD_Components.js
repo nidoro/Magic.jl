@@ -1923,7 +1923,7 @@ class DD_Input extends HTMLElement {
         function btnIncrement(event) {
             if (thisInput.value != null) {
                 const signal = this.getAttribute("dd-direction") == "up" ? 1:-1;
-                const step = thisInput.getAttribute("dd-step");
+                const step = parseFloat(thisInput.getAttribute("dd-step"));
                 thisInput.value = thisInput.value + signal*step;
                 thisInput.maybeNotifyChange();
                 thisInput.previousValue = thisInput.value;

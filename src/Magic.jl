@@ -967,14 +967,15 @@ function create_number_input(
     parent::Dict,
     user_id::Any,
     label::String,
-    initial_value::Union{Number, Nothing},
+    initial_value::Union{Real, Nothing},
     placeholder::Union{String, Nothing},
-    num_type::Type{<:Number},
+    num_type::Type{<:Real},
     precision::Int,
+    step::Real,
     decimal_separator::String,
     thousands_separator::String,
     css=Dict
-)::Union{Number, Nothing}
+)::Union{Real, Nothing}
 
     props = Dict(
         "type" => "number_input",
@@ -985,6 +986,7 @@ function create_number_input(
         "placeholder" => placeholder,
         "num_type" => num_type,
         "precision" => num_type <: Integer ? 0 : precision,
+        "step" => step,
         "decimal_separator" => decimal_separator,
         "thousands_separator" => thousands_separator,
         "css" => css,
@@ -1023,17 +1025,25 @@ end
 
 function number_input(
     label::String;
-    initial_value::Union{Number, Nothing}=nothing,
+    initial_value::Union{Real, Nothing}=nothing,
     placeholder::Union{String, Nothing}=nothing,
-    num_type::Type{<:Number}=Float64,
+    num_type::Type{<:Real}=Float64,
     precision::Integer=2,
+    step::Real=1.0,
     decimal_separator::String=".",
     thousands_separator::String=",",
     show_label::Bool=true,
     fill_width::Bool=false,
     id::Any=nothing,
     css::Dict=Dict()
-)::Union{Number, Nothing}
+)::Union{Real, Nothing}
+
+    if num_type <: Integer && !(typeof(step) <: Integer)
+        throw(ArgumentError(
+            "Incompatible types of `num_type` ($(num_type)) and `step` ($(typeof(step)) $(step)).\n" *
+            "Please provide an Integer `step` for Integer `num_type`."
+        ))
+    end
 
     task = task_local_storage("app_task")
     parent = top_container()
@@ -1050,7 +1060,7 @@ function number_input(
         merge!(css, container_css)
     end
 
-    return create_number_input(widgets, parent, id, label, initial_value, placeholder, num_type, precision, decimal_separator, thousands_separator, css)
+    return create_number_input(widgets, parent, id, label, initial_value, placeholder, num_type, precision, step, decimal_separator, thousands_separator, css)
 end
 
 # Selectbox
