@@ -4,7 +4,7 @@ sidebar_position: 27
 
 # main_area
 
-Returns the `Container` corresponding to the page main area created by
+Retrieves the `Container` corresponding to the page main area created by
 `set_page_layout()`.
 
 See `set_page_layout()` for more information.
@@ -25,13 +25,27 @@ The `ContainerInterface` of the page's main area.
 
 ### Usage
 
-After calling `set_page_layout()` you can insert elements inside the main area
-using `main_area()`. Example:
+This function is used to place elements inside the main container created by
+`set_page_layout()`, but in most cases it is not needed because you can just
+place the elements in the top-level of your script and they will be placed
+inside the main container.
+
+One use case for this function is if you are already inside a container and
+wants to place elements in the main area without leaving said container context.
+**This kind of program logic is not encouraged**, but is supported.
+
+Example:
 
 ```julia
 set_page_layout("centered")
 
-main_area() do
-    # main area content
+left_sidebar() do
+    # left sidebar content
+
+    main_area() do
+        # main area content
+    end
+
+    # more left sidebar content
 end
 ```
