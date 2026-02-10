@@ -2927,8 +2927,8 @@ class DD_Menu extends HTMLElement {
                 height: 0
             };
         } else if (this.anchor) {
-            let anchorBoundingRect = this.anchor.getBoundingClientRect();
-            let p = DD_Components.getPositionRelativeToPage(this.anchor);
+            const anchorBoundingRect = this.anchor.getBoundingClientRect();
+            const p = DD_Components.getPositionRelativeToPage(this.anchor);
             anchorRect = {
                 top: p.top,
                 left: p.left,
@@ -2986,6 +2986,13 @@ class DD_Menu extends HTMLElement {
         if (!this.classList.contains("dd-showing")) {
             this.classList.add("dd-showing");
             let menuElem = this;
+
+            // NOTE: We update the position twice, first here then within the
+            // next animation frame, to avoid positioning errors due to the
+            // possible brief (1 frame) appearance (or at least calculation) of
+            // a scroll bar, depending on the page layout. This was seen on
+            // Chrome.
+            menuElem.updatePositionAndDimensions();
 
             requestAnimationFrame(function() {
                 window.addEventListener("click", menuElem.windowClickHandler);
