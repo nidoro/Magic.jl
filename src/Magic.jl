@@ -273,6 +273,7 @@ end
 @with_kw mutable struct Global
     initialized::Bool = false
     script_path::Union{String, Nothing} = nothing
+    script_name::Union{String, Nothing} = nothing
     host_name::String = ""
     port::Int = 3443
     sessions::Dict{Cint, Session} = Dict{Ptr{Cvoid}, Session}()
@@ -2531,13 +2532,13 @@ function execute_dry_runs()::Bool
     add_page("/", title="Magic App", description="Magic App")
 
     handle_new_client(Cint(0), "0")
-    @info "Dry Run: First pass over '$(g.script_path)'.\n$(AC_Green("@app_startup")) code blocks will run now."
+    @info "Dry Run: First pass over '$(g.script_name)'.\n$(AC_Green("@app_startup")) code blocks will run now."
     wait(rerun(Cint(0), dry_run_payload))
     rerun_error = g.sessions[Cint(0)].rerun_error
     handle_client_left(Cint(0))
 
     if rerun_error !== nothing
-        @error "Dry run of app '$(g.script_path)' failed."
+        @error "Dry run of app '$(g.script_name)' failed."
     else
         if length(g.pages) > 1
             popfirst!(g.pages)
@@ -2545,7 +2546,7 @@ function execute_dry_runs()::Bool
 
         for page in g.pages
             handle_new_client(Cint(0), "0")
-            @info "Dry Run: First pass over '$(g.script_path)' as if loading page '$(page.uris[1])'.\n$(AC_Green("@page_startup")) code blocks will run now."
+            @info "Dry Run: First pass over '$(g.script_name)' as if loading page '$(page.uris[1])'.\n$(AC_Green("@page_startup")) code blocks will run now."
 
             dry_run_payload["location"]["href"] = "https://$(g.host_name):$(g.port)" * page.uris[1]
             dry_run_payload["location"]["pathname"] = page.uris[1]
@@ -2629,6 +2630,7 @@ function start_app(
     g.first_pass = true
     g.initialized = true
     g.script_path = joinpath(START_CWD, script_path)
+    g.script_name = basename(script_path)
     g.host_name = host_name
     g.port = port
     g.upload_max_size = upload_max_size
