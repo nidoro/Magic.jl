@@ -28,7 +28,7 @@ function selectbox(
  `label`        | A `String` to be displayed as the label for the select box. It can contain HTML.
  `options`      | A `Vector` of selectable values. Each element represents one option and will be displayed using its string representation.
  `initial_value`    | The value that should be initially selected. If `multiple` is `false` (default), this should be a `String` matching an option in `options`. If `multiple` is `true`, the value should be a `Vector` of `String`s in `options`.
- `id`              | An optional identifier for the checkbox. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like `get_value()` and `set_value()`.
+ `id`              | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like `get_value()` and `set_value()`.
  `multiple`     | A `Bool` indicating whether multiple options can be selected. Default: `false`.
  `show_label`   | A `Bool` indicating whether the label should be displayed. Default: `true`.
  `placeholder`  | A `String` shown as placeholder text when the selectbox is empty.
