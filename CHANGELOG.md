@@ -1,5 +1,15 @@
 # CHANGELOG
 
+### NEXT
+
+- New: Widget `slider()`.
+- New: Sliding curves example.
+- Bug-fix: on small screens, `row`s had overflow problems similar to what
+columns used to have. It seems that the flex model (at least on chrome) works
+with a default `min-width` based on "intrinsic width of child elements",
+whatever that is. The fix is to enforce a `min-width` of `0` on our layout
+elements.
+
 ### v0.6.0 (2026-02-08)
 
 - Breaking-change: Removed argument `inner_func` from `set_page_layout()` and
