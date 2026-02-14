@@ -311,11 +311,21 @@ dd-input.mg-text-input {
 
 dd-input .dd-increment-button {
     width: 32px;
+    min-width: 32px;
     font-size: 1.5em;
     border-radius: .5rem;
     --button-color: #666;
     --button-hover-color: black;
     --button-hover-bg: #ddd;
+}
+
+/* SLIDER */
+/* SLIDER */
+/* SLIDER */
+
+dd-slider.mg-slider {
+    max-width: 100%;
+    --slider-height: 15px;
 }
 
 /* BUTTON */
@@ -401,6 +411,7 @@ dd-button.mg-button, a.mg-link {
 
 .mg-sidebar.mg-overlay {
     position: absolute;
+    z-index: 999;
 }
 
 .mg-sidebar-lining {
@@ -493,4 +504,11 @@ dd-button.mg-button, a.mg-link {
 
 .mg-file-uploader .mg-clear-button {
     --button-hover-color: black;
+}
+
+.mg-no-select, label {
+    user-select: none;
+    -webkit-user-select: none; /* Safari */
+    -moz-user-select: none;    /* Firefox */
+    -ms-user-select: none;     /* IE10+/Edge */
 }

@@ -394,6 +394,18 @@ function inpChange(elem, oldValue, newValue) {
     }]);
 }
 
+function sldChange(elem, oldValue, newValue) {
+    const id = elem.getAttribute("data-mg-id");
+    const fragmentId = elem.getAttribute("data-mg-fragment-id");
+
+    requestUpdate([{
+        type: "change",
+        widget_id: id,
+        fragment_id: fragmentId,
+        new_value: newValue,
+    }]);
+}
+
 function clrChange(event) {
     const newValue = event.currentTarget.value;
     const id = event.currentTarget.getAttribute("data-mg-id");
@@ -610,6 +622,40 @@ function createAppElement(parent, props, fragmentId) {
                 requestAnimationFrame(()=>{
                     elem.input.focus();
                 });
+            }
+        }
+
+        newElements.push(elem);
+
+    } else if (props.type == "slider") {
+        let elem = document.querySelector(`[data-mg-id="${props.id}"]`);
+
+        if (!elem) {
+            elem = document.createElement("dd-slider");
+            elem.setAttribute("dd-decimal-separator", props.decimal_separator);
+            elem.setAttribute("dd-thousands-separator", props.thousands_separator);
+            elem.setAttribute("dd-precision", props.precision);
+
+            elem.setAttribute("dd-min", props.min);
+            elem.setAttribute("dd-max", props.max);
+            elem.setAttribute("dd-step", props.step);
+
+            elem.setAttribute("data-mg-id", props.id);
+
+            elem.classList.add("mg-slider");
+
+            if (props.value != null) {
+                elem.setAttribute("value", props.value);
+            }
+
+            elem.setAttribute("placeholder", props.placeholder);
+
+            elem.setAttribute("dd-onchange", "sldChange(event)");
+        } else {
+            elem.setAttribute("dd-reconnecting", "");
+
+            if (props.value && elem.value != props.value) {
+                elem.value = props.value;
             }
         }
 

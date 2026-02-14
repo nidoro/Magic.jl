@@ -3876,8 +3876,13 @@ DD_Array.all = [];
 /* SLIDER */
 
 class DD_Slider extends HTMLElement {
+    static observedAttributes = ["value"];
+
     constructor() {
         super();
+
+        this.lining = document.createElement("div");
+        this.lining.classList.add("dd-lining");
 
         this.leftBar = document.createElement("div");
         this.leftBar.classList.add("dd-left-bar");
@@ -3895,10 +3900,9 @@ class DD_Slider extends HTMLElement {
                 event.clientY = event.touches[0].clientY;
             }
 
-            const rect = this.getBoundingClientRect();
-            const x = event.clientX - rect.x;
-            this.setValue(x / rect.width, true);
+            this.setValue(this.getClientXValue(event.clientX), false);
             this.sliding = true;
+            this.classList.add("dd-sliding");
         }
 
         function onMouseMove(event) {
@@ -3908,20 +3912,15 @@ class DD_Slider extends HTMLElement {
             }
 
             if (thisElem.sliding) {
-                const rect = thisElem.getBoundingClientRect();
-                if (event.clientX < rect.x) {
-                    thisElem.setValue(0.0, true);
-                } else if (event.clientX > rect.x + rect.width) {
-                    thisElem.setValue(1.0, true);
-                } else {
-                    const x = event.clientX - rect.x;
-                    thisElem.setValue(x / rect.width, true);
-                }
+                thisElem.setValue(thisElem.getClientXValue(event.clientX), false);
             }
         }
 
         function onMouseUp(event) {
             thisElem.sliding = false;
+            thisElem.classList.remove("dd-sliding");
+            thisElem.maybeNotifyChange();
+            thisElem.previousValue = thisElem.value;
         }
 
         this.addEventListener("mousedown", onMouseDown);
@@ -3935,13 +3934,104 @@ class DD_Slider extends HTMLElement {
     }
 
     connectedCallback() {
-        this.appendChild(this.leftBar);
-        this.appendChild(this.rightBar);
-        this.setValue(0.0, false);
+        if (this.hasAttribute("dd-reconnecting")) {
+            this.removeAttribute("dd-reconnecting");
+            return;
+        }
+
+        if (!this.hasAttribute("dd-min")) this.setAttribute("dd-min", 0.0);
+        if (!this.hasAttribute("dd-max")) this.setAttribute("dd-max", 1.0);
+        if (!this.hasAttribute("dd-step")) this.setAttribute("dd-step", 0.01);
+
+        if (!this.hasAttribute("dd-decimal-separator")) {
+            this.setAttribute("dd-decimal-separator", ".");
+        }
+
+        if (!this.hasAttribute("dd-thousands-separator")) {
+            this.setAttribute("dd-thousands-separator", ",");
+        }
+
+        if (!this.hasAttribute("dd-precision")) {
+            this.setAttribute("dd-precision", "2");
+        }
+
+        if (this.hasAttribute("value")) {
+            this.value = parseFloat(this.getAttribute("value"));
+        } else {
+            this.value = this.getMin();
+        }
+
+        this.previousValue = this.value;
+
+        this.lining.appendChild(this.leftBar);
+        this.lining.appendChild(this.rightBar);
+        this.appendChild(this.lining);
+    }
+
+    attributeChangedCallback(name, oldValue, newValue) {
+        if (name == "value") {
+            this.setValue(newValue);
+        }
+    }
+
+    maybeNotifyChange() {
+        if (this.hasAttribute("dd-onchange") && this.previousValue != this.value) {
+            DD_Components.executeFunctionByName(this.getAttribute("dd-onchange"), window, this, this.previousValue, this.value);
+        }
+    }
+
+    formatNumber(num) {
+        return DD_Components.formatNumber(num, parseInt(this.getAttribute("dd-precision")), this.getAttribute("dd-decimal-separator"), this.getAttribute("dd-thousands-separator"));
     }
 
     updateVisual() {
-        this.leftBar.style.width = `${this._value*100}%`;
+        const percent = (this._value - this.getMin()) / this.getAmplitude();
+        this.leftBar.style.width = `${percent*100}%`;
+
+        this.style.setProperty("--slider-value-label", `'${this.formatNumber(this.value)}'`);
+        this.style.setProperty("--slider-min-label", `'${this.formatNumber(this.getMin())}'`);
+        this.style.setProperty("--slider-max-label", `'${this.formatNumber(this.getMax())}'`);
+    }
+
+    getMin() {
+        return parseFloat(this.getAttribute("dd-min"));
+    }
+
+    getMax() {
+        return parseFloat(this.getAttribute("dd-max"));
+    }
+
+    getStep() {
+        return parseFloat(this.getAttribute("dd-step"));
+    }
+
+    getAmplitude() {
+        return this.getMax() - this.getMin();
+    }
+
+    getClientXValue(clientX) {
+        const rect = this.lining.getBoundingClientRect();
+        if (clientX < rect.x) {
+            return this.getMin();
+        } else if (clientX > rect.x + rect.width) {
+            return this.getMax();
+        } else {
+            const x = clientX - rect.x;
+            const xRel = x / rect.width;
+            const value = this.getMin() + xRel * this.getAmplitude();
+
+            const remainder = value % this.getStep();
+            const a = value - remainder;
+            const b = a + this.getStep();
+
+            //console.log(value, a, b);
+
+            if (value - a < b - value) {
+                return a;
+            } else {
+                return b;
+            }
+        }
     }
 
     setValue(newValue, notify) {
@@ -4394,7 +4484,7 @@ style.textContent = `
     }
 
     dd-input input, .dd-input {
-        width: max(var(--input-width, 100%), 120px);
+        width: max(var(--input-width, 100%), 40px);
     }
 
     dd-input input:focus, .dd-input:focus {
@@ -4930,6 +5020,8 @@ style.textContent = `
     }
 
     /* DD-FILE-UPLOADER */
+    /* DD-FILE-UPLOADER */
+    /* DD-FILE-UPLOADER */
 
     dd-file-uploader.dragover {
         outline: var(--dragover-outline, none);
@@ -4937,13 +5029,75 @@ style.textContent = `
     }
 
     /* DD-SLIDER */
+    /* DD-SLIDER */
+    /* DD-SLIDER */
 
     dd-slider {
         display: flex;
         align-items: center;
         width: 100%;
         height: var(--slider-height, 30px);
-        padding: 0 calc(0.5 * var(--slider-height, 30px));
+        font-size: var(--slider-font-size, 0.9rem);
+        margin-block: calc(0.25 * var(--slider-height, 30px) + var(--slider-font-size, 0.9rem));
+        cursor: pointer;
+    }
+
+    dd-slider.dd-sliding {
+        cursor: grabbing;
+    }
+
+    dd-slider::before {
+        content: '';
+        display: block;
+        height: 50%;
+        background: #00b6f0;
+        width: calc(0.5 * var(--slider-height, 30px));
+        border-radius: 100vw 0 0 100vw;
+    }
+
+    dd-slider::after {
+        content: '';
+        display: block;
+        height: 50%;
+        background: #bbb;
+        width: calc(0.5 * var(--slider-height, 30px));
+        border-radius: 0 100vw 100vw 0;
+    }
+
+    dd-slider .dd-lining {
+        display: flex;
+        width: 100%;
+        position: relative;
+    }
+
+    dd-slider .dd-lining::before {
+        content: var(--slider-min-label, '');
+        visibility: hidden;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        transform: translateX(calc(-0.4 * var(--slider-height, 30px))) translateY(calc(0.25 * var(--slider-height, 30px) + var(--slider-font-size, 0.9rem) + 6px));
+    }
+
+    dd-slider .dd-lining::after {
+        content: var(--slider-max-label, '');
+        visibility: hidden;
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        transform: translateX(calc(0.4 * var(--slider-height, 30px))) translateY(calc(0.25 * var(--slider-height, 30px) + var(--slider-font-size, 0.9rem) + 6px));
+    }
+
+    dd-slider:hover .dd-lining::before,
+    dd-slider:hover .dd-lining::after,
+    dd-slider.dd-sliding .dd-lining::before,
+    dd-slider.dd-sliding .dd-lining::after {
+        visibility: visible;
+    }
+
+    dd-slider::before {
+        display: block;
+        height: calc(0.5 * var(--slider-height, 30px));
     }
 
     dd-slider .dd-left-bar {
@@ -4951,12 +5105,11 @@ style.textContent = `
         width: 0%;
         background: #00b6f0;
         height: calc(0.5 * var(--slider-height, 30px));
-        border-radius: 100vw;
     }
 
     dd-slider .dd-left-bar::after {
         content: '';
-        cursor: pointer;
+        cursor: grab;
         position: absolute;
         left: 100%;
         top: 50%;
@@ -4965,13 +5118,27 @@ style.textContent = `
         aspect-ratio: 1 / 1;
         border-radius: 100px;
         background: black;
+        z-index: 2;
+    }
+
+    dd-slider.dd-sliding .dd-left-bar::after {
+        cursor: grabbing;
     }
 
     dd-slider .dd-right-bar {
         background: #bbb;
         height: calc(0.5 * var(--slider-height, 30px));
         flex-grow: 1;
-        border-radius: 100vw;
+        position: relative;
+    }
+
+    dd-slider .dd-right-bar::before {
+        content: var(--slider-value-label, '');
+        position: absolute;
+        top: 0;
+        left: 0;
+        transform: translateX(-50%) translateY(calc(-0.25 * var(--slider-height, 30px) - var(--slider-font-size, 0.9rem) - 6px));
+        display: block;
     }
 
     /*

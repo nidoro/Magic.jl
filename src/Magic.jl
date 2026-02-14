@@ -4,7 +4,7 @@ module Magic
 #--------------------
 export html, text, h1, h2, h3, h4, h5, h6, link, space, metric, button,
 download_button, image, dataframe, selectbox, radio, checkbox, checkboxes,
-text_input, number_input, file_uploader, code, color_picker, get_value,
+text_input, number_input, slider, file_uploader, code, color_picker, get_value,
 set_value, get_changes
 
 # Layout Elements
@@ -88,6 +88,7 @@ const WidgetKind_NumberInput    = 8
 const WidgetKind_ColorPicker    = 9
 const WidgetKind_Code           = 10
 const WidgetKind_FileUploader   = 11
+const WidgetKind_Slider         = 12
 
 @with_kw mutable struct ContainerInterface
     container::Union{Dict, Nothing} = nothing
@@ -596,6 +597,7 @@ function column(
         "border-radius" => "0.5rem",
         "padding" => padding,
         "margin" => margin,
+        "min-width" => "0",
     )
 
     set_css_to_achieve_layout(combined_css, top_container(), fill_width, fill_height)
@@ -622,6 +624,7 @@ function row(
         "align-items" => align_items,
         "justify-content" => justify_content,
         "margin" => margin,
+        "min-width" => "0",
     )
 
     set_css_to_achieve_layout(combined_css, top_container(), fill_width, fill_height)
@@ -636,7 +639,7 @@ function columns(amount_or_widths::Union{Int, Vector}; kwargs...)::Containers
     @push row(fill_width=true)
         if amount_or_widths isa Int
             w = 1.0/amount_or_widths
-            css = Dict("flex" => "$w", "align-self" => "stretch", "min-width" => "0")
+            css = Dict("flex" => "$w", "align-self" => "stretch")
             if haskey(kwargs, :css)
                 merge!(css, kwargs[:css])
             end
@@ -1068,6 +1071,124 @@ function number_input(
     end
 
     return create_number_input(widgets, parent, id, label, initial_value, placeholder, num_type, precision, min, max, step, decimal_separator, thousands_separator, css)
+end
+
+# Slider
+#----------
+function create_slider(
+    widgets::Dict{String, Widget},
+    parent::Dict,
+    user_id::Any,
+    label::String,
+    initial_value::Union{Real, Nothing},
+    num_type::Type{<:Real},
+    precision::Int,
+    min::Real,
+    max::Real,
+    step::Real,
+    decimal_separator::String,
+    thousands_separator::String,
+    css=Dict
+)::Real
+
+    props = Dict(
+        "type" => "slider",
+        "user_id" => user_id,
+        "label" => label,
+        "default_value" => maybe_get_default_value(user_id),
+        "initial_value" => initial_value,
+        "num_type" => num_type,
+        "precision" => num_type <: Integer ? 0 : precision,
+        "min" => min,
+        "max" => max,
+        "step" => step,
+        "decimal_separator" => decimal_separator,
+        "thousands_separator" => thousands_separator,
+        "css" => css,
+    )
+
+    if props["initial_value"] === nothing
+        props["initial_value"] = coalesce(props["default_value"], props["min"])
+    end
+
+    props["local_id"] = bytes2hex(sha256(JSON.json(props)))
+    props["container_id"] = parent["id"]
+    props["id"] = "$(props["container_id"])/$(props["local_id"])"
+
+    push!(parent["children"], props)
+
+    widget = nothing
+
+    if haskey(widgets, props["id"])
+        widget = widgets[props["id"]]
+        widget.alive = true
+    else
+        widget = Widget()
+        widget.kind = WidgetKind_Slider
+        widget.id = props["id"]
+        widget.fragment_id = top_fragment().id
+        widget.user_id = props["user_id"]
+        widget.value = props["initial_value"]
+        widgets[props["id"]] = widget
+    end
+
+    props["value"] = widget.value
+    widget.props = props
+
+    return widget.value
+end
+
+function slider(
+    label::String;
+    initial_value::Union{T, Nothing}=nothing,
+    min::T=zero(T),
+    max::T=one(T),
+    step::Union{T, Nothing}=nothing,
+    precision::Integer=2,
+    decimal_separator::String=".",
+    thousands_separator::String=",",
+    show_label::Bool=true,
+    fill_width::Bool=false,
+    id::Any=nothing,
+    css::Dict=Dict()
+)::Real where {T <: Real}
+
+    if initial_value !== nothing
+        if !(min <= initial_value <= max)
+            throw(ArgumentError(
+                "`initial_value` ($(initial_value)) is not between `min` ($(min)) and `max` ($(max))"
+            ))
+        end
+    end
+
+    if step === nothing
+        if T <: Integer
+            step = 1
+        else
+            step = 0.01
+        end
+    end
+
+    task = task_local_storage("app_task")
+    parent = top_container()
+    widgets = task.session.widgets
+
+    container_css = Dict()
+    set_css_to_achieve_layout(container_css, parent, fill_width, false)
+
+    if !isempty(label) && show_label
+        if !fill_width
+            container_css["width"] = "200px"
+        end
+
+        col = column(gap="0.3em", css=container_css)
+        col.html("label", label, css=Dict("font-size" => "0.9rem"))
+        parent = col.container
+    else
+        merge!(css, container_css)
+    end
+
+    return create_slider(widgets, parent, id, label, initial_value, T, precision, min, max, step, decimal_separator, thousands_separator, css)
 end
 
 # Selectbox
@@ -2288,7 +2409,7 @@ function rerun(client_id::Cint, payload::Dict)::Task
                         widget.value = new_value
 
                         invokelatest(widget.onchange, widget.args...)
-                    elseif widget.kind == WidgetKind_Selectbox || widget.kind == WidgetKind_Radio || widget.kind == WidgetKind_TextInput || widget.kind == WidgetKind_ColorPicker
+                    elseif widget.kind in [WidgetKind_Selectbox, WidgetKind_Radio, WidgetKind_TextInput, WidgetKind_ColorPicker]
                         widget.value = front_event["new_value"]
                         invokelatest(widget.onchange, widget.args...)
                     elseif widget.kind == WidgetKind_NumberInput
@@ -2299,6 +2420,15 @@ function rerun(client_id::Cint, payload::Dict)::Task
                             else
                                 new_value = convert(widget.props["num_type"], new_value)
                             end
+                        end
+                        widget.value = new_value
+                        invokelatest(widget.onchange, widget.args...)
+                    elseif widget.kind == WidgetKind_Slider
+                        new_value = front_event["new_value"]
+                        if widget.props["num_type"] <: Integer
+                            new_value = round(widget.props["num_type"], new_value)
+                        else
+                            new_value = convert(widget.props["num_type"], new_value)
                         end
                         widget.value = new_value
                         invokelatest(widget.onchange, widget.args...)
