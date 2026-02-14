@@ -1,15 +1,10 @@
-### v0.6.0 (2026-02-08)
+### v0.6.1 (2026-02-14)
 
-- Breaking-change: Removed argument `inner_func` from `set_page_layout()` and
-thus the ability to have a `do-end` block with this function. If you want a
-`do-end` block that does the same, implement it with `main_area()` instead,
-after calling `set_page_layout()`.
-- New: New widget `number_input()`.
-- New: Example `probability.jl`.
-- Bug-fix: Fixes `file_uploader()` bug where selecting a file, clearing the
-selection and selecting the same file didn't work.
-https://github.com/nidoro/Magic.jl/issues/8
-- Bug-fix: Fixes `file_uploader()` bug where canceling the file dialog when a
-file was selected triggered a change callback, when it shouldn't.
-- Bug-fix: Dry-run logic was breaking trying to access session 0 after the
-`handle_client_left(Cint(0))` has been called.
+- New: Widget `slider()`.
+- New: Sliding curves example.
+- Bug-fix: on small screens, `row`s had overflow problems similar to what
+columns used to have. It seems that the flex model (at least on chrome) works
+with a default `min-width` based on "intrinsic width of child elements",
+whatever that is. The fix is to enforce a `min-width` of `0` on our layout
+elements.
+- Bug-fix: various fixes on documentation.

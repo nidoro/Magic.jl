@@ -1,6 +1,6 @@
 # CHANGELOG
 
-### NEXT
+### v0.6.1 (2026-02-14)
 
 - New: Widget `slider()`.
 - New: Sliding curves example.
