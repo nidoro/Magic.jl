@@ -101,14 +101,14 @@ As long as we are in version `0.x`, there are a few things that you should know:
 - **Collaboration**: You can collaborate for with Magic's development by using it,
 testing it and giving your feedback on
 [issues](https://github.com/nidoro/Magic.jl/issues). But at this point in time,
-when the design of the package is still taking shape and form, we think it is
-best that its development stays centralized on us. In the future we will open
-for code collaboration.
+while the design of the package is still taking shape and form, we think it is
+for the best that its development stays centralized on us. In the future we will
+consider opening for code collaboration.
 - **Security and Resilience**: While we believe that Magic has no major
 vulnerability since the first public release, tests are still being implemented
-to ensure that. Meanwhile, our advice is that you don't host your Magic web app
-along with sensitive data and don't use it for anything safety-critical. If you
-want to be extra safe, you can run it inside a sandbox like
+to ensure that. Meanwhile, our recommendation is that you don't host your Magic
+web app along with sensitive data and don't use it for anything safety-critical.
+If you want to be extra safe, you can run it inside a sandbox like
 [NSJail](https://github.com/google/nsjail).
 
 
