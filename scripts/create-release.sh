@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -xe
-
 if [ -z "$1" ]; then
     echo "Error: Tag name required. Example: v1.0.0"
     echo "Usage: $0 <tag_name>"
