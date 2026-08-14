@@ -8,6 +8,7 @@ Manifest.toml
 .ssi-parsed
 
 examples/Manifest*
+examples/.Magic/.gitignore
 examples/.Magic/companion-host.json
 examples/.Magic/certs
 examples/.Magic/served-files/generated
