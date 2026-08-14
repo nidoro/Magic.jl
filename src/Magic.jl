@@ -519,8 +519,12 @@ function fragment(func::Function; id::String=String(nameof(func)))
 end
 
 macro fragment(block)
+    file = replace(String(__source__.file), r"[^A-Za-z0-9]" => "_")
+    name = Symbol("fragment_", file, "_", __source__.line)
     return :(
-        Magic.fragment(() -> $(esc(block)))
+        Magic.fragment(function $(esc(name))()
+            $(esc(block))
+        end)
     )
 end
 
@@ -1141,8 +1145,8 @@ end
 function slider(
     label::String;
     initial_value::Union{T, Nothing}=nothing,
-    min::T=zero(T),
-    max::T=one(T),
+    min::T=0.0,
+    max::T=1.0,
     step::Union{T, Nothing}=nothing,
     precision::Integer=2,
     decimal_separator::String=".",
