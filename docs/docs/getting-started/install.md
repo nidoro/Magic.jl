@@ -25,7 +25,7 @@ $ julia --project
 Press `]` in the Julia REPL to enter Pkg mode and enter this:
 
 ```bash
-pkg> add MyPackage
+pkg> add Magic
 ```
 
 ## Implementing `Hello World`
