@@ -1,5 +1,9 @@
 # CHANGELOG
 
+### v0.6.2 (2026-08-14)
+
+- Bug-fix: Fragments function name generation was broken. Fixed.
+
 ### v0.6.1 (2026-02-14)
 
 - New: Widget `slider()`.
