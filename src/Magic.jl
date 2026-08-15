@@ -1,4 +1,26 @@
+"""
+Magic
+
+A simple framework to create Julia web apps.
+
+Repo: https://github.com/nidoro/Magic.jl \\
+Getting Started: https://magic.coisasdodavi.net/docs/build/docs/getting-started/install \\
+API Reference: https://magic.coisasdodavi.net/docs/build/docs/category/api-reference
+"""
 module Magic
+
+using ArgParse
+using Libdl
+using Parameters
+using Sockets
+using Logging
+using JSON
+using SHA
+using Tables
+using DataFrames
+using Random
+using Artifacts
+using TOML
 
 # Interface Elements
 #--------------------
@@ -23,19 +45,8 @@ fragment, @fragment, get_url_path, is_on_page, get_current_page, add_page,
 add_css_rule, add_font, begin_page_config, end_page_config, set_title,
 set_description, UploadedFile
 
-using ArgParse
-using Libdl
-using Parameters
-using Sockets
-using Logging
-using JSON
-using SHA
-using Tables
-using DataFrames
-using Random
-using Artifacts
-using TOML
-
+# Misc constants
+#-------------------
 const KiB = 1024
 const MiB = 1024*KiB
 const GiB = 1024*MiB
@@ -53,8 +64,8 @@ uploaded-files
 companion-host.json
 """
 
-# Colored log utils
-#-------------------------
+# Colored log utils. AC stands for "ANSI Color"
+#------------------------------------------------
 const AC_Reset         = "\x1b[0m"
 const AC_CodeRed       = "\x1b[31m"
 const AC_CodeGreen     = "\x1b[32m"
@@ -90,36 +101,38 @@ const WidgetKind_Code           = 10
 const WidgetKind_FileUploader   = 11
 const WidgetKind_Slider         = 12
 
+# ContainerInterface
+#------------------------
 @with_kw mutable struct ContainerInterface
-    container::Union{Dict, Nothing} = nothing
+    container       ::Union{Dict, Nothing} = nothing
 
-    columns::Function = (args...; kwargs...)->()
-    column::Function = (args...; kwargs...)->()
-    row::Function = (args...; kwargs...)->()
-    button::Function = (args...; kwargs...)->()
-    download_button::Function = (args...; kwargs...)->()
-    image::Function = (args...; kwargs...)->()
-    html::Function = (args...; kwargs...)->()
-    h1::Function = (args...; kwargs...)->()
-    h2::Function = (args...; kwargs...)->()
-    h3::Function = (args...; kwargs...)->()
-    h4::Function = (args...; kwargs...)->()
-    h5::Function = (args...; kwargs...)->()
-    h6::Function = (args...; kwargs...)->()
-    dataframe::Function = (args...; kwargs...)->()
-    checkbox::Function = (args...; kwargs...)->()
-    checkboxes::Function = (args...; kwargs...)->()
-    selectbox::Function = (args...; kwargs...)->()
-    radio::Function = (args...; kwargs...)->()
-    file_uploader::Function = (args...; kwargs...)->()
-    text_input::Function = (args...; kwargs...)->()
-    link::Function = (args...; kwargs...)->()
-    color_picker::Function = (args...; kwargs...)->()
-    text::Function = (args...; kwargs...)->()
-    metric::Function = (args...; kwargs...)->()
-    code::Function = (args...; kwargs...)->()
-    icon::Function = (args...; kwargs...)->()
-    space::Function = (args...; kwargs...)->()
+    columns         ::Function = (args...; kwargs...)->()
+    column          ::Function = (args...; kwargs...)->()
+    row             ::Function = (args...; kwargs...)->()
+    button          ::Function = (args...; kwargs...)->()
+    download_button ::Function = (args...; kwargs...)->()
+    image           ::Function = (args...; kwargs...)->()
+    html            ::Function = (args...; kwargs...)->()
+    h1              ::Function = (args...; kwargs...)->()
+    h2              ::Function = (args...; kwargs...)->()
+    h3              ::Function = (args...; kwargs...)->()
+    h4              ::Function = (args...; kwargs...)->()
+    h5              ::Function = (args...; kwargs...)->()
+    h6              ::Function = (args...; kwargs...)->()
+    dataframe       ::Function = (args...; kwargs...)->()
+    checkbox        ::Function = (args...; kwargs...)->()
+    checkboxes      ::Function = (args...; kwargs...)->()
+    selectbox       ::Function = (args...; kwargs...)->()
+    radio           ::Function = (args...; kwargs...)->()
+    file_uploader   ::Function = (args...; kwargs...)->()
+    text_input      ::Function = (args...; kwargs...)->()
+    link            ::Function = (args...; kwargs...)->()
+    color_picker    ::Function = (args...; kwargs...)->()
+    text            ::Function = (args...; kwargs...)->()
+    metric          ::Function = (args...; kwargs...)->()
+    code            ::Function = (args...; kwargs...)->()
+    icon            ::Function = (args...; kwargs...)->()
+    space           ::Function = (args...; kwargs...)->()
 end
 
 CONTAINER_INTERFACE_FUNCS = [
@@ -136,12 +149,14 @@ function (container_interface::ContainerInterface)(inner_func::Function)::Nothin
     return nothing
 end
 
+# Containers
+#---------------
 @with_kw mutable struct Containers
-    containers::Vector{Union{ContainerInterface, Nothing}} = Vector{Union{ContainerInterface, Nothing}}()
+    containers      ::Vector{Union{ContainerInterface, Nothing}} = Vector{Union{ContainerInterface, Nothing}}()
 
-    main_area::Union{ContainerInterface, Nothing} = nothing
-    left_sidebar::Union{ContainerInterface, Nothing} = nothing
-    right_sidebar::Union{ContainerInterface, Nothing} = nothing
+    main_area       ::Union{ContainerInterface, Nothing} = nothing
+    left_sidebar    ::Union{ContainerInterface, Nothing} = nothing
+    right_sidebar   ::Union{ContainerInterface, Nothing} = nothing
 end
 
 Base.getindex(containers::Containers, i) = containers.containers[i]
@@ -153,59 +168,67 @@ function (containers::Containers)(inner_func::Function, column_index::Int)
     return nothing
 end
 
+# Widget
+#-----------------
 @with_kw mutable struct Widget
-    id::String = ""
-    user_id::Union{String, Nothing} = nothing
-    kind::WidgetKind = WidgetKind_None
-    clicked::Bool = false
-    value::Any = nothing
-    changes::Dict{Int, Dict{String, Any}} = Dict{Int, Dict{String, Any}}()
-    alive::Bool = true
-    fragment_id::String = ""
+    id          ::String                    = ""
+    user_id     ::Union{String, Nothing}    = nothing
+    kind        ::WidgetKind                = WidgetKind_None
+    clicked     ::Bool                      = false
+    value       ::Any                       = nothing
+    changes     ::Dict{Int, Dict{String, Any}} = Dict{Int, Dict{String, Any}}()
+    alive       ::Bool                      = true
+    fragment_id ::String                    = ""
 
-    onclick::Function = (args...; kwargs...)->()
-    onchange::Function = (args...; kwargs...)->()
-    args::Vector = Vector()
+    onclick     ::Function                  = (args...; kwargs...)->()
+    onchange    ::Function                  = (args...; kwargs...)->()
+    args        ::Vector                    = Vector()
 
     props::Dict = Dict()
 end
 
+# PageConfig
+#---------------------
 @with_kw mutable struct PageConfig
-    id::String = ""
-    uris::Vector{String} = Vector{String}()
-    title::String = "Magic App"
-    description::String = "Web app made with Magic.jl"
-    style::String = ""
-    file_path::String = ""
-    first_pass::Bool = true
-    user_page_data::Any = nothing
+    id              ::String = ""
+    uris            ::Vector{String} = Vector{String}()
+    title           ::String = "Magic App"
+    description     ::String = "Web app made with Magic.jl"
+    style           ::String = ""
+    file_path       ::String = ""
+    first_pass      ::Bool   = true
+    user_page_data  ::Any    = nothing
 
-    set_title::Function = (args...; kwargs...)->()
-    set_description::Function = (args...; kwargs...)->()
-    add_font::Function = (args...; kwargs...)->()
-    add_css_rule::Function = (args...; kwargs...)->()
+    set_title       ::Function = (args...; kwargs...)->()
+    set_description ::Function = (args...; kwargs...)->()
+    add_font        ::Function = (args...; kwargs...)->()
+    add_css_rule    ::Function = (args...; kwargs...)->()
 end
 
+# Fragment
+#-----------------------
 @with_kw mutable struct Fragment
-    id::String = ""
-    func::Function = ()->()
-    container_props::Dict = Dict()
+    id              ::String   = ""
+    func            ::Function = ()->()
+    container_props ::Dict     = Dict()
 end
 
-struct StopTask <: Exception end
-
+# AppTask
+#------------
 @with_kw mutable struct AppTask
-    task::Union{Task, Nothing} = nothing
-    client_id::Cint = 0
-    session::Any = nothing
-    state::Dict{String, Any} = Dict{String, Any}()
-    container_stack::Vector{ContainerInterface} = Vector{ContainerInterface}()
-    fragment_stack::Vector{Fragment} = Vector{Fragment}()
-    payload::Dict = Dict()
-    current_page::PageConfig = PageConfig()
-    layout::Containers = Containers()
+    task            ::Union{Task, Nothing}  = nothing
+    client_id       ::Cint                  = 0
+    session         ::Any                   = nothing
+    state           ::Dict{String, Any}     = Dict{String, Any}()
+    container_stack ::Vector{ContainerInterface} = Vector{ContainerInterface}()
+    fragment_stack  ::Vector{Fragment}      = Vector{Fragment}()
+    payload         ::Dict                  = Dict()
+    current_page    ::PageConfig            = PageConfig()
+    layout          ::Containers            = Containers()
 end
 
+# NetEvent
+#---------------
 const NetEventType                       = Cint
 const NetEventType_None                  = Cint(0)
 const NetEventType_NewClient             = Cint(1)
@@ -214,87 +237,108 @@ const NetEventType_NewPayload            = Cint(3)
 const NetEventType_ServerLoopInterrupted = Cint(4)
 
 @with_kw mutable struct NetEvent
-    ev_type::NetEventType = NetEventType_None
-    client_id::Cint = 0
-    session_id::NTuple{MG_SESSION_ID_SIZE+1, UInt8} = ntuple(_ -> 0x00, MG_SESSION_ID_SIZE+1)
-    payload::Ptr{Cchar} = Ptr{Cchar}(0)
-    payload_size::Cint = 0
+    ev_type         ::NetEventType  = NetEventType_None
+    client_id       ::Cint          = 0
+    session_id      ::NTuple{MG_SESSION_ID_SIZE+1, UInt8} = ntuple(_ -> 0x00, MG_SESSION_ID_SIZE+1)
+    payload         ::Ptr{Cchar}    = Ptr{Cchar}(0)
+    payload_size    ::Cint          = 0
 end
 
+# AppEvent
+#--------------
 const AppEventType                  = Cint
 const AppEventType_None             = Cint(0)
 const AppEventType_NewPayload       = Cint(1)
 const AppEventType_DownloadReady    = Cint(2)
 
 @with_kw mutable struct AppEvent
-    ev_type::AppEventType = AppEventType_None
-    client_id::Cint = 0
-    payload::Ptr{Cchar} = Ptr{Cchar}(0)
-    payload_size::Cint = 0
-    download_path::NTuple{MG_PATH_MAX+1, UInt8} = ntuple(_ -> 0x00, MG_PATH_MAX+1)
+    ev_type         ::AppEventType  = AppEventType_None
+    client_id       ::Cint          = 0
+    payload         ::Ptr{Cchar}    = Ptr{Cchar}(0)
+    payload_size    ::Cint          = 0
+    download_path   ::NTuple{MG_PATH_MAX+1, UInt8} = ntuple(_ -> 0x00, MG_PATH_MAX+1)
 end
 
+# InternalEvent
+#-------------------
 const InternalEventType          = Cint
 const InternalEventType_None     = Cint(0)
 const InternalEventType_Network  = Cint(1)
 const InternalEventType_Task     = Cint(2)
 
 @with_kw mutable struct InternalEvent
-    ev_type::InternalEventType = InternalEventType_None
-    data::Union{NetEvent, AppTask} = Union{NetEvent, AppTask}()
+    ev_type ::InternalEventType         = InternalEventType_None
+    data    ::Union{NetEvent, AppTask}  = Union{NetEvent, AppTask}()
 end
 
+# RerunRequest
+#-------------------
 @with_kw mutable struct RerunRequest
     payload::Dict = Dict()
 end
 
+# RerunError
+#-------------------
 @with_kw struct RerunError
-    message::String=""
-    stacktrace::String=""
+    message     ::String = ""
+    stacktrace  ::String = ""
 end
 
+# Session
+#-------------
 @with_kw mutable struct Session
-    client_id::Cint = 0
-    session_id::String = ""
-    widgets::Dict{String, Widget} = Dict{String, Widget}()
-    fragments::Dict{String, Fragment} = Dict{String, Fragment}()
-    location::Dict = Dict()
-    user_session_data::Any = nothing
-    first_pass::Bool = true
-    widget_defaults::Dict{String, Any} = Dict{String, Any}()
-    rerun_task::Union{Task, Nothing} = nothing
-    rerun_queue::Vector{RerunRequest} = Vector{RerunRequest}()
-    waiting_invalid_state_ack::Bool = false
-    client_left::Bool = false
-    rerun_error::Union{RerunError, Nothing} = nothing
-    refresh::Bool = false
-    app_mod::Module = Module(:MagicApp)
+    client_id                   ::Cint                      = 0
+    session_id                  ::String                    = ""
+    widgets                     ::Dict{String, Widget}      = Dict{String, Widget}()
+    fragments                   ::Dict{String, Fragment}    = Dict{String, Fragment}()
+    location                    ::Dict                      = Dict()
+    user_session_data           ::Any                       = nothing
+    first_pass                  ::Bool                      = true
+    widget_defaults             ::Dict{String, Any}         = Dict{String, Any}()
+    rerun_task                  ::Union{Task, Nothing}      = nothing
+    rerun_queue                 ::Vector{RerunRequest}      = Vector{RerunRequest}()
+    waiting_invalid_state_ack   ::Bool                      = false
+    client_left                 ::Bool                      = false
+    rerun_error                 ::Union{RerunError, Nothing} = nothing
+    refresh                     ::Bool                      = false
+    app_mod                     ::Module                    = Module(:MagicApp)
 end
 
+# Global
+#------------
 @with_kw mutable struct Global
-    initialized::Bool = false
-    script_path::Union{String, Nothing} = nothing
-    script_name::Union{String, Nothing} = nothing
-    host_name::String = ""
-    port::Int = 3443
-    sessions::Dict{Cint, Session} = Dict{Ptr{Cvoid}, Session}()
-    fd_read ::Int32 = -1
-    fd_write::Int32 = -1
-    internal_events::Channel{InternalEvent} = Channel{InternalEvent}(1024)
-    user_app_data::Any = nothing
-    first_pass::Bool = true
-    base_page_config::PageConfig = PageConfig()
-    pages::Vector{PageConfig} = Vector{PageConfig}()
-    verbose::Bool = false
-    dev_mode::Bool = false
-    ipc_connection::Union{TCPSocket, Nothing} = nothing
-    dry_run_error::Union{RerunError, Nothing} = nothing
-    upload_max_size::Int = 25*MiB
-    upload_max_files::Int = 10
+    initialized         ::Bool                      = false
+    script_path         ::Union{String, Nothing}    = nothing
+    script_name         ::Union{String, Nothing}    = nothing
+    host_name           ::String                    = ""
+    port                ::Int                       = 3443
+    sessions            ::Dict{Cint, Session}       = Dict{Ptr{Cvoid}, Session}()
+    fd_read             ::Int32                     = -1
+    fd_write            ::Int32                     = -1
+    internal_events     ::Channel{InternalEvent}    = Channel{InternalEvent}(1024)
+    user_app_data       ::Any                       = nothing
+    first_pass          ::Bool                      = true
+    base_page_config    ::PageConfig                = PageConfig()
+    pages               ::Vector{PageConfig}        = Vector{PageConfig}()
+    verbose             ::Bool                      = false
+    dev_mode            ::Bool                      = false
+    ipc_connection      ::Union{TCPSocket, Nothing} = nothing
+    dry_run_error       ::Union{RerunError, Nothing} = nothing
+    upload_max_size     ::Int                       = 25*MiB
+    upload_max_files    ::Int                       = 10
 end
 
-g = Global()
+# Globals initialization
+#--------------------------
+MAGIC_SO    = nothing
+LIBMAGIC    = nothing
+START_CWD   = pwd()
+USER_TYPES  = Dict{Symbol,DataType}()
+VERSION     = VersionNumber(TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))["version"])
+g           = Global()
 
+# DEPRECATED: once
+#--------------------
 macro once(def)
     struct_name = def.args[2]
 
@@ -378,14 +422,6 @@ function get_dyn_lib_path()::String
     end
     return ""
 end
-
-# Constants and Globals
-#--------------------------
-MAGIC_SO    = nothing
-LIBMAGIC    = nothing
-START_CWD = pwd()
-USER_TYPES= Dict{Symbol,DataType}()
-VERSION   = VersionNumber(TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))["version"])
 
 # Container
 #-----------
