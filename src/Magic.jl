@@ -1,11 +1,11 @@
 """
-Magic
+# Magic
 
 A simple framework to create Julia web apps.
 
-Repo: https://github.com/nidoro/Magic.jl \\
-Getting Started: https://magic.coisasdodavi.net/docs/build/docs/getting-started/install \\
-API Reference: https://magic.coisasdodavi.net/docs/build/docs/category/api-reference
+- Repo: https://github.com/nidoro/Magic.jl \\
+- Getting Started: https://magic.coisasdodavi.net/docs/build/docs/getting-started/install \\
+- API Reference: https://magic.coisasdodavi.net/docs/build/docs/category/api-reference
 """
 module Magic
 
