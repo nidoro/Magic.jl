@@ -33,7 +33,7 @@ function set_page_layout(
 
  Argument                              | Description
 ------------------------------------ |-------------
- `style`                           | A `String` for selecting the overall layout style. The default `"basic"` style imposes minimal layout behaviour on the `main_area()` container.
+ `style`                           | A `String` for selecting the overall layout style. The default `"basic"` style imposes minimal layout behaviour on the `main_area()` container. Possible values: `"basic"`, `"centered"`, `"wide"`.
  `max_width`                      | A `String` specifying the maximum width of the container returned by `main_area()`.
  `left_sidebar_initial_state`   | Either `nothing` or a `String` specifying the initial state of the left sidebar (`"open"` or `"closed"`). If `nothing`, the sidebar is disabled.
  `left_sidebar_initial_width`   | A `String` specifying the initial width of the left sidebar.

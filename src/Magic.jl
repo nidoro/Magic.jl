@@ -3,9 +3,42 @@
 
 A simple framework to create Julia web apps.
 
-- Repo: https://github.com/nidoro/Magic.jl \\
-- Getting Started: https://magic.coisasdodavi.net/docs/build/docs/getting-started/install \\
-- API Reference: https://magic.coisasdodavi.net/docs/build/docs/category/api-reference
+## 🎓 Documentation
+
+- [Getting Started](https://magic.coisasdodavi.net/docs/build/docs/getting-started/install)
+- [Demo Web Apps](https://magic.coisasdodavi.net/)
+- [API Reference](https://magic.coisasdodavi.net/docs/build/docs/category/api-reference)
+
+## —͟͟͞͞★ Quick start
+
+### 1. Implement `app.jl`:
+
+```julia
+# app.jl
+using Magic
+if button("Click me")
+    text("Button Clicked!")
+end
+```
+
+### 2. Start the app
+
+From REPL (recommended for faster app restart during development):
+
+```julia
+> using Magic
+> start_app()
+```
+
+Or from the terminal (requires Julia 1.12):
+
+```bash
+\$ julia -m Magic
+```
+
+### 3. Open the app in your browser
+
+The default address is http://localhost:3443
 """
 module Magic
 
@@ -701,6 +734,50 @@ function create_static_pages()::Nothing
     return nothing
 end
 
+"""
+# start_app
+
+Start the application server.
+
+Call this function from the REPL to start the web app. Example:
+
+```julia
+> using Magic
+> start_app("my-app.jl")
+```
+
+### Function Signature
+
+```julia
+function start_app(
+    script_path         ::String="app.jl";
+    host_name           ::String="localhost",
+    port                ::Int=3443,
+    upload_max_size     ::Int=25*MiB,
+    upload_max_files    ::Int=10,
+    docs_path           ::Union{String, Nothing}=nothing,
+    verbose             ::Bool=false,
+    dev_mode            ::Bool=false
+)::Nothing
+```
+
+ Argument        | Description
+---------------- |-------------
+ `script_path` | A `String` specifying the path to the application script to run.
+ `host_name`   | A `String` specifying the hostname or IP address the server should bind to. Default is `"localhost"`.
+ `port`        | An `Int` specifying the port number on which the server will listen. Default is `3443`.
+ `upload_max_size` | An `Int` specifying the maximum file size acceptable by `file_uploader` widgets. Default is 25 MiB.
+ `upload_max_files` | An `Int` specifying the maximum number of file acceptable by `file_uploader` widgets. Default is 10.
+ `docs_path`   | A `String` specifying a path to Magic's docs where it has been built, or `nothing` (default). If a `String` is passed, the docs will be served under `/docs`.
+ `dev_mode`    | A `Bool`. If `true`, development mode is enabled. This activates features such as more verbose error reporting and loading of locally built `libmagic.so`.
+
+### Return Value
+
+Returns `nothing`.
+
+Once called, this function blocks the current process and keeps the server
+running until it is stopped with `Ctrl+C`.
+"""
 function start_app(
     script_path::String="app.jl";
     host_name::String="localhost",
