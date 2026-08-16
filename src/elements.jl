@@ -1,4 +1,3 @@
-
 # Widget
 #-----------------
 const WidgetKind                = Int
@@ -84,6 +83,35 @@ function create_button(
     return widget.value
 end
 
+"""
+# button
+
+Display a button widget.
+
+### Function Signature
+
+```julia
+function button(
+    label   ::String    ="";
+    style   ::String    ="secondary",
+    icon    ::String    ="",
+    onclick ::Function  =(args...; kwargs...)->(),
+    args    ::Vector    =Vector()
+)::Bool
+```
+
+ Argument  | Description
+---------- |-------------
+ `label`   | A `String` to be displayed inside the button. It can contain HTML.
+ `style`   | A `String`. Should be either `primary`, `secondary`, or `naked`. Default: `secondary`.
+ `icon`    | A `String` in the format `material/icon_name`. Example: `material/thumb_up`.<br/><br/>Check out https://fonts.google.com/icons?icon.set=Material+Icons to learn the icon names.
+ `onclick` | A callback `Function`. This function will be called when the button is clicked, before the app script is rerun.
+ `args`    | A `Vector` of arguments that will be passed to the `onclick` callback function.
+
+### Return Value
+
+`true` if the button was clicked, `false` otherwise.
+"""
 function button(label::String=""; style::String="secondary", icon::String="", onclick::Function=(args...; kwargs...)->(), args::Vector=Vector())::Bool
     task = task_local_storage("app_task")
     widgets = task.session.widgets
@@ -92,6 +120,70 @@ end
 
 # Download Button
 #-----------------
+"""
+# download_button
+
+Creates a download button widget. It behaves similarly to
+[`button()`](/docs/build/docs/api-reference/interface-elements/button-func),
+with the additional effect of starting a download.
+
+### Function Signature
+
+```julia
+function download_button(
+    label       ::String,
+    file_path   ::String;
+    file_name   ::Union{String, Nothing}=nothing,
+    style       ::String="secondary",
+    icon        ::String="material/download",
+    onclick     ::Function=(args...; kwargs...)->(),
+    args        ::Vector=Vector()
+)::Bool
+```
+
+ Argument     | Description
+------------------ | -----------
+ `label`   | A `String` to be displayed inside the button. It can contain HTML.
+ `file_path`    | A `String` specifying the file to be downloaded. The file must live inside `.Magic/served-files/` somewhere.
+ `file_name`    | A `String` specifying the name with which the file should be saved in the user side.
+ `style`   | A `String`. Should be either `primary`, `secondary`, or `naked`. Default: `secondary`.
+ `icon`    | A `String` in the format `material/icon_name`. Example: `material/thumb_up`.<br/><br/>Check out https://fonts.google.com/icons?icon.set=Material+Icons to learn the icon names.
+ `onclick` | A callback `Function`. This function will be called when the button is clicked, before the app script is rerun.
+ `args`    | A `Vector` of arguments that will be passed to the `onclick` callback function.
+
+### Return Value
+
+`true` if the button was clicked, `false` otherwise.
+
+### Generating downloadable files
+
+The provided `file_path` does not necessarily need to point to an existing file;
+it can point to a path inside `.Magic/served-files` where the file will be
+generated when the download button is clicked. Example:
+
+```julia
+serveable_path = gen_serveable_path(".png")
+if download_button("Download", serveable_path)
+    # Generate file here and save it at `serveable_path`
+end
+```
+
+Alternatively, you can generate the file within the `onclick` callback. Example:
+
+```julia
+function gen_file(path)
+    # Generate file here and save it at `path`
+end
+
+serveable_path = gen_serveable_path(".png")
+download_button("Download", serveable_path, onclick=gen_file, args=[serveable_path])
+```
+
+### Example
+
+See [Image Filters Demo](https://magic.coisasdodavi.net/image-filters) for a
+`download_button` usage example.
+"""
 function download_button(
     label::String,
     file_path::String;
@@ -163,6 +255,39 @@ function create_text_input(
     return coalesce(widget.value, props["default_value"])
 end
 
+"""
+# text_input
+
+Display a text input widget.
+
+### Function Signature
+
+```julia
+function text_input(
+    label          ::String;
+    id             ::Any      = nothing,
+    show_label     ::Bool     = true,
+    fill_width     ::Bool     = false,
+    initial_value  ::Union{String, Nothing}=nothing,
+    placeholder    ::Union{String, Nothing}=nothing,
+    css            ::Dict     = Dict()
+)::Union{String, Nothing}
+```
+
+ Argument           | Description
+------------------ | -----------
+ `label`            | A `String` to be displayed as the label for the text input. It can contain HTML.
+ `id`              | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like `get_value()` and `set_value()`.
+ `show_label`       | A `Bool` indicating whether the label should be displayed. Default: `true`.
+ `fill_width`       | A `Bool` indicating whether the text input should expand to fill the available horizontal space. Default: `false`.
+ `initial_value`    | Either a `String` specifying the initial text value of the input, or `nothing` (default). If `nothing` is provided, the initial value will be the default value previously set with `set_default_value()` if any; otherwise, the widget will be initialized with value `nothing`.
+ `placeholder`      | A `String` shown as placeholder text when the widget's value is `nothing`.
+ `css`               | A `Dict` of additional CSS properties applied to the text input element.
+
+### Return Value
+
+The current value of the text input as a `String` or `nothing`.
+"""
 function text_input(
     label::String;
     id::Any=nothing,
@@ -258,6 +383,53 @@ function create_number_input(
     return coalesce(widget.value, props["default_value"])
 end
 
+"""
+# number_input
+
+Display a number input widget.
+
+### Function Signature
+
+```julia
+function number_input(
+    label               ::String;
+    initial_value       ::Union{Real, Nothing}=nothing,
+    placeholder         ::Union{String, Nothing}=nothing,
+    num_type            ::Type{<:Real}=Float64,
+    precision           ::Integer=1,
+    min                 ::Union{Real, Nothing}=nothing,
+    max                 ::Union{Real, Nothing}=nothing,
+    step                ::Real=1.0,
+    decimal_separator   ::String=".",
+    thousands_separator ::String=",",
+    show_label          ::Bool=true,
+    fill_width          ::Bool=false,
+    id                  ::Any=nothing,
+    css                 ::Dict=Dict()
+)::Union{Real, Nothing}
+```
+
+ Argument           | Description
+------------------ | -----------
+ `label`            | A `String` to be displayed as the label for the text input. It can contain HTML.
+ `initial_value`    | Either a `Real` specifying the initial value of the input, or `nothing` (default). If `nothing` is provided (default), the initial value will be the default value previously set with `set_default_value()` if any; otherwise, the widget will be initialized with value `nothing`.
+ `placeholder`      | A `String` shown as placeholder when the widget's value is `nothing`. Default: `nothing`.
+ `num_type`       | A subtype of `Real` indicating how the widget value should be interpreted and returned. Default: `Float64`.
+ `precision`       | An `Integer` specifying how many decimal places should be displayed by the widget. If `num_type` is an `Integer`, this parameter is ignored.
+ `min`       | A `Real` specifying the minimum value allowed in the widget, or `nothing` (default) indicating there is no minimum value.
+ `max`       | A `Real` specifying the maximum value allowed in the widget, or `nothing` (default) indicating there is no maximum value.
+ `step`       | A `Real` specifying the size of the increment/decrement applied when clicking the `-` and `+` buttons in the widget.
+ `decimal_separator`       | A `String` specifying the character that should be used as decimal separator. Default: `"."`.
+ `thousands_separator`       | A `String` specifying the character that should be used as decimal separator; Default: `"."`.
+ `show_label`       | A `Bool` indicating whether the label should be displayed. Default: `true`.
+ `fill_width`       | A `Bool` indicating whether the text input should expand to fill the available horizontal space. Default: `false`.
+ `id`              | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like `get_value()` and `set_value()`.
+ `css`               | A `Dict` of additional CSS properties applied to the input element.
+
+### Return Value
+
+The current value of the number input interpreted as `num_type`; or `nothing`.
+"""
 function number_input(
     label::String;
     initial_value::Union{Real, Nothing}=nothing,
@@ -365,6 +537,52 @@ function create_slider(
     return widget.value
 end
 
+"""
+# slider
+
+Display a slider widget.
+
+> **NOTE:** Make sure that parameters `min`, `max`, `step` and `initial_value`
+> all have the same Real subtype.
+
+### Function Signature
+
+```julia
+function slider(
+    label               ::String;
+    initial_value       ::Union{T, Nothing}=nothing,
+    min                 ::T=zero(T),
+    max                 ::T=one(T),
+    step                ::Union{T, Nothing}=nothing,
+    precision           ::Integer=2,
+    decimal_separator   ::String=".",
+    thousands_separator ::String=",",
+    show_label          ::Bool=true,
+    fill_width          ::Bool=false,
+    id                  ::Any=nothing,
+    css                 ::Dict=Dict()
+)::Union{Real, Nothing} where {T <: Real}
+```
+
+ Argument           | Description
+------------------ | -----------
+ `label`            | A `String` to be displayed as the label for the slider. It can contain HTML.
+ `initial_value`    | Either a value of type `T` specifying the initial value of the slider, or `nothing` (default). If `nothing` is provided (default), the initial value will be the default value previously set with `set_default_value()` if any; otherwise, the widget will be initialized with `min`.
+ `min`              | A value of type `T` specifying the minimum value of the slider range. Default: `zero(T)`.
+ `max`              | A value of type `T` specifying the maximum value of the slider range. Default: `one(T)`.
+ `step`             | Either a value of type `T` specifying the increment size for the slider, or `nothing` (default) to automatically determine the step size, in which case it will be set to `1` if `T` is an `Integer` subtype or `0.01` otherwise.
+ `precision`        | An `Integer` specifying how many decimal places should be displayed for the slider value. Default: `2`.
+ `decimal_separator`   | A `String` specifying the character that should be used as decimal separator. Default: `"."`.
+ `thousands_separator` | A `String` specifying the character that should be used as thousands separator. Default: `","`.
+ `show_label`       | A `Bool` indicating whether the label should be displayed. Default: `true`.
+ `fill_width`       | A `Bool` indicating whether the slider should expand to fill the available horizontal space. Default: `false`.
+ `id`               | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like `get_value()` and `set_value()`.
+ `css`              | A `Dict` of additional CSS properties applied to the slider element.
+
+### Return Value
+
+The current value of the slider as a `Real` number; or `nothing`.
+"""
 function slider(
     label::String;
     initial_value::Union{T, Nothing}=nothing,
@@ -485,6 +703,45 @@ function create_selectbox(
     return coalesce(widget.value, props["default_value"])
 end
 
+"""
+# selectbox
+
+Display a select box (dropdown) widget.
+
+### Function Signature
+
+```julia
+function selectbox(
+    label           ::String,
+    options         ::Vector;
+    initial_value   ::Union{String, Vector, Nothing}=nothing,
+    id              ::Any      = nothing,
+    multiple        ::Bool     = false,
+    show_label      ::Bool     = true,
+    placeholder     ::Union{String, Nothing}=nothing,
+    fill_width      ::Bool     = false,
+    onchange        ::Function = (args...; kwargs...)->(),
+    css             ::Dict     = Dict()
+)::Union{String, Vector, Nothing}
+```
+
+ Argument        | Description
+------------------ | -----------
+ `label`        | A `String` to be displayed as the label for the select box. It can contain HTML.
+ `options`      | A `Vector` of selectable values. Each element represents one option and will be displayed using its string representation.
+ `initial_value`    | The value that should be initially selected. If `multiple` is `false` (default), this should be a `String` matching an option in `options`. If `multiple` is `true`, the value should be a `Vector` of `String`s in `options`.
+ `id`              | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like `get_value()` and `set_value()`.
+ `multiple`     | A `Bool` indicating whether multiple options can be selected. Default: `false`.
+ `show_label`   | A `Bool` indicating whether the label should be displayed. Default: `true`.
+ `placeholder`  | A `String` shown as placeholder text when the selectbox is empty.
+ `fill_width`   | A `Bool` indicating whether the select box should expand to fill the available horizontal space. Default: `false`.
+ `onchange`     | A callback `Function`. This function is called when the selected value changes, before the app script is rerun.
+ `css`          | A `Dict` of additional CSS properties applied to the select box element.
+
+### Return Value
+
+The currently selected value. If `multiple` is `false`, this is either a single `String` value from `options` or `nothing`. If `multiple` is `true`, this is either a `Vector` of selected values or `nothing`.
+"""
 function selectbox(
         label::String,
         options::Vector;
@@ -571,6 +828,40 @@ function create_color_picker(
     return widget.value
 end
 
+"""
+# color_picker
+
+Display a color picker input widget.
+
+### Function Signature
+
+```julia
+function color_picker(
+    label           ::String;
+    initial_value   ::Union{String, Nothing}=nothing,
+    id              ::Any      =nothing,
+    show_label      ::Bool     =true,
+    fill_width      ::Bool     =false,
+    onchange        ::Function =(args...; kwargs...)->(),
+    css             ::Dict     =Dict()
+)::String
+```
+
+ Argument        | Description
+---------------- |-------------
+ `label`       | A `String` used as the label for the color picker.
+ `initial_value`    | Either a `String` specifying the initial hexadecimal color value of the input, or `nothing` (default). If `nothing` is provided, the initial value will be the default value previously set with `set_default_value()` if any; otherwise, the widget will be initialized with a grey color.
+ `id`          | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like `get_value()` and `set_value()`.
+ `show_label`   | A `Bool` indicating whether the label should be displayed. Default: `true`.
+ `fill_width`   | A `Bool` indicating whether the select box should expand to fill the available horizontal space. Default: `false`.
+ `onchange`     | A callback `Function`. This function is called when the selected color changes, before the app script is rerun.
+ `css`         | A `Dict` of additional CSS properties to apply to the color picker widget.
+
+### Return Value
+
+Returns the currently selected color value as a `String` in a hexadecimal format
+such as `"#ff0000"`.
+"""
 function color_picker(
     label::String;
     initial_value::Union{String, Nothing}=nothing,
@@ -672,6 +963,35 @@ function create_checkboxes(
     return widget.value
 end
 
+"""
+# checkbox
+
+Display a checkbox widget.
+
+### Function Signature
+
+```julia
+function checkbox(
+    label         ::String;
+    id            ::Any       = nothing,
+    initial_value ::Union{Bool, Nothing}=nothing,
+    onchange      ::Function  = (args...; kwargs...)->(),
+    args          ::Vector    = Vector()
+)::Bool
+```
+
+ Argument          | Description
+------------------ | -----------
+ `label`           | A `String` to be displayed next to the checkbox. It can contain HTML.
+ `id`              | An optional identifier for the checkbox. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like `get_value()` and `set_value()`.
+ `initial_value`   | The checkbox initial value. If `nothing`, the default value set with `set_default_value()` will be used, if any; otherwise, the initial value will be `false`.
+ `onchange`        | A callback `Function`. This function is called when the checkbox value changes, before the app script is rerun.
+ `args`            | A `Vector` of arguments that will be passed to the `onchange` callback function.
+
+### Return Value
+
+The current value of the checkbox (`true` if checked, `false` otherwise).
+"""
 function checkbox(
     label::String;
     id::Any=nothing,
@@ -692,6 +1012,37 @@ function checkbox(
     return create_checkboxes(widgets, top_container(), id, label, [label], init_value, false, onchange, args)
 end
 
+"""
+# checkboxes
+
+Display a checkbox group widget.
+
+### Function Signature
+
+```julia
+function checkboxes(
+    label           ::String,
+    options         ::Vector;
+    id              ::Any       =nothing,
+    initial_value   ::Union{Vector, Nothing}=nothing,
+    onchange        ::Function  =(args...; kwargs...)->(),
+    args            ::Vector    =Vector()
+)::Vector
+```
+
+ Argument          | Description
+------------------ | -----------
+ `label`           | A `String` to be displayed next to the checkbox. It can contain HTML.
+ `options`         | A `Vector` specifying the selectable options. One checkbox for each option will be created.
+ `id`              | An optional identifier for the checkbox. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like `get_value()` and `set_value()`.
+ `initial_value`   | A either a `Vector` indicating which options in `options` are initially checked, or `nothing`. If `nothing` is provided, the default value set with `set_default_value()` will be used, if any; otherwise, the initial value will be an empty `Vector` `[]`.
+ `onchange`        | A callback `Function`. This function is called when the checkbox value changes, before the app script is rerun.
+ `args`            | A `Vector` of arguments that will be passed to the `onchange` callback function.
+
+### Return Value
+
+A `Vector` indicating which options in `options` are checked.
+"""
 function checkboxes(
     label::String,
     options::Vector;
@@ -756,6 +1107,33 @@ function create_radio(
     return widget.value
 end
 
+"""
+# radio
+
+Display a radio button group widget.
+
+### Function Signature
+
+```julia
+function radio(
+    label          ::String,
+    options        ::Vector;
+    id             ::Any = nothing,
+    initial_value  ::Union{String, Nothing}=nothing
+)::Union{String, Nothing}
+```
+
+ Argument           | Description
+------------------  | -----------
+ `label`            | A `String` to be displayed as the label for the radio button group. It can contain HTML.
+ `options`          | A `Vector` of selectable values. Each element represents one radio option and will be displayed using its string representation.
+ `id`              | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like `get_value()` and `set_value()`.
+ `initial_value`    | The value that should be initially selected. If provided, it should match one of the values in `options`. If `nothing`, the default value set with `set_default_value()` will be selected if one was provided. Otherwise, first option in `options` will be selected.
+
+### Return Value
+
+The currently selected value from `options`, or `nothing` if no option is selected.
+"""
 function radio(
     label::String,
     options::Vector;
@@ -812,6 +1190,37 @@ function create_image(widgets::Dict{String, Widget}, parent::Dict, src::String, 
     return widget.value
 end
 
+"""
+# image
+
+Display an image.
+
+### Function Signature
+
+```julia
+function image(
+    src_or_path ::String;
+    fill_width  ::Bool                   = false,
+    max_width   ::String                 = "100%",
+    width       ::Union{Number, Nothing} = nothing,
+    height      ::Union{Number, Nothing} = nothing,
+    css         ::Dict                   = Dict("height" => "auto")
+)::String
+```
+
+ Argument          | Description
+------------------ | -----------
+ `src_or_path`    | A `String` representing either a URL or a local file path to the image source.<br/><br/>Only images inside `.Magic/served-files` and subdirectories can be served. If it is a static image that does not change across sessions, a good practice is to place it inside `.Magic/served-files/static/images`. If it is a generated image, e.g. a plot that changes across app reruns, a good practice is to place it inside `.Magic/served-files/cache`.<br/><br/>For the common situation of regenerating and serving a new image on each rerun, there is a helper function `gen_serveable_path(ext)` that generates a file path with a random name and with the given extension `ext` inside `.Magic/served-files/cache`. This function returns the path that you should use to save your image and then pass to `image()` to place it in the app.
+ `fill_width`     | A `Bool` indicating whether the image should expand to fill the available horizontal space. Default: `false`.
+ `max_width`      | A `String` specifying the maximum width of the image using a CSS value (for example, `"100%"` or `"600px"`). Default: `"100%"`.
+ `width`          | An optional numeric width to be used as the `width` attribute of the `img` tag.
+ `height`         | An optional numeric height to be used as the `height` attribute of the `img` tag.
+ `css`            | A `Dict` of additional CSS properties applied to the `img` tag. By default, the height is set to `"auto"`.
+
+### Return Value
+
+A `String` containing the rendered HTML for the image.
+"""
 function image(
     src_or_path::String;
     fill_width::Bool=false,
@@ -849,6 +1258,7 @@ function image(
 
     return create_image(widgets, top_container(), src, width, height, css)
 end
+
 # Dataframe
 #--------------------
 function create_dataframe(
@@ -899,6 +1309,56 @@ function create_dataframe(
     return widget.value
 end
 
+"""
+# dataframe
+
+Display a `DataFrame` from package [`DataFrames.jl`](https://dataframes.juliadata.org/stable/).
+
+### Function Signature
+
+```julia
+function dataframe(
+    data            ::DataFrame;
+    column_config   ::Dict      =Dict(),
+    height          ::String    ="400px",
+    id              ::Union{String, Nothing}=nothing,
+    onchange        ::Function  =(args...; kwargs...)->(),
+    args            ::Vector    =Vector()
+)::Widget
+```
+
+ Argument     | Description
+------------------ | -----------
+ `data`      | A `DataFrame` to be displayed.
+ `column_config` | A `Dict` used to configure column behavior and appearance. Each entry of this `Dict` should be a column name paired with a `Dict` of configurations. These are the supported configuration options: <ul><li>`"editable"`: A `Bool`. If `true`, the cells of the column will be editable (double-click to edit). Default: `false`.</li><li>`"required"`: A `Bool` indicating wether a valid non-empty value is required. Default: `false`.</li></ul>
+ `height`    | A `String` specifying the height of the table using a CSS value (for example, `"400px"`).
+ `id`              | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like `get_value()` and `set_value()`.
+ `onchange`        | A callback `Function`. This function is called when any cell value changes, before the app script is rerun.
+ `args`            | A `Vector` of arguments that should be passed to the `onchange` callback function.
+
+### Return Value
+
+The same `DataFrame` used as input (`data`).
+
+### Example
+
+The example below displays a `DataFrame` with two columns with different types
+and makes the column `Age` editable:
+
+```julia
+data = DataFrame(
+    Name = String["Ana", "Bob", "Carl"],
+    Age  = Number[21, 23, 33]
+)
+
+dataframe(
+    data,
+    column_config=Dict(
+        "Age" => Dict("editable" => true)
+    )
+)
+```
+"""
 function dataframe(
     data::DataFrame;
     column_config::Dict=Dict(),
@@ -1011,6 +1471,68 @@ function create_file_uploader(
     return widget.value
 end
 
+"""
+# file_uploader
+
+Creates a file input widget.
+
+### Function Signature
+
+```julia
+function file_uploader(
+    label           ::String;
+    types           ::Vector{String}=Vector{String}(),
+    multiple        ::Bool=false,
+    max_file_size   ::Union{Int, Nothing}=nothing,
+    max_files       ::Union{Int, Nothing}=nothing,
+    fill_width      ::Bool=false,
+    show_label      ::Bool=true,
+    id              ::Union{String, Nothing}=nothing,
+    onchange        ::Function=(args...; kwargs...)->(),
+    args            ::Vector=Vector(),
+    css             ::Dict=Dict()
+)::Union{Vector{UploadedFile}, UploadedFile, Nothing}
+```
+
+ Argument     | Description
+------------------ | -----------
+ `label`        | A `String` to be displayed as the label for the file uploader. It can contain HTML.
+ `types`        | A `Vector{String}` containing a list of acceptable file extensions and/or mimetypes. Example: `[".png", ".jpg", "application/pdf"]`. Tip: use `*` wildcard to accept all mimetypes begining with a prefix, e.g. `"image/*"`.
+ `multiple`     | A `Bool` indicating wether to accept multiple files or not. Default `false`.
+ `max_file_size`| An optional `Int` specifying the maximum file size accepted by the widget. If `nothing` (default), the limit set by `start_app()` is used.
+ `max_files`    | An optional `Int` specifying the maximum number of file accepted by the widget. If `nothing` (default), the limit set by `start_app()` is used.
+ `fill_width`   | A `Bool` indicating whether the widget should expand to fill the available horizontal space. Default: `false`.
+ `show_label`   | A `Bool` indicating whether the label should be displayed. Default: `true`.
+ `id`              | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like `get_value()` and `set_value()`.
+ `onchange`        | A callback `Function`. This function is called when any cell value changes, before the app script is rerun.
+ `args`            | A `Vector` of arguments that should be passed to the `onchange` callback function.
+ `css`          | A `Dict` of additional CSS properties applied to the widget element.
+
+### Return Value
+
+If `multiple` is `false`, a single [`UploadedFile`](#uploadedfile) instance is returned if a
+file was provided. If `multiple` is `true`, a `Vector{UploadedFile}` is returned
+if any file was provided. If no file was provided, it returns `nothing`.
+
+## UploadedFile
+
+```julia
+mutable struct UploadedFile
+    id              ::String # unique id of the file generated by the app
+    name            ::String # name of the file
+    extension       ::String # file extension
+    path            ::String # file path inside `.Magic/uploaded-files`
+    type            ::String # mimetype, e.g. "image/png"
+    size            ::Int    # file size
+    last_modified   ::Int    # last modification date timestamp
+end
+```
+
+### Example
+
+See [Image Filters Demo](https://magic.coisasdodavi.net/image-filters) for a
+`file_uploader()` example.
+"""
 function file_uploader(
     label::String;
     types::Vector{String}=Vector{String}(),
@@ -1061,11 +1583,69 @@ function create_html(parent::Dict, tag::String, inner_html::String, attributes::
     return nothing
 end
 
+"""
+# html
+
+Render a raw HTML element.
+
+### Function Signature
+
+```julia
+function html(
+    tag         ::String,
+    inner_html  ::String;
+    attributes  ::Dict = Dict(),
+    css         ::Dict = Dict()
+)::Nothing
+```
+
+ Argument          | Description
+------------------ | -----------
+ `tag`             | A `String` specifying the HTML tag name to render (for example, `"div"`, `"span"`, or `"p"`).
+ `inner_html`      | A `String` containing the raw HTML content to be placed inside the element.
+ `attributes`      | A `Dict` of HTML attributes to apply to the element. Keys are attribute names and values are their corresponding values.
+ `css`             | A `Dict` of CSS properties applied inline to the element.
+
+### Return Value
+
+Nothing.
+"""
 function html(tag::String, inner_html::String; attributes::Dict=Dict(), css::Dict=Dict())::Nothing
     create_html(top_container(), tag, inner_html, attributes, css)
     return nothing
 end
 
+"""
+# link
+
+Display a link styled as a button.
+
+### Function Signature
+
+```julia
+function link(
+    label      ::String,
+    url        ::String;
+    style      ::String = "secondary",
+    fill_width ::Bool   = false,
+    new_tab    ::Bool   = false,
+    css        ::Dict   = Dict()
+)::Nothing
+```
+
+ Argument        | Description
+------------------ | -----------
+ `label`        | A `String` to be displayed as the link text. It can contain HTML.
+ `url`          | A `String` specifying the destination URL of the link.
+ `style`        | A `String` defining the visual style of the link. Accepted values: `"primary"`, `"secondary"`, or `"naked"`. Default: `"secondary"`.
+ `fill_width`   | A `Bool` indicating whether the link should expand to fill the available horizontal space. Default: `false`.
+ `new_tab`      | A `Bool` indicating whether the link should open in a new browser tab. Default: `false`.
+ `css`          | A `Dict` of CSS properties applied inline to the element.
+
+### Return Value
+
+Nothing.
+"""
 function link(label::String, url::String; style::String="secondary", fill_width=false, new_tab::Bool=false, css::Dict=Dict())::Nothing
     icon = ""
     if new_tab
@@ -1081,10 +1661,30 @@ function link(label::String, url::String; style::String="secondary", fill_width=
     return nothing
 end
 
+"""
+# space
+
+Inserts an empty space in the page.
+
+### Function Signature
+
+```julia
+function space(; width::String="1px", height::String="1px")::Nothing
+```
+
+ Argument               | Description
+---------------------- | -----------
+ `width`    | A `String` specifying the width of the empty space using CSS units like `px` or `rem`.
+ `height`    | A `String` specifying the height of the empty space using CSS units like `px` or `rem`.
+
+### Return Value
+
+Nothing.
+"""
 space(; width::String="1px", height::String="1px") = html("div", "", css=Dict("width" => width, "height" => height))
 
-# Text
-#----------
+# Text, headers and icons
+#-----------------------------
 function maybe_prepend_icon(text::String, icon::String, icon_color::String)::String
     if length(icon) > 0
         style = ""
@@ -1097,16 +1697,101 @@ function maybe_prepend_icon(text::String, icon::String, icon_color::String)::Str
     return text
 end
 
+"""
+# headers
+
+Family of functions `h1`, `h2`, `h3`, `h4`, `h5` and `h6` to display the 6 different levels of heading.
+
+### Function Signature
+
+```julia
+# same signature for h1, h2, h3, h4, h5 and h6
+
+function h1(
+    text        ::String;
+    icon        ::String = "",
+    icon_color  ::String = "",
+    css         ::Dict   = Dict()
+)::Nothing
+```
+
+ Argument        | Description
+------------------ | -----------
+ `text`         | A `String` containing the heading text. It can contain HTML.
+ `icon`    | A `String` in the format `material/icon_name`. Example: `material/thumb_up`.<br/><br/>Check out https://fonts.google.com/icons?icon.set=Material+Icons to learn the icon names.
+ `icon_color`   | An optional `String` specifying the color of the icon using a CSS color value.
+ `css`          | A `Dict` of additional CSS properties applied to the heading element.
+
+### Return Value
+
+Nothing.
+"""
 h1(text::String; icon::String="", icon_color::String="", css=Dict()) = html("h1", maybe_prepend_icon(text, icon, icon_color), css=css)
+
+@doc @doc(h1) h2
 h2(text::String; icon::String="", icon_color::String="", css=Dict()) = html("h2", maybe_prepend_icon(text, icon, icon_color), css=css)
+
+@doc @doc(h1) h3
 h3(text::String; icon::String="", icon_color::String="", css=Dict()) = html("h3", maybe_prepend_icon(text, icon, icon_color), css=css)
+
+@doc @doc(h1) h4
 h4(text::String; icon::String="", icon_color::String="", css=Dict()) = html("h4", maybe_prepend_icon(text, icon, icon_color), css=css)
+
+@doc @doc(h1) h5
 h5(text::String; icon::String="", icon_color::String="", css=Dict()) = html("h5", maybe_prepend_icon(text, icon, icon_color), css=css)
+
+@doc @doc(h1) h6
 h6(text::String; icon::String="", icon_color::String="", css=Dict()) = html("h6", maybe_prepend_icon(text, icon, icon_color), css=css)
 
+"""
+# icon
+
+Display an icon.
+
+### Function Signature
+
+```julia
+function icon(
+    icon   ::String;
+    color  ::String = "inherit",
+    size   ::String = "inherit",
+    weight ::String = "inherit"
+)::Nothing
+```
+
+ Argument    | Description
+------------------ | -----------
+ `icon`    | A `String` in the format `material/icon_name`. Example: `material/thumb_up`.<br/><br/>Check out https://fonts.google.com/icons?icon.set=Material+Icons to learn the icon names.
+ `color`    | A `String` specifying the icon color using a CSS value. Default: `"inherit"`.
+ `size`     | A `String` specifying the icon size using a CSS value. Default: `"inherit"`.
+ `weight`   | A `String` specifying the icon weight or thickness, depending on the icon set. Default: `"inherit"`.
+
+### Return Value
+
+Nothing.
+"""
 icon(icon::String; color::String="inherit", size::String="inherit", weight::String="inherit") =
     html("mg-icon", "", attributes=Dict("mg-icon" => icon), css=Dict("color" => color, "font-size" => size, "font-weight" => "bold"))
 
+"""
+# text
+
+Display a text.
+
+### Function Signature
+
+```julia
+function text(text::Any)::Nothing
+```
+
+ Argument    | Description
+------------------ | -----------
+ `text`     | The content to be displayed. If the value is a `String`, it is rendered as-is. Otherwise, its string representation is obtained using `repr()`.
+
+### Return Value
+
+Nothing.
+"""
 text(text::Any) = html("p", typeof(text) == String ? text : repr(text))
 
 # Code
@@ -1144,7 +1829,53 @@ function create_code(widgets::Dict{String, Widget}, parent::Dict, initial_value:
     return widget.value
 end
 
-function code(initial_value::String=""; initial_value_file::Union{String, Nothing}=nothing, fill_width::Bool=true, max_width::String="100%", max_height::String="initial", padding::String="0", strip_whitespace::Bool=true, show_line_numbers::Bool=false, css::Dict=Dict("overflow-y" => "auto"))::String
+"""
+# code
+
+Display a code block.
+
+### Function Signature
+
+```julia
+function code(
+    initial_value      ::String   = "";
+    initial_value_file ::Union{String, Nothing} = nothing,
+    fill_width         ::Bool     = true,
+    max_width          ::String   = "100%",
+    max_height         ::String   = "initial",
+    padding            ::String   = "0",
+    strip_whitespace   ::Bool     = true,
+    css                ::Dict     = Dict("overflow-y" => "auto")
+)::String
+```
+
+ Argument               | Description
+---------------------- | -----------
+ `initial_value`        | A `String` containing the initial code content to display.
+ `initial_value_file`   | An optional path to a file whose contents will be loaded as the initial code value. If provided, it takes precedence over `initial_value`.
+ `fill_width`           | A `Bool` indicating whether the code block should expand to fill the available horizontal space. Default: `true`.
+ `max_width`            | A `String` specifying the maximum width of the code block using a CSS value (for example, `"100%"` or `"800px"`).
+ `max_height`           | A `String` specifying the maximum height of the code block using a CSS value. If the content exceeds this height, it becomes scrollable.
+ `padding`              | A `String` specifying the padding applied inside the code block using a CSS value.
+ `strip_whitespace`     | A `Bool` indicating whether leading and trailing whitespace should be removed from the initial code content. Default: `true`.
+ `css`                  | A `Dict` of additional CSS properties applied to the code block.
+
+### Return Value
+
+A `String` containing the current code content.
+"""
+function code(
+    initial_value::String="";
+    initial_value_file::Union{String, Nothing}=nothing,
+    fill_width::Bool=true,
+    max_width::String="100%",
+    max_height::String="initial",
+    padding::String="0",
+    strip_whitespace::Bool=true,
+    show_line_numbers::Bool=false,
+    css::Dict=Dict("overflow-y" => "auto")
+)::String
+
     task = task_local_storage("app_task")
     widgets = task.session.widgets
 
@@ -1169,6 +1900,33 @@ end
 
 # Metric
 #-------------
+"""
+# metric
+
+Display a metric value with an optional delta indicator.
+
+### Function Signature
+
+```julia
+function metric(
+    label             ::String,
+    value             ::String,
+    delta             ::String = "",
+    higher_is_better  ::Bool   = true
+)::Nothing
+```
+
+ Argument               | Description
+---------------------- | -----------
+ `label`               | A `String` used as the label for the metric.
+ `value`               | A `String` representing the main value of the metric.
+ `delta`               | An optional `String` representing the change or difference associated with the metric (for example, `"+5%"` or `"-2"`).
+ `higher_is_better`    | A `Bool` indicating whether an increase in the metric value should be considered positive. Default: `true`.
+
+### Return Value
+
+Nothing.
+"""
 function metric(label::String, value::String, delta::String="", higher_is_better::Bool=true)::Nothing
     deltaHTML = ""
     color, background = "#0b8a07", "#a6f9a6"
@@ -1217,6 +1975,118 @@ function get_widget_by_user_id(widgets::Dict{String, Widget}, user_id::String)::
     return missing
 end
 
+DOC_WIDGET_VALUE = """
+# Widget Value
+
+You can get and set the value of uniquely identified widgets via the
+[`get_value()`](#get_value) and [`set_value()`](#set_value) functions.
+
+All widget creation functions accept a user-defined `id` as an argument.
+A widget is uniquely identified if, at the moment of its creation, a user
+defined `id` was provided. Example:
+
+```julia
+selectbox("Selectbox", initial_value="C", options=["A", "B", "C"], id="my_selectbox")
+set_value("my_selectbox", "B")
+value = get_value("my_selectbox") # value = "B"
+````
+
+`get_value()` can be called even before the creation of a widget, in which case
+it will return either `missing` or, if the widget has a default value previously
+set with [`set_default_value()`](#set_default_value), its default value. So, as you might have
+guessed, `set_default_value()` can also be called before the creation of a
+widget. Example:
+
+```julia
+set_default_value("my_selectbox", "B")
+value = get_value("my_selectbox") # value = "B"
+selectbox("Selectbox", options=["A", "B", "C"], id="my_selectbox")
+````
+
+The rationale behind this API behaviour is that, by setting a default value
+before the creation of a widget, you can guarantee that `get_value()` will
+always return the value of the widget, regardless if it has been already
+created or not: if it has been created, it returns its actual value, and if it
+hasn't been created yet, it returns the value it will be assigned when it is
+created.
+
+## `get_value()`
+
+Retrieves the value of a uniquely identified widget.
+
+### Function Signature
+
+```julia
+function get_value(id::String)::Any
+```
+
+ Argument  | Description
+---------- |-------------
+ `id` | User-defined widget id.
+
+### Return Value
+
+If a widget with the passed id already exists, it returns the value of the
+widget.
+
+If it doesn't exists yet but a default value has been assigned to it via
+a previous call to `set_default_value()`, it returns the default value.
+
+Otherwise, it returns `missing`.
+
+## `set_value()`
+
+Sets the value of a uniquely identified widget.
+
+### Function Signature
+
+```julia
+function set_value(id::String, value::Any)::Nothing
+```
+
+ Argument  | Description
+---------- |-------------
+ `id` | User-defined widget id.
+ `value` | The value that should be assigned to the widget. Its type must be compatible with the widget's kind.
+
+## `get_default_value()`
+
+Retrieves the default value of a uniquely identified widget. A widget has a
+default value if, and only if, it has been assigned one via a
+`set_default_value()` call.
+
+### Function Signature
+
+```julia
+function get_default_value(id::String)::Any
+```
+
+ Argument  | Description
+---------- |-------------
+ `id` | User-defined widget id.
+
+### Return Value
+
+Returns the default value assigned to the widget associated with the `id` via
+a previous call to `set_default_value()`.
+
+## `set_default_value()`
+
+Sets the default value of a uniquely identified widget.
+
+### Function Signature
+
+```julia
+function set_default_value(id::String, value::Any)::Nothing
+```
+
+ Argument  | Description
+---------- |-------------
+ `id` | User-defined widget id.
+ `value` | The default value that should be assigned to the widget. Its type must be compatible with the widget's kind.
+"""
+
+@doc DOC_WIDGET_VALUE set_default_value
 function set_default_value(user_id::String, value::Any)::Nothing
     task = task_local_storage("app_task")
     task.session.widget_defaults[user_id] = value
@@ -1227,6 +2097,7 @@ function set_default_value(user_id::String, value::Any)::Nothing
     return nothing
 end
 
+@doc DOC_WIDGET_VALUE get_default_value
 function get_default_value(user_id::String)::Any
     task = task_local_storage("app_task")
     if haskey(task.session.widget_defaults, user_id)
@@ -1235,6 +2106,7 @@ function get_default_value(user_id::String)::Any
     return missing
 end
 
+@doc DOC_WIDGET_VALUE set_value
 function set_value(user_id::String, value::Any)::Nothing
     task = task_local_storage("app_task")
     widget = get_widget_by_user_id(task.session.widgets, user_id)
@@ -1247,6 +2119,7 @@ function set_value(user_id::String, value::Any)::Nothing
     return nothing
 end
 
+@doc DOC_WIDGET_VALUE get_value
 function get_value(user_id::String)::Any
     task = task_local_storage("app_task")
     widget = get_widget_by_user_id(task.session.widgets, user_id)
