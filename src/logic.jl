@@ -627,7 +627,7 @@ function add_font(page::PageConfig, font_name::String, src_or_path::String)::Not
     add_css_rule(page, """
         @font-face {
             font-family: "$(font_name)";
-            src: url($(strip_prefix(src_or_path, ".Magic/served-files")));
+            src: url($(strip_prefix(src_or_path, "$(g.dot_magic_dir)/.Magic/served-files")));
         }
     """)
     return nothing
@@ -990,9 +990,9 @@ function gen_serveable_path(extension::String=""; lifetime::String="session")::S
 
     file_name = "$(get_random_string(32))$(extension)"
 
-    dir_path = ".Magic/served-files/generated/$(task.session.session_id)"
+    dir_path = "$(g.dot_magic_dir)/.Magic/served-files/generated/$(task.session.session_id)"
     if lifetime == "app"
-        dir_path = ".Magic/served-files/generated/app"
+        dir_path = "$(g.dot_magic_dir)/.Magic/served-files/generated/app"
     end
 
     return "$(dir_path)/$(file_name)"

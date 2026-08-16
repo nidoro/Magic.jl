@@ -78,6 +78,22 @@ fragment, @fragment, get_url_path, is_on_page, get_current_page, add_page,
 add_css_rule, add_font, begin_page_config, end_page_config, set_title,
 set_description, UploadedFile
 
+# Error stuff
+#----------------
+abstract type MagicError        <: Exception  end
+struct FileNotFoundError        <: MagicError file_path::String end
+struct DirectoryNotFoundError   <: MagicError dir_path::String end
+struct InvalidHostnameError     <: MagicError hostname::String end
+struct InvalidPortError         <: MagicError port::Int end
+struct InvalidUploadMaxSize     <: MagicError upload_max_size::Int end
+struct InvalidUploadMaxFiles    <: MagicError upload_max_files::Int end
+
+Base.showerror(io::IO, e::FileNotFoundError) = print(io, "File not found: $(e.file_path)")
+Base.showerror(io::IO, e::DirectoryNotFoundError) = print(io, "Directory not found: $(e.dir_path)")
+Base.showerror(io::IO, e::InvalidPortError) = print(io, "Invalid port: $(e.port) (must be 0-65535)")
+Base.showerror(io::IO, e::InvalidUploadMaxSize) = print(io, "Invalid upload_max_size: $(e.upload_max_size). It must be a number greater than or equal to 0.")
+Base.showerror(io::IO, e::InvalidUploadMaxFiles) = print(io, "Invalid upload_max_files: $(e.upload_max_files). It must be a number greater than or equal to 0.")
+
 # Misc constants
 #-------------------
 const KiB = 1024
@@ -185,6 +201,7 @@ end
 #------------
 @with_kw mutable struct Global
     initialized         ::Bool                      = false
+    dot_magic_dir       ::String                    = ""
     script_path         ::Union{String, Nothing}    = nothing
     script_name         ::Union{String, Nothing}    = nothing
     host_name           ::String                    = ""
@@ -209,7 +226,6 @@ end
 #--------------------------
 MAGIC_SO    = nothing
 LIBMAGIC    = nothing
-START_CWD   = pwd()
 USER_TYPES  = Dict{Symbol,DataType}()
 VERSION     = VersionNumber(TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))["version"])
 g           = Global()
@@ -322,8 +338,8 @@ function handle_new_client(client_id::Cint, session_id::String)::Nothing
         const include = path -> Base.include(MagicApp, path)
     end)
 
-    mkpath(".Magic/served-files/generated/$(session_id)")
-    mkpath(".Magic/uploaded-files/$(session_id)")
+    mkpath("$(g.dot_magic_dir)/.Magic/served-files/generated/$(session_id)")
+    mkpath("$(g.dot_magic_dir)/.Magic/uploaded-files/$(session_id)")
 
     return nothing
 end
@@ -340,8 +356,8 @@ end
 function handle_client_left(client_id::Cint)::Nothing
     session = g.sessions[client_id]
     session.client_left = true
-    try_rm(".Magic/served-files/generated/$(session.session_id)", recursive=true, force=true)
-    try_rm(".Magic/uploaded-files/$(session.session_id)", recursive=true, force=true)
+    try_rm("$(g.dot_magic_dir)/.Magic/served-files/generated/$(session.session_id)", recursive=true, force=true)
+    try_rm("$(g.dot_magic_dir)/.Magic/uploaded-files/$(session.session_id)", recursive=true, force=true)
     delete!(g.sessions, client_id)
     return nothing
 end
@@ -453,7 +469,7 @@ function rerun(client_id::Cint, payload::Dict)::Task
                                 file.id = entry["id"]
                                 file.name = entry["name"]
                                 file.extension = entry["extension"]
-                                file.path = ".Magic/uploaded-files/$(task.session.session_id)/$(file.id)$(file.extension)"
+                                file.path = "$(g.dot_magic_dir)/.Magic/uploaded-files/$(task.session.session_id)/$(file.id)$(file.extension)"
                                 file.type = entry["type"]
                                 file.size = entry["size"]
                                 file.last_modified = entry["last_modified"]
@@ -708,10 +724,10 @@ function execute_dry_runs()::Bool
 end
 
 function create_static_pages()::Nothing
-    create_page_html(g.base_page_config, ".Magic/served-files/generated/app/pages/base.html")
+    create_page_html(g.base_page_config, "$(g.dot_magic_dir)/.Magic/served-files/generated/app/pages/base.html")
 
     for page in g.pages
-        create_page_html(page, ".Magic/served-files/generated/app/pages/$(page.id).html")
+        create_page_html(page, "$(g.dot_magic_dir)/.Magic/served-files/generated/app/pages/$(page.id).html")
     end
 
     clear_uri_mapping()
@@ -720,18 +736,35 @@ function create_static_pages()::Nothing
         # User explicitly configured app pages
         for page in g.pages
             for uri in page.uris
-                push_uri_mapping(uri, replace(page.file_path, ".Magic/served-files" => ""))
+                push_uri_mapping(uri, replace(page.file_path, "$(g.dot_magic_dir)/.Magic/served-files" => ""))
             end
         end
     else
-        push_uri_mapping("/", replace(g.base_page_config.file_path, ".Magic/served-files" => ""))
+        push_uri_mapping("/", replace(g.base_page_config.file_path, "$(g.dot_magic_dir)/.Magic/served-files" => ""))
     end
 
     # Create 404.html
     #-------------------
-    create_404_html(".Magic/served-files/generated/app/pages/404.html")
+    create_404_html("$(g.dot_magic_dir)/.Magic/served-files/generated/app/pages/404.html")
 
     return nothing
+end
+
+function is_valid_hostname(hostname::String)
+    # Overall length limit
+    length(hostname) > 253 && return false
+    isempty(hostname) && return false
+
+    # Split into labels and validate each
+    labels = split(hostname, '.')
+    for label in labels
+        isempty(label) && return false
+        length(label) > 63 && return false
+        # Must start/end with alphanumeric, may contain hyphens in the middle
+        occursin(r"^[a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?$", label) || return false
+    end
+
+    return true
 end
 
 """
@@ -755,6 +788,7 @@ function start_app(
     port                ::Int=3443,
     upload_max_size     ::Int=25*MiB,
     upload_max_files    ::Int=10,
+    dot_magic_dir       ::Union{String, Nothing}=nothing,
     docs_path           ::Union{String, Nothing}=nothing,
     verbose             ::Bool=false,
     dev_mode            ::Bool=false
@@ -768,6 +802,7 @@ function start_app(
  `port`        | An `Int` specifying the port number on which the server will listen. Default is `3443`.
  `upload_max_size` | An `Int` specifying the maximum file size acceptable by `file_uploader` widgets. Default is 25 MiB.
  `upload_max_files` | An `Int` specifying the maximum number of file acceptable by `file_uploader` widgets. Default is 10.
+ `dot_magic_dir`   | A `String` specifying where the app's '.Magic' directory should be located. If `nothing` (default), this will be set to the directory of `script_path`.
  `docs_path`   | A `String` specifying a path to Magic's docs where it has been built, or `nothing` (default). If a `String` is passed, the docs will be served under `/docs`.
  `dev_mode`    | A `Bool`. If `true`, development mode is enabled. This activates features such as more verbose error reporting and loading of locally built `libmagic.so`.
 
@@ -784,13 +819,29 @@ function start_app(
     port::Int=3443,
     upload_max_size::Int=25*MiB,
     upload_max_files::Int=10,
+    dot_magic_dir::Union{String, Nothing}=nothing,
     docs_path::Union{String, Nothing}=nothing,
     verbose::Bool=false,
     dev_mode::Bool=false
 )::Nothing
 
-    if !isfile(script_path)
-        @error "File not found: '$(script_path)'"
+    if !is_valid_hostname(host_name)
+        throw(InvalidHostnameError(host_name))
+        return nothing
+    end
+
+    if port < 1 || port > 65535
+        throw(InvalidPortError(port))
+        return nothing
+    end
+
+    if upload_max_size < 0
+        throw(InvalidUploadMaxSize(upload_max_size))
+        return nothing
+    end
+
+    if upload_max_files < 0
+        throw(InvalidUploadMaxFiles(upload_max_files))
         return nothing
     end
 
@@ -807,12 +858,33 @@ function start_app(
     g.sessions = Dict{Ptr{Cvoid}, Session}()
     g.first_pass = true
     g.initialized = true
-    g.script_path = joinpath(START_CWD, script_path)
+    g.script_path = joinpath(pwd(), script_path)
     g.script_name = basename(script_path)
     g.host_name = host_name
     g.port = port
     g.upload_max_size = upload_max_size
     g.upload_max_files = upload_max_files
+
+    if !isfile(g.script_path)
+        throw(FileNotFoundError(g.script_path))
+        return nothing
+    end
+
+    if dot_magic_dir === nothing
+        g.dot_magic_dir = dirname(g.script_path)
+    else
+        g.dot_magic_dir = joinpath(pwd(), dot_magic_dir)
+    end
+
+    if !isdir(g.dot_magic_dir)
+        throw(DirectoryNotFoundError(g.dot_magic_dir))
+        return nothing
+    end
+
+    g.dot_magic_dir = realpath(g.dot_magic_dir)
+
+    original_pwd = pwd()
+    cd(dirname(g.script_path))
 
     # Setup net layer connection
     #--------------------------------
@@ -822,22 +894,26 @@ function start_app(
     if docs_path === nothing
         docs_path = ""
     else
-        docs_path = realpath(docs_path)
+        docs_path = joinpath(pwd(), docs_path)
+        if !isdir(docs_path)
+            throw(DirectoryNotFoundError(docs_path))
+            return nothing
+        end
     end
 
-    init_net_layer(host_name, port, docs_path, Int(ipc_port), joinpath(@__DIR__, ".."), g.upload_max_size, g.verbose, g.dev_mode)
+    init_net_layer(host_name, port, docs_path, Int(ipc_port), g.dot_magic_dir, joinpath(@__DIR__, ".."), g.upload_max_size, g.verbose, g.dev_mode)
     g.ipc_connection = accept(ipc_server)
     push_uri_mapping("/", "/generated/app/pages/first.html")
 
     # Generate directories and files
     #-----------------------------------
-    try_rm(".Magic/served-files/generated", recursive=true, force=true)
-    try_rm(".Magic/uploaded-files", recursive=true, force=true)
-    mkpath(".Magic/served-files/generated/app/pages")
-    cp(joinpath(@__DIR__, "../served-files/MagicPageTemplate.html"), ".Magic/served-files/generated/app/pages/first.html", force=true)
+    try_rm("$(g.dot_magic_dir)/.Magic/served-files/generated", recursive=true, force=true)
+    try_rm("$(g.dot_magic_dir)/.Magic/uploaded-files", recursive=true, force=true)
+    mkpath("$(g.dot_magic_dir)/.Magic/served-files/generated/app/pages")
+    cp(joinpath(@__DIR__, "../served-files/MagicPageTemplate.html"), "$(g.dot_magic_dir)/.Magic/served-files/generated/app/pages/first.html", force=true)
 
-    if !isfile(".Magic/.gitignore")
-        write(".Magic/.gitignore", DOT_MAGIC_GITIGNORE)
+    if !isfile("$(g.dot_magic_dir)/.Magic/.gitignore")
+        write("$(g.dot_magic_dir)/.Magic/.gitignore", DOT_MAGIC_GITIGNORE)
     end
 
     g.base_page_config.title = "Magic App"
@@ -1003,7 +1079,7 @@ function start_app(
                         write(g.ipc_connection, " ")
                     else
                         @debug "ClientlessTaskFinished | Client=$(ev.data.client_id)"
-                        try_rm(".Magic/served-files/generated/$(session.session_id)", recursive=true, force=true)
+                        try_rm("$(g.dot_magic_dir)/.Magic/served-files/generated/$(session.session_id)", recursive=true, force=true)
                     end
                 end
             end
@@ -1012,10 +1088,10 @@ function start_app(
         e isa InterruptException || rethrow()
     end
 
+    cd(original_pwd)
     Libdl.dlclose(LIBMAGIC)
 
     @info "ServerLoopStopped"
-    return nothing
 end
 
 function create_app_event(event_type::AppEventType, client_id::Cint, payload::Union{String, Nothing})::AppEvent
@@ -1028,12 +1104,23 @@ function destroy_net_event(ev::NetEvent)::Nothing
     ccall((:MG_DestroyNetEvent, MAGIC_SO), Cvoid, (NetEvent,), ev)
 end
 
-function init_net_layer(host_name::String, port::Int, docs_path::String, ipc_port::Int, package_root_dir::String, upload_max_size::Int, verbose::Bool, dev_mode::Bool)
+function init_net_layer(
+    host_name::String,
+    port::Int,
+    docs_path::String,
+    ipc_port::Int,
+    dot_magic_dir::String,
+    package_root_dir::String,
+    upload_max_size::Int,
+    verbose::Bool,
+    dev_mode::Bool
+)
+
     ccall(
         (:MG_InitNetLayer, MAGIC_SO),
         Cvoid,
-        (Cstring, Cint, Cint, Cstring, Cint, Cint, Cstring, Cint, Cint, Cint, Cint),
-        host_name, Cint(sizeof(host_name)), port, docs_path, Cint(sizeof(docs_path)), Cint(ipc_port), package_root_dir, Cint(sizeof(package_root_dir)), Cint(upload_max_size), Cint(verbose), Cint(dev_mode)
+        (Cstring, Cint, Cint, Cstring, Cint, Cint, Cstring, Cint, Cstring, Cint, Cint, Cint, Cint),
+        host_name, Cint(sizeof(host_name)), port, docs_path, Cint(sizeof(docs_path)), Cint(ipc_port), dot_magic_dir, Cint(sizeof(dot_magic_dir)), package_root_dir, Cint(sizeof(package_root_dir)), Cint(upload_max_size), Cint(verbose), Cint(dev_mode)
     )
 end
 
@@ -1063,7 +1150,7 @@ end
 function main(_args::Vector{String} #= not used =#)
     cli = ArgParseSettings()
 
-    @add_arg_table cli begin
+    @add_arg_table! cli begin
         "script"
             help = "Entry point script"
             arg_type = String
@@ -1089,7 +1176,12 @@ function main(_args::Vector{String} #= not used =#)
             arg_type = Int
             default = 10
 
-        "--docs_path", "-d"
+        "--dot-magic-dir", "-m"
+            help = "Path to '.Magic' dir. If none is provided, it is assumed to be the same directory of 'script'"
+            arg_type = String
+            default = nothing
+
+        "--docs-path", "-d"
             help = "Path to built Magic.jl documentation to be served"
             arg_type = String
             default = nothing
@@ -1102,7 +1194,16 @@ function main(_args::Vector{String} #= not used =#)
     parsed = parse_args(cli)
 
     if parsed["script"] != nothing
-        start_app(parsed["script"]; host_name=parsed["hostname"], port=parsed["port"], upload_max_size=parsed["upload-max-size"], upload_max_files=parsed["upload-max-files"],  docs_path=parsed["docs_path"], dev_mode=parsed["dev"])
+        start_app(
+            parsed["script"];
+            host_name=parsed["hostname"],
+            port=parsed["port"],
+            upload_max_size=parsed["upload-max-size"],
+            upload_max_files=parsed["upload-max-files"],
+            dot_magic_dir=parsed["dot-magic-dir"],
+            docs_path=parsed["docs-path"],
+            dev_mode=parsed["dev"]
+        )
     end
 end
 

@@ -1247,13 +1247,13 @@ function image(
         css["max-width"] = max_width
     end
 
-    if !startswith(src_or_path, ".Magic/served-files") && isfile(src_or_path)
+    if !startswith(src_or_path, "$(g.dot_magic_dir)/.Magic/served-files") && isfile(src_or_path)
         src_or_path = make_serveable_copy(src_or_path)
     end
 
     src = src_or_path
-    if startswith(src_or_path, ".Magic/served-files")
-        src = replace(src_or_path, ".Magic/served-files" => "")
+    if startswith(src_or_path, "$(g.dot_magic_dir)/.Magic/served-files")
+        src = replace(src_or_path, "$(g.dot_magic_dir)/.Magic/served-files" => "")
     end
 
     return create_image(widgets, top_container(), src, width, height, css)

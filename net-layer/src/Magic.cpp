@@ -86,6 +86,7 @@ struct MG_Global {
     pthread_t threadId;
     int ipcPort;
     char magicPackageRootPath[PATH_MAX];
+    char dotMagicDirPath[PATH_MAX];
 
 #ifdef _WIN32
     SOCKET fdSocket;
@@ -93,9 +94,8 @@ struct MG_Global {
     int fdSocket;
 #endif
 
-    char projectPath[PATH_MAX];
     char appHostName[PATH_MAX];
-    int appPort;
+    int  appPort;
     char docsPath[PATH_MAX];
     int  docsPathSize;
     bool verbose;
@@ -647,7 +647,11 @@ MG_API void* MG_RunServer(void*) {
     g.netEvents = arralloc(MG_NetEvent, 100);
     g.appEvents = arralloc(MG_AppEvent, 100);
 
-    bool disableSSL = !HS_IsDirectory(".Magic/certs");
+    char pathBuffer1[2*PATH_MAX] = {};
+    char pathBuffer2[2*PATH_MAX] = {};
+
+    sprintf(pathBuffer1, "%s/.Magic/certs", g.dotMagicDirPath);
+    bool disableSSL = !HS_IsDirectory(pathBuffer1);
 
     g.hserver = HS_CreateServer(0, disableSSL);
     HS_InitServer(&g.hserver, true);
@@ -664,17 +668,17 @@ MG_API void* MG_RunServer(void*) {
     HS_PushCacheControlMapping(&g.hserver, "magic-app", "*.html", "no-cache, no-store, must-revalidate");
     HS_PushCacheControlMapping(&g.hserver, "magic-app", "/*", "max-age=2592000");
     if (!disableSSL) {
-        HS_SetCertificate(&g.hserver, "magic-app", ".Magic/certs/certificate.crt", ".Magic/certs/private.key");
+        sprintf(pathBuffer1, "%s/.Magic/certs/certificate.crt", g.dotMagicDirPath);
+        sprintf(pathBuffer2, "%s/.Magic/certs/private.key", g.dotMagicDirPath);
+        HS_SetCertificate(&g.hserver, "magic-app", pathBuffer1, pathBuffer2);
     }
 
-    char tempBuffer[2*PATH_MAX];
-
-    snprintf(tempBuffer, sizeof(tempBuffer), "%s/%s", g.projectPath, ".Magic/served-files");
-    HS_SetServedFilesRootDir(&g.hserver, "magic-app", tempBuffer);
+    snprintf(pathBuffer1, sizeof(pathBuffer1), "%s/.Magic/served-files", g.dotMagicDirPath);
+    HS_SetServedFilesRootDir(&g.hserver, "magic-app", pathBuffer1);
     HS_Set404File(&g.hserver, "magic-app", "/generated/app/pages/404.html");
 
-    snprintf(tempBuffer, sizeof(tempBuffer), "%s/%s", g.magicPackageRootPath, "served-files");
-    HS_AddServedFilesDir(&g.hserver, "magic-app", "/Magic.jl", tempBuffer);
+    snprintf(pathBuffer1, sizeof(pathBuffer1), "%s/served-files", g.magicPackageRootPath);
+    HS_AddServedFilesDir(&g.hserver, "magic-app", "/Magic.jl", pathBuffer1);
 
     if (g.verbose) {
         HS_SetVHostVerbosity(&g.hserver, "magic-app", 1);
@@ -722,6 +726,8 @@ MG_API void MG_InitNetLayer(
     const char* docsPath,
     int docsPathSize,
     int ipcPort,
+    const char* dotMagicDirPath,
+    int dotMagicDirPathSize,
     const char* magicPackageRootPath,
     int magicPackageRootPathSize,
     int uploadMaxSize,
@@ -746,13 +752,14 @@ MG_API void MG_InitNetLayer(
     g.ipcPort = ipcPort;
     g.uploadMaxSize = uploadMaxSize;
 
+    strncpy(g.dotMagicDirPath, dotMagicDirPath, dotMagicDirPathSize);
     strncpy(g.magicPackageRootPath, magicPackageRootPath, magicPackageRootPathSize);
-    getcwd(g.projectPath, sizeof(g.projectPath));
 
     pthread_mutex_init(&g.netEventsMutex, 0);
     pthread_mutex_init(&g.appEventsMutex, 0);
 
     LU_Log(LU_Debug, "uploadMaxSize=%d", uploadMaxSize);
+    LU_Log(LU_Debug, "dotMagicDirPath=%s", dotMagicDirPath);
 
     int result = pthread_create(&g.threadId, 0, MG_RunServer, 0);
 }
