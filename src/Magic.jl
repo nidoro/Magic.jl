@@ -76,7 +76,7 @@ is_app_first_pass, is_page_first_pass, is_session_first_pass,
 gen_serveable_path, make_serveable_copy, move_to_serveable_dir,
 fragment, @fragment, get_url_path, is_on_page, get_current_page, add_page,
 add_css_rule, add_font, begin_page_config, end_page_config, set_title,
-set_description, UploadedFile
+set_description, UploadedFile, get_dot_magic_dir
 
 # Error stuff
 #----------------
@@ -132,6 +132,7 @@ const AC_Yellow  = (text::String) -> AC_CodeYellow  * text * AC_Reset
 const AC_Blue    = (text::String) -> AC_CodeBlue    * text * AC_Reset
 const AC_Magenta = (text::String) -> AC_CodeMagenta * text * AC_Reset
 const AC_Cyan    = (text::String) -> AC_CodeCyan    * text * AC_Reset
+const AC_Bold    = (text::String) -> AC_CodeBold    * text * AC_Reset
 
 # Includes
 #------------
@@ -825,6 +826,8 @@ function start_app(
     dev_mode::Bool=false
 )::Nothing
 
+    # Input validation
+    #----------------------
     if !is_valid_hostname(host_name)
         throw(InvalidHostnameError(host_name))
         return nothing
@@ -858,7 +861,7 @@ function start_app(
     g.sessions = Dict{Ptr{Cvoid}, Session}()
     g.first_pass = true
     g.initialized = true
-    g.script_path = joinpath(pwd(), script_path)
+    g.script_path = joinpath(pwd(), expanduser(script_path))
     g.script_name = basename(script_path)
     g.host_name = host_name
     g.port = port
@@ -871,9 +874,9 @@ function start_app(
     end
 
     if dot_magic_dir === nothing
-        g.dot_magic_dir = dirname(g.script_path)
+        g.dot_magic_dir = pwd()
     else
-        g.dot_magic_dir = joinpath(pwd(), dot_magic_dir)
+        g.dot_magic_dir = joinpath(pwd(), expanduser(dot_magic_dir))
     end
 
     if !isdir(g.dot_magic_dir)
@@ -882,14 +885,6 @@ function start_app(
     end
 
     g.dot_magic_dir = realpath(g.dot_magic_dir)
-
-    original_pwd = pwd()
-    cd(dirname(g.script_path))
-
-    # Setup net layer connection
-    #--------------------------------
-    ipc_server = listen(IPv4(127,0,0,1), 0)
-    ipc_port = getsockname(ipc_server)[2]
 
     if docs_path === nothing
         docs_path = ""
@@ -901,7 +896,32 @@ function start_app(
         end
     end
 
-    init_net_layer(host_name, port, docs_path, Int(ipc_port), g.dot_magic_dir, joinpath(@__DIR__, ".."), g.upload_max_size, g.verbose, g.dev_mode)
+    @info """
+        $(AC_Bold("Configuration"))
+        App script           : $(g.script_path)
+        Host                 : $(g.host_name):$(g.port)
+        Upload max size      : $(Float64(g.upload_max_size)/MiB) MiB
+        Upload max files     : $(g.upload_max_files)
+        Process working dir  : $(pwd())
+        Directory of '.Magic': $(g.dot_magic_dir)
+        """
+
+    # Setup net layer connection
+    #--------------------------------
+    ipc_server = listen(IPv4(127,0,0,1), 0)
+    ipc_port = getsockname(ipc_server)[2]
+
+    init_net_layer(
+        host_name,
+        port,
+        docs_path,
+        Int(ipc_port),
+        g.dot_magic_dir,
+        joinpath(@__DIR__, ".."),
+        g.upload_max_size,
+        g.verbose,
+        g.dev_mode
+    )
     g.ipc_connection = accept(ipc_server)
     push_uri_mapping("/", "/generated/app/pages/first.html")
 
@@ -1088,7 +1108,6 @@ function start_app(
         e isa InterruptException || rethrow()
     end
 
-    cd(original_pwd)
     Libdl.dlclose(LIBMAGIC)
 
     @info "ServerLoopStopped"

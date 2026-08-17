@@ -130,7 +130,7 @@ function update_map()
 end
 
 function ensure_shape_data()::Bool
-    if isdir("data/gadm41_BRA_shp")
+    if isdir(joinpath(get_dot_magic_dir(), ".Magic/data/gadm41_BRA_shp"))
         return true
     end
 
@@ -141,9 +141,9 @@ function ensure_shape_data()::Bool
     temp_file = Downloads.download(url)
 
     try
-        @info "Extracting to 'data/'..."
+        @info "Extracting shape data to '.Magic/data/'..."
         open(temp_file, "r") do io
-            Tar.extract(GzipDecompressorStream(io), "data")
+            Tar.extract(GzipDecompressorStream(io), joinpath(get_dot_magic_dir(), ".Magic/data"))
         end
 
         @info "Extraction complete!"
@@ -164,7 +164,7 @@ end
 end
 
 @session_startup begin
-    shp = Shapefile.Table("data/gadm41_BRA_shp/gadm41_BRA_1.shp")
+    shp = Shapefile.Table(joinpath(get_dot_magic_dir(), ".Magic/data/gadm41_BRA_shp/gadm41_BRA_1.shp"))
 
     data = DataFrame(
         State       = String[row.NAME_1 for row in shp],

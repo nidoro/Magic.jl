@@ -156,5 +156,5 @@ left_sidebar() do
 end
 
 right_sidebar() do
-    code(initial_value_file=page_script)
+    code(initial_value_file=joinpath(@__DIR__, page_script))
 end

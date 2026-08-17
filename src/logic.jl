@@ -916,6 +916,27 @@ end
 
 # Misc
 #------------
+"""
+# get_dot_magic_dir
+
+Returns the location of the app's .Magic directory. By default, the .Magic
+directory is created in the process working directory, but this can be changed
+in the call to start_app() or via the command line.
+"""
+function get_dot_magic_dir()::String
+    return g.dot_magic_dir
+end
+
+"""
+# get_dot_magic_path
+
+Returns the app's .Magic directory path. This is the same as
+`joinpath(get_dot_magic_dir(), ".Magic")`
+"""
+function get_dot_magic_path()::String
+    return joinpath(g.dot_magic_dir, ".Magic")
+end
+
 function get_random_string(n::Integer)::String
     CHARSET = ['0':'9'; 'A':'Z'; 'a':'z']
     return String(rand(CHARSET, n))
