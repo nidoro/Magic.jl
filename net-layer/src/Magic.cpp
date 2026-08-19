@@ -73,6 +73,7 @@ enum MG_AppEventType {
     MG_AppEventType_None,
     MG_AppEventType_NewPayload,
     MG_AppEventType_DownloadReady,
+    MG_AppEventType_ServerStopRequested,
 };
 
 struct MG_AppEvent {
@@ -286,6 +287,18 @@ MG_API void MG_UnlockClient(int clientId) {
     if (mgClient) {
         pthread_mutex_unlock(mgClient->mutex);
     }
+}
+
+MG_API void MG_HandleSigInt(void* _) {
+    HS_Stop(&g.hserver);
+
+    MG_NetEvent ev = MG_CreateNetEvent(MG_NetEventType_ServerLoopInterrupted, 0, 0, 0, 0);
+    MG_PushNetEvent(ev);
+    MG_WakeUpAppLayer();
+    close(g.fdSocket);
+
+    printf("\r  \n");
+    LU_Log(LU_Debug, "ServerLoopInterrupted");
 }
 
 MG_API int MG_ProcessIncomingMessage(HS_CallbackArgs* args) {
@@ -575,6 +588,8 @@ int HS_CALLBACK(MG_WSEventsHandler, args) {
                     } else {
                         DD_Assert2(0, "Unreachable: Unknown event %d", ev.type);
                     }
+                } else if (ev.type == MG_AppEventType_ServerStopRequested) {
+                    MG_HandleSigInt(0);
                 } else {
                     // NOTE: Client is no longer online. Nothing to do.
                 }
@@ -597,18 +612,6 @@ MG_API void MG_PushURIMapping(const char* uri, int uriSize, const char* filePath
 
 MG_API void MG_ClearURIMapping() {
     HS_ClearURIMapping(&g.hserver, "magic-app");
-}
-
-MG_API void MG_HandleSigInt(void* data) {
-    HS_Stop(&g.hserver);
-
-    MG_NetEvent ev = MG_CreateNetEvent(MG_NetEventType_ServerLoopInterrupted, 0, 0, 0, 0);
-    MG_PushNetEvent(ev);
-    MG_WakeUpAppLayer();
-    close(g.fdSocket);
-
-    printf("\r  \n");
-    LU_Log(LU_Debug, "ServerLoopInterrupted");
 }
 
 MG_API void MG_StartIPC(void) {

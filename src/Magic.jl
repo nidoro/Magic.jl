@@ -81,18 +81,18 @@ set_description, UploadedFile, get_dot_magic_dir
 # Error stuff
 #----------------
 abstract type MagicError        <: Exception  end
-struct FileNotFound             <: MagicError file_path::String end
-struct DirectoryNotFound        <: MagicError dir_path::String end
+struct InvalidFile              <: MagicError file_path::String end
+struct InvalidDirectory         <: MagicError dir_path::String end
 struct InvalidHostname          <: MagicError hostname::String end
 struct InvalidPort              <: MagicError port::Int end
 struct InvalidUploadMaxSize     <: MagicError upload_max_size::Int end
 struct InvalidUploadMaxFiles    <: MagicError upload_max_files::Int end
 
-Base.showerror(io::IO, e::FileNotFound)             = print(io, "File not found: $(e.file_path)")
-Base.showerror(io::IO, e::DirectoryNotFound)        = print(io, "Directory not found: $(e.dir_path)")
-Base.showerror(io::IO, e::InvalidPort)              = print(io, "Invalid port: $(e.port) (must be 0-65535)")
-Base.showerror(io::IO, e::InvalidUploadMaxSize)     = print(io, "Invalid upload max size: $(e.upload_max_size). It must be a number greater than or equal to 0.")
-Base.showerror(io::IO, e::InvalidUploadMaxFiles)    = print(io, "Invalid upload max files: $(e.upload_max_files). It must be a number greater than or equal to 0.")
+Base.showerror(io::IO, e::InvalidFile)              = print(io, "File not found or invalid: $(e.file_path)")
+Base.showerror(io::IO, e::InvalidDirectory)         = print(io, "Directory not found or invalid: $(e.dir_path)")
+Base.showerror(io::IO, e::InvalidPort)              = print(io, "Invalid port: $(e.port). Please provide a value between 0 and 65535.")
+Base.showerror(io::IO, e::InvalidUploadMaxSize)     = print(io, "Invalid upload max size: $(e.upload_max_size). Please provide a number greater than or equal to 0.")
+Base.showerror(io::IO, e::InvalidUploadMaxFiles)    = print(io, "Invalid upload max files: $(e.upload_max_files). Please provide a number greater than or equal to 0.")
 
 # Misc constants
 #-------------------
@@ -177,10 +177,11 @@ end
 
 # AppEvent
 #--------------
-const AppEventType                  = Cint
-const AppEventType_None             = Cint(0)
-const AppEventType_NewPayload       = Cint(1)
-const AppEventType_DownloadReady    = Cint(2)
+const AppEventType                      = Cint
+const AppEventType_None                 = Cint(0)
+const AppEventType_NewPayload           = Cint(1)
+const AppEventType_DownloadReady        = Cint(2)
+const AppEventType_ServerStopRequested  = Cint(3)
 
 @with_kw mutable struct AppEvent
     ev_type         ::AppEventType  = AppEventType_None
@@ -824,7 +825,8 @@ function start_app(
     dot_magic_dir::Union{String, Nothing}=nothing,
     docs_path::Union{String, Nothing}=nothing,
     verbose::Bool=false,
-    dev_mode::Bool=false
+    dev_mode::Bool=false,
+    init_and_quit::Bool=false
 )::Nothing
 
     # Input validation
@@ -866,7 +868,7 @@ function start_app(
     g.upload_max_files = upload_max_files
 
     if !isfile(g.script_path)
-        throw(FileNotFound(g.script_path))
+        throw(InvalidFile(g.script_path))
     end
 
     if dot_magic_dir === nothing
@@ -876,7 +878,7 @@ function start_app(
     end
 
     if !isdir(g.dot_magic_dir)
-        throw(DirectoryNotFound(g.dot_magic_dir))
+        throw(InvalidDirectory(g.dot_magic_dir))
     end
 
     g.dot_magic_dir = realpath(g.dot_magic_dir)
@@ -886,7 +888,7 @@ function start_app(
     else
         docs_path = joinpath(pwd(), docs_path)
         if !isdir(docs_path)
-            throw(DirectoryNotFound(docs_path))
+            throw(InvalidDirectory(docs_path))
             return nothing
         end
     end
@@ -973,7 +975,13 @@ function start_app(
             if ev.ev_type == InternalEventType_Network
                 if ev.data.ev_type == NetEventType_ServerReady
                     g.port = get_server_port()
+                    println()
                     @info "NetLayerStarted\nNow serving at http$(is_https_enabled() ? "s" : "")://$(g.host_name):$(g.port)"
+                    if init_and_quit
+                        app_event = create_app_event(AppEventType_ServerStopRequested, Cint(0), nothing)
+                        push_app_event(app_event)
+                        write(g.ipc_connection, " ")
+                    end
                 elseif ev.data.ev_type == NetEventType_NewClient
                     session_id = buffer_to_string(ev.data.session_id)
                     @debug "NetEventType_NewClient | ClientId=$(ev.data.client_id) | SessionId=$(session_id)"
