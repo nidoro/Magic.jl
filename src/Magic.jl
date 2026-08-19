@@ -791,8 +791,8 @@ function start_app(
     port                ::Int=3443,
     upload_max_size     ::Int=25*MiB,
     upload_max_files    ::Int=10,
-    dot_magic_dir       ::Union{String, Nothing}=nothing,
     docs_path           ::Union{String, Nothing}=nothing,
+    init_and_quit       ::Bool=false,
     verbose             ::Bool=false,
     dev_mode            ::Bool=false
 )::Nothing
@@ -805,8 +805,9 @@ function start_app(
  `port`        | An `Int` specifying the port number on which the server will listen. Default is `3443`.
  `upload_max_size` | An `Int` specifying the maximum file size acceptable by `file_uploader` widgets. Default is 25 MiB.
  `upload_max_files` | An `Int` specifying the maximum number of file acceptable by `file_uploader` widgets. Default is 10.
- `dot_magic_dir`   | A `String` specifying where the app's '.Magic' directory should be located. If `nothing` (default), this will be set to the directory of `script_path`.
  `docs_path`   | A `String` specifying a path to Magic's docs where it has been built, or `nothing` (default). If a `String` is passed, the docs will be served under `/docs`.
+ `init_and_quit` | A `Bool`. If `true`, Magic will initialize the server and immediately return. Useful for automating dry-run tests.
+ `verbose`    | A `Bool`. If `true`, Magic will log more information.
  `dev_mode`    | A `Bool`. If `true`, development mode is enabled. This activates features such as more verbose error reporting and loading of locally built `libmagic.so`.
 
 ### Return Value
@@ -824,9 +825,9 @@ function start_app(
     upload_max_files::Int=10,
     dot_magic_dir::Union{String, Nothing}=nothing,
     docs_path::Union{String, Nothing}=nothing,
+    init_and_quit::Bool=false,
     verbose::Bool=false,
     dev_mode::Bool=false,
-    init_and_quit::Bool=false
 )::Nothing
 
     # Input validation
