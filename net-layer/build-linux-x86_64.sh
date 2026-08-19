@@ -15,13 +15,22 @@ g++ \
     -Wno-unused-result \
     -shared \
     -fPIC \
+    -DBACKWARD_HAS_DW=1 \
     -o ../build/linux-x86_64/artifacts-linux-x86_64/libmagic.so \
     \
+        -I../net-layer/third \
+        -I../build/linux-x86_64/elfutils/include \
         -I../build/linux-x86_64/openssl-1.1.1t/include \
         -I../build/linux-x86_64/libwebsockets-4.3.2/include \
         -I../build/linux-x86_64/sqlite-amalgamation-3420000/include \
         -I../build/linux-x86_64/icu-release-78.1/include \
     \
+    $THIS_DIR/src/Magic.cpp \
+    \
+        -L../build/linux-x86_64/elfutils/lib \
+        -L../build/linux-x86_64/bzip2-1.0.8/lib \
+        -L../build/linux-x86_64/zstd-1.5.7/lib \
+        -L../build/linux-x86_64/xz-5.8.3/lib \
         -L../build/linux-x86_64/openssl-1.1.1t/lib \
         -L../build/linux-x86_64/libwebsockets-4.3.2/lib \
         -L../build/linux-x86_64/sqlite-amalgamation-3420000/lib \
@@ -40,8 +49,11 @@ g++ \
         -l:libicudata.a \
         -l:libicuio.a \
         -l:libsqlite3.a \
-    -Wl,--end-group \
-    \
-    src/Magic.cpp
+        -l:libdw.a \
+        -l:libelf.a \
+        -l:libbz2.a \
+        -l:libzstd.a \
+        -l:liblzma.a \
+    -Wl,--end-group
 
 popd
