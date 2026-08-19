@@ -87,12 +87,14 @@ struct InvalidHostname          <: MagicError hostname::String end
 struct InvalidPort              <: MagicError port::Int end
 struct InvalidUploadMaxSize     <: MagicError upload_max_size::Int end
 struct InvalidUploadMaxFiles    <: MagicError upload_max_files::Int end
+struct ClientSideError          <: MagicError payload::Dict end
 
 Base.showerror(io::IO, e::InvalidFile)              = print(io, "File not found or invalid: $(e.file_path)")
 Base.showerror(io::IO, e::InvalidDirectory)         = print(io, "Directory not found or invalid: $(e.dir_path)")
 Base.showerror(io::IO, e::InvalidPort)              = print(io, "Invalid port: $(e.port). Please provide a value between 0 and 65535.")
 Base.showerror(io::IO, e::InvalidUploadMaxSize)     = print(io, "Invalid upload max size: $(e.upload_max_size). Please provide a number greater than or equal to 0.")
 Base.showerror(io::IO, e::InvalidUploadMaxFiles)    = print(io, "Invalid upload max files: $(e.upload_max_files). Please provide a number greater than or equal to 0.")
+Base.showerror(io::IO, e::ClientSideError)          = print(io, "Client side error:\n$(JSON.json(e.payload, 4))")
 
 # Misc constants
 #-------------------
@@ -998,9 +1000,7 @@ function start_app(
                     g.callback(CallbackReason_ServerReady)
 
                     if init_and_quit
-                        app_event = create_app_event(AppEventType_ServerStopRequested, Cint(0), nothing)
-                        push_app_event(app_event)
-                        write(g.ipc_connection, " ")
+                        stop_app()
                     end
                 elseif ev.data.ev_type == NetEventType_NewClient
                     session_id = buffer_to_string(ev.data.session_id)
@@ -1153,6 +1153,12 @@ function start_app(
     Libdl.dlclose(g.LIBMAGIC)
 
     @info "ServerLoopStopped"
+end
+
+function stop_app()
+    app_event = create_app_event(AppEventType_ServerStopRequested, Cint(0), nothing)
+    push_app_event(app_event)
+    write(g.ipc_connection, " ")
 end
 
 function create_app_event(event_type::AppEventType, client_id::Cint, payload::Union{String, Nothing})::AppEvent

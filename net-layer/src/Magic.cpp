@@ -18,6 +18,8 @@
     #include <sys/un.h>
     #include <unistd.h>
     #include <netinet/tcp.h>
+    #include <setjmp.h>
+    #include "backward.hpp"
     typedef int socket_t;
 #endif
 
@@ -90,12 +92,14 @@ struct MG_Global {
     int ipcPort;
     char magicPackageRootPath[PATH_MAX];
     char dotMagicDirPath[PATH_MAX];
-    bool fatalError;
+    bool appFatalError;
 
 #ifdef _WIN32
     SOCKET fdSocket;
 #else
     int fdSocket;
+    sigjmp_buf signalRecoveryPoint;
+    volatile sig_atomic_t signalRecoveryPointSet;
 #endif
 
     char appHostName[PATH_MAX];
@@ -291,25 +295,38 @@ MG_API void MG_UnlockClient(int clientId) {
     }
 }
 
-MG_API void MG_HandleSigInt(void* _) {
+void MG_HandleSigInt(void* _) {
     HS_Stop(&g.hserver);
-    // TODO: free global stuff
-
-    if (!g.fatalError) {
-        MG_NetEvent ev = MG_CreateNetEvent(MG_NetEventType_ServerLoopInterrupted, 0, 0, 0, 0);
-        MG_PushNetEvent(ev);
-        MG_WakeUpAppLayer();
-        close(g.fdSocket);
-    }
-
     printf("\r  \n");
     LU_Log(LU_Debug, "ServerLoopInterrupted");
 }
 
-MG_API int MG_ProcessIncomingMessage(HS_CallbackArgs* args) {
+#ifndef _WIN32
+void MG_HandleFatalSignal(void* sig) {
+    int signal = (intptr_t) sig;
+
+    printf("\r  \n");
+    LU_Log(LU_Important, "FatalSignalReceived | Signal=%d", signal);
+
+    backward::StackTrace st;
+    st.load_here(32);
+    st.skip_n_firsts(4);
+    backward::Printer p;
+    p.print(st);
+
+    if (g.devMode && g.signalRecoveryPointSet) {
+        siglongjmp(g.signalRecoveryPoint, 1);
+    } else {
+        LU_Log(LU_Debug, "Panic: no recovery point set - nothing safe to do but bail");
+        exit(1);
+    }
+}
+#endif
+
+int MG_ProcessIncomingMessage(HS_CallbackArgs* args) {
     MG_Client* mgClient = HS_GetClientData(MG_Client, args);
 
-    LU_Log(LU_Debug, "IncomingMessage | Bytes: %d | Payload: %.*s", mgClient->readSize, mgClient->readSize, mgClient->readBuffer);
+    LU_Log(LU_Debug, "IncomingMessage | Bytes=%d | Payload=%.*s", mgClient->readSize, mgClient->readSize, mgClient->readBuffer);
 
     MG_NetEvent ev = MG_CreateNetEvent(
         MG_NetEventType_NewPayload,
@@ -594,10 +611,11 @@ int HS_CALLBACK(MG_WSEventsHandler, args) {
                         DD_Assert2(0, "Unreachable: Unknown event %d", ev.type);
                     }
                 } else if (ev.type == MG_AppEventType_ServerStopRequested) {
+                    printf("MG_AppEventType_ServerStopRequested\n");
                     MG_HandleSigInt(0);
                 } else if (ev.type == MG_AppEventType_FatalError) {
-                    LU_Log(LU_Debug, "MG_AppEventType_FatalError");
-                    g.fatalError = true;
+                    LU_Log(LU_Important, "MG_AppEventType_FatalError");
+                    g.appFatalError = true;
                     MG_HandleSigInt(0);
                 } else {
                     // NOTE: Client is no longer online. Nothing to do.
@@ -731,12 +749,61 @@ MG_API void* MG_RunServer(void*) {
         }
     }
 
-    SG_RegisterHandler(SIGINT, MG_HandleSigInt, 0);
-
     MG_StartIPC();
 
+    SG_RegisterHandler(SIGINT, MG_HandleSigInt, 0);
+
+    bool serviceDrainNeeded = false;
+
+#ifndef _WIN32
+    SG_RegisterHandler(SIGABRT, MG_HandleFatalSignal, (void*) SIGABRT);
+    SG_RegisterHandler(SIGFPE, MG_HandleFatalSignal, (void*) SIGFPE);
+    SG_RegisterHandler(SIGILL, MG_HandleFatalSignal, (void*) SIGILL);
+    SG_RegisterHandler(SIGSEGV, MG_HandleFatalSignal, (void*) SIGSEGV);
+
+    // NOTE: Try to stop the server loop cleanly after interruption via
+    // signals. This is not safe because the program may have been
+    // interrupted in a corrupted state, so continuing to execute it may
+    // lead to unpredictable outcomes. For that reason, this long jump should
+    // only be setup if dev mode is enabled.
+    //----------------------------------------------------------------------
+    if (g.devMode) {
+        int sig = sigsetjmp(g.signalRecoveryPoint, 1);
+        if (sig == 0) {
+            g.signalRecoveryPointSet = 1;
+            HS_RunForever(&g.hserver, true);
+        } else {
+            serviceDrainNeeded = true;
+        }
+
+        g.signalRecoveryPointSet = 0;
+    } else {
+        HS_RunForever(&g.hserver, true);
+    }
+
+#else
     HS_RunForever(&g.hserver, true);
+#endif
+
+    // NOTE: If we are stoping because of a fatal error on julia side, don't
+    // try to notify the app layer.
+    if (!g.appFatalError) {
+        MG_NetEvent ev = MG_CreateNetEvent(MG_NetEventType_ServerLoopInterrupted, 0, 0, 0, 0);
+        MG_PushNetEvent(ev);
+        MG_WakeUpAppLayer();
+    }
+
+    HS_Stop(&g.hserver);
     HS_Destroy(&g.hserver);
+
+    if (serviceDrainNeeded) {
+        int serviceReturn = 0;
+        while (serviceReturn >= 0) {
+            serviceReturn = lws_service(g.hserver.lwsContext, 0);
+        }
+    }
+
+    close(g.fdSocket);
     // TODO: free Global stuff
     return 0;
 }
@@ -781,9 +848,6 @@ MG_API void MG_InitNetLayer(
 
     pthread_mutex_init(&g.netEventsMutex, 0);
     pthread_mutex_init(&g.appEventsMutex, 0);
-
-    LU_Log(LU_Debug, "uploadMaxSize=%d", uploadMaxSize);
-    LU_Log(LU_Debug, "dotMagicDirPath=%s", dotMagicDirPath);
 
     int result = pthread_create(&g.threadId, 0, MG_RunServer, 0);
 }
