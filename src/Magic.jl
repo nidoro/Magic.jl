@@ -182,6 +182,7 @@ const AppEventType_None                 = Cint(0)
 const AppEventType_NewPayload           = Cint(1)
 const AppEventType_DownloadReady        = Cint(2)
 const AppEventType_ServerStopRequested  = Cint(3)
+const AppEventType_FatalError           = Cint(4)
 
 @with_kw mutable struct AppEvent
     ev_type         ::AppEventType  = AppEventType_None
@@ -201,6 +202,17 @@ const InternalEventType_Task     = Cint(2)
 @with_kw mutable struct InternalEvent
     ev_type ::InternalEventType         = InternalEventType_None
     data    ::Union{NetEvent, AppTask}  = Union{NetEvent, AppTask}()
+end
+
+# CallbackReason
+#--------------------
+@enum CallbackReason begin
+    CallbackReason_ServerReady
+    CallbackReason_NewClient
+    CallbackReason_ClientLeft
+    CallbackReason_NewPayload
+    CallbackReason_TaskFinished
+    CallbackReason_ClientSideError
 end
 
 # Global
@@ -227,6 +239,7 @@ end
     upload_max_size     ::Int                       = 25*MiB
     upload_max_files    ::Int                       = 10
 
+    callback            ::Union{Function, Nothing}  = nothing
     MAGIC_SO            ::String                    = ""
     LIBMAGIC            ::Any                       = nothing
 end
@@ -826,6 +839,7 @@ function start_app(
     dot_magic_dir::Union{String, Nothing}=nothing,
     docs_path::Union{String, Nothing}=nothing,
     init_and_quit::Bool=false,
+    callback::Union{Function, Nothing}=nothing,
     verbose::Bool=false,
     dev_mode::Bool=false,
 )::Nothing
@@ -851,6 +865,7 @@ function start_app(
     global g = Global()
     g.dev_mode = dev_mode
     g.verbose = verbose
+    g.callback = callback !== nothing ? callback : (reason, args...) -> ()
 
     if g.dev_mode
         @warn "Starting Magic.jl on dev mode"
@@ -976,8 +991,12 @@ function start_app(
             if ev.ev_type == InternalEventType_Network
                 if ev.data.ev_type == NetEventType_ServerReady
                     g.port = get_server_port()
+
                     println()
                     @info "NetLayerStarted\nNow serving at http$(is_https_enabled() ? "s" : "")://$(g.host_name):$(g.port)"
+
+                    g.callback(CallbackReason_ServerReady)
+
                     if init_and_quit
                         app_event = create_app_event(AppEventType_ServerStopRequested, Cint(0), nothing)
                         push_app_event(app_event)
@@ -987,11 +1006,15 @@ function start_app(
                     session_id = buffer_to_string(ev.data.session_id)
                     @debug "NetEventType_NewClient | ClientId=$(ev.data.client_id) | SessionId=$(session_id)"
                     handle_new_client(ev.data.client_id, session_id)
+
+                    g.callback(CallbackReason_NewClient, ev.data.client_id)
                 elseif ev.data.ev_type == NetEventType_ClientLeft
-                    @debug "NetEventType_ClientLeft | $(ev.data.client_id)"
+                    @debug "NetEventType_ClientLeft | ClientId=$(ev.data.client_id)"
                     handle_client_left(ev.data.client_id)
+
+                    g.callback(CallbackReason_ClientLeft, ev.data.client_id)
                 elseif ev.data.ev_type == NetEventType_NewPayload
-                    @debug "NetEventType_NewPayload | $(ev.data.client_id)"
+                    @debug "NetEventType_NewPayload | ClientId=$(ev.data.client_id)"
                     payload_string = unsafe_string(ev.data.payload, ev.data.payload_size)
 
                     # NOTE: Now that we've copied the payload, it is safe to destroy the event.
@@ -1034,7 +1057,7 @@ function start_app(
                     elseif payload["type"] == "ack_invalid_state"
                         session.waiting_invalid_state_ack = false
                     elseif payload["type"] == "hello"
-                        @debug "Hello from client $(session.client_id) ($(session.session_id))"
+                        @debug "HelloFromClient | ClientId=$(session.client_id) | SessionId=$(session.session_id)"
                         payload = Dict(
                             "type" => "response_hello",
                             "session_id" => session.session_id,
@@ -1046,9 +1069,14 @@ function start_app(
                         app_event = create_app_event(AppEventType_NewPayload, session.client_id, payload_string)
                         push_app_event(app_event)
                         write(g.ipc_connection, " ")
+                    elseif payload["type"] == "error"
+                        @debug "ClientSideError | ClientId=$(session.client_id) | SessionId=$(session.session_id)"
+                        g.callback(CallbackReason_ClientSideError, ev.data.client_id, payload)
                     else
                         @error "Unknown payload type '$(payload["type"])'"
                     end
+
+                    g.callback(CallbackReason_NewPayload, ev.data.client_id, payload)
                 elseif ev.data.ev_type == NetEventType_ServerLoopInterrupted
                     @info "NetEventType_ServerLoopInterrupted"
                     close(g.ipc_connection)
@@ -1058,7 +1086,7 @@ function start_app(
                     session = ev.data.session
 
                     if !session.client_left
-                        @debug "TaskFinished $(ev.data.client_id)"
+                        @debug "TaskFinished | ClientId=$(ev.data.client_id)"
 
                         payload = Dict(
                             "type" => "response_rerun",
@@ -1103,15 +1131,23 @@ function start_app(
                         end
 
                         write(g.ipc_connection, " ")
+
+                        g.callback(CallbackReason_TaskFinished, ev.data.client_id)
                     else
-                        @debug "ClientlessTaskFinished | Client=$(ev.data.client_id)"
+                        @debug "ClientlessTaskFinished | ClientId=$(ev.data.client_id)"
                         try_rm("$(g.dot_magic_dir)/.Magic/served-files/generated/$(session.session_id)", recursive=true, force=true)
                     end
                 end
             end
         end
     catch e
-        e isa InterruptException || rethrow()
+        if !(e isa InterruptException)
+            app_event = create_app_event(AppEventType_FatalError, Cint(0), nothing)
+            push_app_event(app_event)
+            write(g.ipc_connection, " ")
+
+            rethrow()
+        end
     end
 
     Libdl.dlclose(g.LIBMAGIC)

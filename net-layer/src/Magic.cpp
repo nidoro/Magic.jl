@@ -74,6 +74,7 @@ enum MG_AppEventType {
     MG_AppEventType_NewPayload,
     MG_AppEventType_DownloadReady,
     MG_AppEventType_ServerStopRequested,
+    MG_AppEventType_FatalError,
 };
 
 struct MG_AppEvent {
@@ -89,6 +90,7 @@ struct MG_Global {
     int ipcPort;
     char magicPackageRootPath[PATH_MAX];
     char dotMagicDirPath[PATH_MAX];
+    bool fatalError;
 
 #ifdef _WIN32
     SOCKET fdSocket;
@@ -291,11 +293,14 @@ MG_API void MG_UnlockClient(int clientId) {
 
 MG_API void MG_HandleSigInt(void* _) {
     HS_Stop(&g.hserver);
+    // TODO: free global stuff
 
-    MG_NetEvent ev = MG_CreateNetEvent(MG_NetEventType_ServerLoopInterrupted, 0, 0, 0, 0);
-    MG_PushNetEvent(ev);
-    MG_WakeUpAppLayer();
-    close(g.fdSocket);
+    if (!g.fatalError) {
+        MG_NetEvent ev = MG_CreateNetEvent(MG_NetEventType_ServerLoopInterrupted, 0, 0, 0, 0);
+        MG_PushNetEvent(ev);
+        MG_WakeUpAppLayer();
+        close(g.fdSocket);
+    }
 
     printf("\r  \n");
     LU_Log(LU_Debug, "ServerLoopInterrupted");
@@ -590,6 +595,10 @@ int HS_CALLBACK(MG_WSEventsHandler, args) {
                     }
                 } else if (ev.type == MG_AppEventType_ServerStopRequested) {
                     MG_HandleSigInt(0);
+                } else if (ev.type == MG_AppEventType_FatalError) {
+                    LU_Log(LU_Debug, "MG_AppEventType_FatalError");
+                    g.fatalError = true;
+                    MG_HandleSigInt(0);
                 } else {
                     // NOTE: Client is no longer online. Nothing to do.
                 }
@@ -747,6 +756,8 @@ MG_API void MG_InitNetLayer(
     bool verbose,
     bool devMode
 ) {
+    g = {};
+
     LU_Disable(&LU_GlobalLogFile);
     LU_EnableStdout(&LU_GlobalLogFile);
     LU_DisableStderr(&LU_GlobalLogFile);
