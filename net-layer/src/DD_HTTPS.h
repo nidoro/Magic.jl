@@ -2783,7 +2783,7 @@ int HS_RequesterCallback(lws* socket, lws_callback_reasons reason, void* userDat
 
 bool HS_InitServer(HS_Server* server, bool disableHTTP2=false) {
     server->lwsContextInfo = {};
-    server->lwsContextInfo.options = LWS_SERVER_OPTION_EXPLICIT_VHOSTS | LWS_SERVER_OPTION_DISABLE_IPV6;
+    server->lwsContextInfo.options = LWS_SERVER_OPTION_EXPLICIT_VHOSTS | LWS_SERVER_OPTION_DISABLE_IPV6 | LWS_SERVER_OPTION_FAIL_UPON_UNABLE_TO_BIND;
     server->lwsContextInfo.user = server;
     server->lwsContextInfo.alpn = disableHTTP2 ? "h1" : 0;
     server->lwsContextInfo.pt_serv_buf_size = HS_MEGA_BYTES(16);
@@ -2986,7 +2986,6 @@ bool HS_RunForever(HS_Server* server, bool disableHTTP2=false) {
         serviceReturn = lws_service(server->lwsContext, 0);
     }
     
-    lws_cancel_service(server->lwsContext);
     server->isRunning = false;
     return true;
 }
