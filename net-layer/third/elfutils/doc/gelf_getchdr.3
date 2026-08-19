@@ -1,0 +1,70 @@
+.TH GELF_GETCHDR 3 2025-12-27 "Libelf" "Libelf Programmer's Manual"
+
+.SH NAME
+gelf_getchdr \- retrieve the class\-independent compression header for an ELF
+section with compressed data.
+
+.SH SYNOPSIS
+.nf
+.B #include <gelf.h>
+
+.BI "GElf_Chdr *gelf_getchdr (Elf_Scn *" scn ", GElf_Chdr *" dest ");"
+
+.SH DESCRIPTION
+Retrieve the class\-independent compression header for section
+.I scn
+with compressed data and store it in
+.IR dest .
+Sections with compressed data are indicated with the
+.B SHF_COMPRESSED
+flag.  See
+.BR libelf (3)
+for more information regarding the compression header.
+
+.SH PARAMETERS
+.TP
+.I scn
+Section whose compression header will be retrieved. The section's
+.B SHF_COMPRESSED
+flag must be set.
+
+.TP
+.I dest
+Pointer to a caller\-provided
+.B GElf_Chdr
+structure that will receive the class\-independent compression header for
+.IR scn .
+
+.SH RETURN VALUE
+On success, this function returns
+.IR dest .
+On failure, it returns NULL and sets elf_errno.  If
+.I scn
+is NULL, then NULL is returned and elf_errno is not set.
+
+.SH SEE ALSO
+.BR elf32_getchdr (3),
+.BR elf64_getchdr (3),
+.BR elf_compress (3),
+.BR libelf (3),
+.BR elf (5)
+
+.SH ATTRIBUTES
+.TS
+allbox;
+lbx lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.na
+.nh
+.BR gelf_getchdr ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH REPORTING BUGS
+Report bugs to <elfutils-devel@sourceware.org> or https://sourceware.org/bugzilla/.
+
+.SH HISTORY
+.B gelf_getchdr
+first appeared in elfutils 0.165.

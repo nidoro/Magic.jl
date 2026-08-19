@@ -1,0 +1,108 @@
+.TH GELF_UPDATE_REL 3 2025-09-27 "Libelf" "Libelf Programmer's Manual"
+
+.SH NAME
+gelf_update_rel, gelf_update_rela \- copy class\-independent relocation entries into a relocation section
+
+.SH SYNOPSIS
+.nf
+.B #include <gelf.h>
+
+.BI "int gelf_update_rel (Elf_Data *" data ", int " ndx ", GElf_Rel  *" src ");"
+.BI "int gelf_update_rela(Elf_Data *" data ", int " ndx ", GElf_Rela *" src ");"
+.fi
+
+.SH DESCRIPTION
+The
+.BR gelf_update_rel ()
+and
+.BR gelf_update_rela ()
+functions copy a class\-independent REL or RELA relocation entry from
+.IR *src
+into the SHT_REL or SHT_RELA section associated with
+.I data
+at entry index
+.IR ndx .
+
+.SH PARAMETERS
+.TP
+.I data
+.B Elf_Data
+for a relocation section.  The section must have sh_type
+.B SHT_REL
+for
+.BR gelf_update_rel ()
+or
+.B SHT_RELA
+for
+.BR gelf_update_rela ().
+
+.TP
+.I ndx
+Zero\-based index of the relocation entry within
+.IR data .
+
+.TP
+.I src
+Pointer to the caller\-provided source entry:
+.B GElf_Rel
+for
+.BR gelf_update_rel ()
+and
+.B GElf_Rela
+for
+.BR gelf_update_rela ().
+.I src
+must not be NULL.
+
+For
+.B ELFCLASS32
+binaries,
+.I r_offset
+should fit in unsigned 32 bits.
+.I r_addend
+should fit in signed 32 bits.  The
+.B GELF_R_SYM
+component of
+.I r_info
+should fit in 24 bits and the
+.B GELF_R_TYPE
+component should fit in 8 bits.
+
+.SH RETURN VALUE
+On success,
+.BR gelf_update_rel ()
+and
+.BR gelf_update_rela ()
+copy
+.I src
+into
+.IR data ,
+flag the corresponding section with
+.B ELF_F_DIRTY
+and return a non-zero value.  On failure, these functions return 0 and set
+elf_errno.  If
+.I src
+is NULL, then 0 is returned without setting elf_errno.
+
+.SH SEE ALSO
+.BR gelf_getrel (3),
+.BR gelf_getrela (3),
+.BR libelf (3),
+.BR elf (5)
+
+
+.SH ATTRIBUTES
+.TS
+allbox;
+lbx lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.na
+.nh
+.BR gelf_update_rel (),\~gelf_update_rela ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH REPORTING BUGS
+Report bugs to <elfutils-devel@sourceware.org> or https://sourceware.org/bugzilla/.

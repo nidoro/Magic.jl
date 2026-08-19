@@ -1,0 +1,106 @@
+.TH GELF_GETAUXV 3 2025-12-31 "Libelf" "Libelf Programmer's Manual"
+
+.SH NAME
+gelf_getauxv \- Get class\-independent information from auxiliary vector at the given index
+
+.SH SYNOPSIS
+.nf
+.B #include <gelf.h>
+
+.BI "GElf_auxv_t *gelf_getauxv (Elf_Data *" data ", int " ndx ", GElf_auxv_t *" dst ");"
+
+.SH DESCRIPTION
+Retrieve an auxiliary vector entry from
+.I data
+at index
+.I ndx
+and store it in the class\-independent representation pointed to by
+.IR dst .
+
+.PP
+.I data
+must be an
+.B Elf_Data*
+associated with an ELF note of type
+.BR NT_AUXV
+and must have its
+.B d_type
+set to
+.BR ELF_T_AUXV .
+.BR elf_getdata_rawchunk (3)
+can be used to acquire an
+.B Elf_Data*
+with a
+.B d_type
+of
+.BR ELF_T_AUXV .
+.B NT_AUXV
+notes are normally found in core files.  The auxiliary vector can be also be
+read directly from /proc/PID/auxv.
+
+See
+.BR getauxval (3)
+for more information regarding the auxiliary vector.
+
+.SH PARAMETERS
+.TP
+.I data
+Pointer to an
+.B Elf_Data
+of a note with type
+.B NT_AUXV
+and must have its
+.B d_type
+set to
+.BR ELF_T_AUXV .
+See
+.BR elf_getdata_rawchunk (3)
+for more information.
+
+.TP
+.I ndx
+Index of the requested auxiliary vector entry within
+.IR data .
+
+.TP
+.I dst
+Pointer to a caller\-provided
+.B GElf_auxv_t
+structure for storing the requested auxiliary vector entry.
+Must not be NULL.
+
+.SH RETURN VALUE
+On success, this function updates
+.I dst
+with the requested auxiliary vector entry and returns
+.IR dst .
+On failure, it returns NULL and sets elf_errno.  If
+.I data
+is NULL, then NULL is returned without setting elf_errno.
+
+.SH SEE ALSO
+.BR elf_getdata_rawchunk (3),
+.BR getauxval (3)
+.BR libelf (3),
+.BR elf (5)
+
+.SH ATTRIBUTES
+.TS
+allbox;
+lbx lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.na
+.nh
+.BR gelf_getauxv ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH REPORTING BUGS
+Report bugs to <elfutils-devel@sourceware.org> or https://sourceware.org/bugzilla/.
+
+.SH HISTORY
+.B gelf_getauxv
+first appeared in elfutils 0.130.  This function is an elfutils libelf extension and
+may not be available in other libelf implementations.

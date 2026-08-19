@@ -1,0 +1,101 @@
+.TH GELF_UPDATE_MOVE 3 2025-12-30 "Libelf" "Libelf Programmer's Manual"
+
+.SH NAME
+gelf_update_move \- Update class\-independent move structure at the given index
+
+.SH SYNOPSIS
+.nf
+.B #include <gelf.h>
+
+.BI "int gelf_update_move (Elf_Data *" data ", int " ndx ", GElf_Move *" src ");"
+
+.SH DESCRIPTION
+This function copies a class\-independent move structure from
+.I src
+into the
+.B SHT_SUNW_move
+section associated with
+.I data
+at entry index
+.IR ndx .
+
+.I data
+should be associated with an ELF section with type
+.B SHT_SUNW_move
+section.
+.I data->d_type
+should be
+.BR ELF_T_MOVE .
+These types are Sun/Solaris extensions and are not typically used in GNU/Linux
+ELF files.
+
+.SH PARAMETERS
+.TP
+.I data
+Pointer to an
+.B Elf_Data
+associated with a
+.B SHT_SUNW_move
+section.
+.I data->d_type
+should be
+.BR ELF_T_MOVE .
+
+.TP
+.I ndx
+Zero\-based index of the move structure entry to be updated within
+.IR data .
+
+.TP
+.I src
+Pointer to a caller\-provided move structure.  For
+.B ELFCLASS32
+binaries,
+.B m_info
+and
+.B m_poffset
+should be able to fit within unsigned 32-bit values.
+The
+.B GELF_M_SIZE
+component of
+.B m_info
+should fit in unsigned 8 bits and the
+.B GELF_M_SYM
+component should fit in unsigned 24 bits.
+.I src
+must not be NULL.
+
+.SH RETURN VALUE
+On success, this function returns a non-zero value and updates
+the move entry at index
+.I ndx
+in
+.IR data .
+The section associated with
+.I data
+is flagged with
+.BR ELF_F_DIRTY .
+On failure, zero is returned and elf_errno is set.  If
+.I data
+is NULL, then zero is returned without setting elf_errno.
+
+.SH SEE ALSO
+.BR gelf_getmove (3),
+.BR libelf (3),
+.BR elf (5)
+
+.SH ATTRIBUTES
+.TS
+allbox;
+lbx lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.na
+.nh
+.BR gelf_update_move ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH REPORTING BUGS
+Report bugs to <elfutils-devel@sourceware.org> or https://sourceware.org/bugzilla/.

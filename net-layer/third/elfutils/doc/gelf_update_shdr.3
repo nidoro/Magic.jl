@@ -1,0 +1,75 @@
+.TH GELF_UPDATE_SHDR 3 2025-09-23 "Libelf" "Libelf Programmer's Manual"
+
+.SH NAME
+gelf_update_shdr \- copy a class\-independent section header into a section descriptor
+
+.SH SYNOPSIS
+.nf
+.B #include <gelf.h>
+
+.BI "int gelf_update_shdr(Elf_Scn *" scn ", GElf_Shdr *" src ");"
+.fi
+
+.SH DESCRIPTION
+.BR gelf_update_shdr ()
+copies the class\-independent section header referenced by
+.I src
+into the section descriptor
+.IR scn .
+The section header is translated as necessary to match the class (
+.B ELFCLASS32
+or
+.BR ELFCLASS64 )
+of the underlying ELF object.  If the underlying ELF object has class
+.B ELFCLASS32
+then the struct members of
+.I src
+must fit into 32-bit field values.
+
+.SH PARAMETERS
+.TP
+.I scn
+Pointer to a section descriptor of type
+.BR Elf_Scn .
+
+.TP
+.I src
+Pointer to a
+.B GElf_Shdr
+structure containing the caller’s desired section header contents.
+
+.SH RETURN VALUE
+On success,
+.BR gelf_update_shdr ()
+returns a non-zero value and marks
+.I scn
+with the
+.B ELF_F_DIRTY
+flag.  On failure, this function returns 0 and elf_errno is set. If
+.I scn
+or
+.I src
+are NULL, then 0 is returned without setting elf_errno.
+
+.SH SEE ALSO
+.BR gelf_getshdr (3),
+.BR elf_getscn (3),
+.BR elf_nextscn (3),
+.BR libelf (3),
+.BR elf (5)
+
+.SH ATTRIBUTES
+.TS
+allbox;
+lbx lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.na
+.nh
+.BR gelf_update_shdr ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH REPORTING BUGS
+Report bugs to <elfutils-devel@sourceware.org> or https://sourceware.org/bugzilla/.

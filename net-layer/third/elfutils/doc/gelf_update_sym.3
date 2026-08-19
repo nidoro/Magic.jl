@@ -1,0 +1,99 @@
+.TH GELF_UPDATE_SYM 3 2025-09-07 "Libelf" "Libelf Programmer's Manual"
+
+.SH NAME
+gelf_update_sym \- update a class\-independent symbol table entry
+
+.SH SYNOPSIS
+.nf
+.B #include <gelf.h>
+
+.BI "int gelf_update_sym (Elf_Data *" data ", int " ndx ", GElf_Sym *" src ");"
+
+.SH DESCRIPTION
+Copy a class\-independent symbol table entry from
+.I src
+into the
+.B SHT_SYMTAB
+or
+.B SHT_DYNSYM
+section associated with
+.I data
+at entry index
+.IR ndx .
+
+The number of symbols in the symbol table can be calculated by dividing the
+size of the corresponding section (\fBsh_size\fP or \fBd_size\fP)
+by the size of a symbol table entry.  The size of a symbol table entry can be
+obtained from
+.B sh_entsize
+or
+.BR gelf_fsize (3).
+
+If the corresponding ELF file contains more than 64K sections then
+.BR gelf_update_symshndx
+should be used to update a symbol's section index in an extended section
+index table.  See
+.BR gelf_update_symshndx (3)
+for more information.
+
+
+.SH PARAMETERS
+.TP
+.I data
+.B Elf_Data for a symbol table section with type
+.B SHT_SYMTAB
+or
+.BR SHT_DYNSYM .
+
+.TP
+.I ndx
+Zero\-based index of the symbol table entry to be updated within
+.IR data .
+
+.TP
+.I src
+Pointer to the caller\-provided symbol table entry.  For
+.B ELFCLASS32
+binaries,
+.B st_value
+and
+.B st_size
+should be able to fit within unsigned 32-bit values.
+.I src
+must not be NULL.
+
+.SH RETURN VALUE
+On success, this function returns a non-zero value and updates
+the symbol table entry at index
+.I ndx
+in
+.IR data .
+The symbol table section associated with
+.I data
+will be flagged with
+.BR ELF_F_DIRTY .
+On failure, zero is returned and elf_errno is set.  If
+.I data
+is NULL, then zero is returned and elf_errno is not set.
+
+.SH SEE ALSO
+.BR gelf_getsym (3),
+.BR gelf_update_symshndx (3),
+.BR libelf (3),
+.BR elf (5)
+
+.SH ATTRIBUTES
+.TS
+allbox;
+lbx lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.na
+.nh
+.BR gelf_update_sym ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH REPORTING BUGS
+Report bugs to <elfutils-devel@sourceware.org> or https://sourceware.org/bugzilla/.

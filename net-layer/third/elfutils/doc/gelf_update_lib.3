@@ -1,0 +1,95 @@
+.TH GELF_UPDATE_LIB 3 2025-12-31 "Libelf" "Libelf Programmer's Manual"
+
+.SH NAME
+gelf_update_lib \- Update prelink library in table at the given index
+
+.SH SYNOPSIS
+.nf
+.B #include <gelf.h>
+
+.BI "int gelf_update_lib (Elf_Data *" data ", int " ndx ", GElf_Lib *" src ");"
+
+.SH DESCRIPTION
+Copy a class\-independent prelink library table entry from
+.I src
+into the
+.BR SHT_GNU_LIBLIST .
+section associated with
+.I data
+at index
+.IR ndx .
+
+.PP
+.I data
+must be an
+.B Elf_Data*
+associated with a section of type
+.BR SHT_GNU_LIBLIST .
+.I data->d_type
+should be
+.BR ELF_T_LIB .
+.B SHT_GNU_LIBLIST
+sections are used by the prelink utility.  See
+https://sourceware.org/gnu-gabi/prelink.txt for more information.
+
+.SH PARAMETERS
+.TP
+.I data
+Pointer to an
+.B Elf_Data
+associated with a section with type
+.BR SHT_GNU_LIBLIST .
+.I data->d_type
+should be
+.BR ELF_T_LIB .
+
+.TP
+.I ndx
+Zero\-based index of the prelink library table entry to be updated within
+.IR data .
+
+.TP
+.I src
+Pointer to a caller\-provided prelink library table entry.
+.I src
+must not be NULL.
+
+.SH RETURN VALUE
+On success, this function returns a non-zero value and updates
+the prelink library table entry at index
+.I ndx
+in
+.IR data .
+The section associated with
+.I data
+is flagged with
+.BR ELF_F_DIRTY .
+On failure, zero is returned and elf_errno is set.  If
+.I data
+is NULL, then zero is returned and elf_errno is not set.
+
+.SH SEE ALSO
+.BR gelf_getlib (3),
+.BR libelf (3),
+.BR elf (5)
+
+.SH ATTRIBUTES
+.TS
+allbox;
+lbx lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.na
+.nh
+.BR gelf_update_lib ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH REPORTING BUGS
+Report bugs to <elfutils-devel@sourceware.org> or https://sourceware.org/bugzilla/.
+
+.SH HISTORY
+.B gelf_update_lib
+first appeared in elfutils 0.95. This function is an elfutils libelf extension and
+may not be available in other libelf implementations.

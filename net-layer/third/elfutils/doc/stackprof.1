@@ -1,0 +1,170 @@
+.\" Copyright 2026 Red Hat Inc.
+.\" Fri 2026-Apr 10 Serhei Makarov <serhei@serhei.io>
+.\" Contact elfutils-devel@sourceware.org to correct errors or typos
+
+.de SAMPLE
+.br
+.RS 0
+.nf
+.nh
+..
+.de ESAMPLE
+.hy
+.fi
+.RE
+..
+
+.TH EU-STACKPROF 1 "2026-Apr-10" "elfutils"
+.SH "NAME"
+eu-stackprof \- collect a multi-process stack profile
+
+.SH "SYNOPSIS"
+.B eu-stackprof \fR[\fB\-v\fR|\fB\-vv\fR|...] [\fB\-\-gmon\fR] [\fB\-o\fR \fB\fIDEST\fR] [\fB\fIOPTION\fR]... [\-\- \fICMD\fR...]
+
+.SH "DESCRIPTION"
+
+\fBeu-stackprof\fR collects stack profile data from Linux perf_events,
+either systemwide across all processes or targeted to a particular
+process (existing PID via \fB\-p\fR or newly launched from provided
+command line arguments) and any children forked from it. Appropriate
+privileges are needed to access the perf_events interface, either
+globally or for a particular targeted process; refer to
+\fIperf\_event\_open\fR(2) section "Arguments" for a summary of the
+privilege requirements.
+
+When the \fB\-\-gmon\fR option is used, results are saved as
+\fBgmon.out\fR files in the \fIgprof\fR\|(1) format. These are
+intended to be useful for statistics collection with profiledb.
+
+When the \fB\-\-gmon\fR option is not used, \fBeu-stackprof\fR will
+collect and print basic statistics about the profile data to standard
+error.
+
+.SH "OPTIONS"
+
+.TP
+\fB\-e\fR \fIEVENT\fR, \fB\-\-event\fR=\fIEVENT\fR
+Configure perf_events sampling according to the provided libpfm event
+specification (e.g. \fBperf::CPU\-CLOCK:freq=1000\fR).
+
+.TP
+\fB\-\-event\-list\fR
+List available libpfm events and exit.
+
+.TP
+\fB\-f, \-\-force\fR
+If the output directory for \fB\-\-gmon\fR already contains files
+identified by the encountered build-ids, overwrite them with the newly
+collected data.
+
+.TP
+\fB\-g, \-\-gmon\fR
+Output program counter histograms and callgraphs for each executable
+binary encountered during profiling in \fIgprof\fR\|(1)'s
+\fBgmon.out\fR format.
+
+.TP
+\fB\-G\fR \fIMETHOD\fR, \fB\-\-hist\-split\fR=\fIMETHOD\fR
+Specify the method used to divide the address space into histograms
+for \fB\-\-gmon\fR output. METHOD should be one of:
+.RS
+.TP
+\fBnone\fR
+Don't split: write one histogram covering the whole address range.
+.TP
+\fBeven\fR (default)
+Split address space into histograms of equal size to satisfy
+\fIgprof\fR\|(1)'s scale consistency check.
+.TP
+\fBflex\fR
+Split address space into variable-sized histograms to minimize storage
+requirements; result will likely be rejected by the \fIgprof\fR\|(1)
+tool, which requires all histograms to have a consistent scale, but
+should still be suitable for profiledb.
+.RE
+
+.TP
+\fB\-?, \-\-help\fR
+Print a short list of options.
+
+.TP
+\fB\-n\fR \fIMAXFRAMES\fR, \fB\-\-maxframes\fR=\fIMAXFRAMES\fR
+Upper bound on the number of frames to unwind for each stack sample.
+Defaults to 1 if \fB\-\-gmon\fR is enabled, since additional frames
+beyond the first are not needed to produce the gprof histogram and
+callgraph arc data; defaults to 256 otherwise.
+
+.TP
+\fB\-o\fR \fIDEST\fR, \fB\-\-output\fR=\fIDEST\fR
+Directory where to write results when \fB\-\-gmon\fR output is
+enabled. Defaults to the current directory.
+
+.TP
+\fB\-p\fR \fIPID\fR, \fB\-\-pid\fR=\fIPID\fR
+Restrict the profile to process \fIPID\fR and its future children.
+
+.TP
+\fB\-v, \-\-verbose\fR
+Output additional information. May be given once or multiple times to
+increase the granularity, logging each new binary, each stack sample,
+or each frame.
+
+.TP
+\fB\-V, \-\-version\fR
+Print program version.
+
+.SH "OUTPUT FORMAT"
+
+When \fB\-\-gmon\fR output is enabled, \fBeu-stackprof\fR produces the
+following files for each executable object observed among the profiled
+processes, identified by build-id:
+
+.TP
+\fBgmon.BUILDID.exe\fR
+
+Symlink to the executable object observed by the profiler.
+
+.TP
+\fBgmon.BUILDID.out\fR
+
+Contains a histogram of program counters and a table of callgraph arcs
+(observed from the top 2 frames of the stacktrace). Same format as
+produced by the gprof infrastructure and consumed by \fIgprof\fR\|(1).
+
+.TP
+\fBgmon.BUILDID.json\fR
+
+Metadata in JSON format, including the path to the executable object
+and libpfm event information.
+
+.SH "EXAMPLES"
+
+Profile system-wide; write gmon.out files to current directory:
+.SAMPLE
+sudo eu-stackprof --gmon
+.ESAMPLE
+
+Profile PID 1211 and children forked from it; log one line per stack
+sample; write gmon.out files to results/, replacing any
+already-existing files with the same build-ids:
+.SAMPLE
+sudo eu-stackprof -vv --gmon -o results/ -p 1211 --force
+.ESAMPLE
+
+Likewise, launch \fBvim\fR and profile it:
+.SAMPLE
+sudo eu-stackprof --gmon -o results/ --force -- vim test.txt
+.ESAMPLE
+
+Profile system-wide; log one line per stack frame:
+.SAMPLE
+sudo eu-stackprof -vvv
+.ESAMPLE
+
+.SH "REPORTING BUGS"
+Report bugs to <elfutils-devel@sourceware.org> or
+https://sourceware.org/bugzilla/.
+
+.SH "SEE ALSO"
+.BR gprof (1),
+.BR perf_event_open (2)

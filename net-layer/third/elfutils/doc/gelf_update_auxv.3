@@ -1,0 +1,96 @@
+.TH GELF_UPDATE_AUXV 3 2025-12-31 "Libelf" "Libelf Programmer's Manual"
+
+.SH NAME
+gelf_update_auxv \- Update information in the auxiliary vector at the given index
+
+.SH SYNOPSIS
+.nf
+.B #include <gelf.h>
+
+.BI "int gelf_update_auxv (Elf_Data *" data ", int " ndx ", GElf_auxv_t *" src ");"
+
+.SH DESCRIPTION
+Copy a class\-independent auxiliary vector entry from
+.I src
+into the
+.B NT_AUXV
+note associated with
+.I data
+at index
+.IR ndx .
+See
+.BR getauxval (3)
+for more information regarding the auxiliary vector.
+
+.SH PARAMETERS
+.TP
+.I data
+Pointer to an
+.B Elf_Data
+associated with an
+.B NT_AUXV
+ELF note.
+.I data->d_type
+should be
+.BR ELF_T_AUXV .
+.B NT_AUXV
+notes are normally found in core files.  The auxiliary vector can also be
+read directly from /proc/PID/auxv of a live process, in which case this
+function does not write back to
+.I data
+itself.
+
+.TP
+.I ndx
+Zero\-based index of the auxiliary vector entry to be updated within
+.IR data .
+
+.TP
+.I src
+Pointer to a caller\-provided auxiliary vector entry.  For
+.B ELFCLASS32
+binaries,
+.B a_type
+and
+.B a_val
+must fit within unsigned 32-bit values.
+.I src
+must not be NULL.
+
+.SH RETURN VALUE
+On success, this function returns a non-zero value, updates the
+auxiliary vector entry at index
+.I ndx
+in
+.IR data ,
+and marks the section or segment associated with
+.I data
+with
+.BR ELF_F_DIRTY .
+On failure, zero is returned and elf_errno is set.  If
+.I data
+is NULL, then zero is returned without setting elf_errno.
+
+.SH SEE ALSO
+.BR gelf_getauxv (3),
+.BR getauxval (3),
+.BR libelf (3),
+.BR elf (5)
+
+.SH ATTRIBUTES
+.TS
+allbox;
+lbx lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.na
+.nh
+.BR gelf_update_auxv ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH REPORTING BUGS
+Report bugs to <elfutils-devel@sourceware.org> or https://sourceware.org/bugzilla/.
+
+.SH HISTORY

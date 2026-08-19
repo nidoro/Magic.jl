@@ -1,0 +1,87 @@
+.TH GELF_UPDATE_SYMINFO 3 2025-12-30 "Libelf" "Libelf Programmer's Manual"
+
+.SH NAME
+gelf_update_syminfo \- Update additional symbol information in the symbol table at the given index
+
+.SH SYNOPSIS
+.nf
+.B #include <gelf.h>
+
+.BI "int gelf_update_syminfo (Elf_Data *" data ", int " ndx ", GElf_Syminfo *" src ");"
+
+.SH DESCRIPTION
+Copy a class\-independent additional symbol information entry from
+.I src
+into the
+.B SHT_SUNW_syminfo
+section associated with
+.I data
+at entry index
+.IR ndx .
+
+.I data
+should be associated with an ELF section with type
+.B SHT_SUNW_syminfo
+and data type
+.BR ELF_T_SYMINFO .
+These types are Sun/Solaris extensions and are not typically used in GNU/Linux
+ELF files.
+
+.SH PARAMETERS
+.TP
+.I data
+Pointer to an
+.B Elf_Data
+associated with an ELF section with type
+for a section with type
+.B SHT_SUNW_syminfo
+and data type
+.BR ELF_T_SYMINFO .
+
+.TP
+.I ndx
+Zero\-based index of the entry in
+.I data
+to be updated.
+
+.TP
+.I src
+Pointer to a caller\-provided additional symbol information entry.  Must not
+be NULL.
+
+.SH RETURN VALUE
+On success, this function returns a non-zero value and updates
+.I data
+with
+.I src
+at index
+.IR ndx .
+The section associated with
+.I data
+is flagged with
+.BR ELF_F_DIRTY .
+On failure, zero is returned and elf_errno is set.  If
+.I data
+is NULL, then zero is returned without setting elf_errno.
+
+.SH SEE ALSO
+.BR gelf_getsym (3),
+.BR gelf_getsyminfo (3),
+.BR libelf (3),
+.BR elf (5)
+
+.SH ATTRIBUTES
+.TS
+allbox;
+lbx lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.na
+.nh
+.BR gelf_update_syminfo ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH REPORTING BUGS
+Report bugs to <elfutils-devel@sourceware.org> or https://sourceware.org/bugzilla/.

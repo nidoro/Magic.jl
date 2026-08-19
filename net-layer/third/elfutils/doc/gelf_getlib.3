@@ -1,0 +1,89 @@
+.TH GELF_GETLIB 3 2025-12-31 "Libelf" "Libelf Programmer's Manual"
+
+.SH NAME
+gelf_getlib \- Get prelink library from table at the given index
+
+.SH SYNOPSIS
+.nf
+.B #include <gelf.h>
+
+.BI "GElf_Lib *gelf_getlib (Elf_Data *" data ", int " ndx ", GElf_Lib *" dst ");"
+
+.SH DESCRIPTION
+Retrieve a prelink library table entry from
+.I data
+at index
+.I ndx
+and store it in the class\-independent representation pointed to by
+.IR dst .
+
+.PP
+.I data
+must be an
+.B Elf_Data*
+associated with a section of type
+.BR SHT_GNU_LIBLIST .
+.I data->d_type
+should be
+.BR ELF_T_LIB .
+.B SHT_GNU_LIBLIST
+sections are used by the prelink utility.  See
+https://sourceware.org/gnu-gabi/prelink.txt for more information.
+
+.SH PARAMETERS
+.TP
+.I data
+Pointer to an
+.B Elf_Data
+of a section with type
+.BR SHT_GNU_LIBLIST .
+.I data->d_type
+should be
+.BR ELF_T_LIB .
+
+.TP
+.I ndx
+Zero\-based index of the requested prelink library table entry within
+.IR data .
+
+.TP
+.I dst
+Pointer to a caller\-provided
+.B GElf_Lib
+structure for storing the requested prelink library table entry.
+Must not be NULL.
+
+.SH RETURN VALUE
+On success, this function updates
+.I dst
+with the requested prelink library table entry and returns
+.IR dst .
+On failure, it returns NULL and sets elf_errno.  If
+.I data
+is NULL, then NULL is returned without setting elf_errno.
+
+.SH SEE ALSO
+.BR gelf_update_lib (3),
+.BR libelf (3),
+.BR elf (5)
+
+.SH ATTRIBUTES
+.TS
+allbox;
+lbx lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.na
+.nh
+.BR gelf_getlib ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH REPORTING BUGS
+Report bugs to <elfutils-devel@sourceware.org> or https://sourceware.org/bugzilla/.
+
+.SH HISTORY
+.B gelf_getlib
+first appeared in elfutils 0.95.  This function is an elfutils libelf extension and
+may not be available in other libelf implementations.

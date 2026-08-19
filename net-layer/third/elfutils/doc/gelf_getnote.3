@@ -1,0 +1,145 @@
+.TH GELF_GETNOTE 3 2025-12-31 "Libelf" "Libelf Programmer's Manual"
+
+.SH NAME
+gelf_getnote \- Get class\-independent note information at the supplied offset
+
+.SH SYNOPSIS
+.nf
+.B #include <gelf.h>
+
+.BI "size_t gelf_getnote (Elf_Data *" data ", size_t " offset ", GElf_Nhdr *" result ", size_t *" name_offset ", size_t *" desc_offset ");"
+
+.SH DESCRIPTION
+Retrieve the ELF note header from
+.I data
+at offset
+.I offset
+and store it in a class\-independent representation pointed to by
+.IR result .
+The note name and note descriptor offsets relative to the start of
+.I data
+are stored in
+.I *name_offset
+and
+.IR *desc_offset ,
+respectively.
+.B GElf_Nhdr
+fields
+.IR n_namesz ,
+.IR n_descsz ,
+and
+.I n_type
+describe the note's name length, descriptor length and type, respectively.
+Alignment and padding of the note data entry are handled automatically
+by this function.
+See
+.BR elf (5)
+for more information regarding ELF notes.
+
+.SH PARAMETERS
+.TP
+.I data
+Pointer to an
+.B Elf_Data
+associated with a
+.B SHT_NOTE
+section or a
+.B PT_NOTE
+segment.
+.I data->d_type
+should be
+.B ELF_T_NHDR
+or
+.BR ELF_T_NHDR8 .
+
+.TP
+.I offset
+Offset of a note header within
+.IR data .
+
+.TP
+.I result
+Pointer to a caller\-provided
+.B GElf_Nhdr
+structure for storing the requested note header.
+.I result
+must not be NULL.
+
+.TP
+.I name_offset
+Pointer to a caller\-provided
+.B size_t
+for storing the name offset of the requested note.  This offset is relative to
+.IR data->d_buf .
+.I name_offset
+must not be NULL.
+
+.TP
+.I desc_offset
+Pointer to a caller\-provided
+.B size_t
+for storing the descriptor offset of the requested note. This offset is
+relative to
+.IR data->d_buf .
+.I desc_offset
+must not be NULL.
+
+.SH RETURN VALUE
+On success, this function updates
+.IR *result ,
+.IR *name_offset ,
+and
+.I *desc_offset
+and returns the offset of the next note.  If there are no notes remaining
+then the return value will be greater than or equal to the
+.B d_size
+of
+.IR data .
+On failure, this function returns zero and sets elf_errno.  If
+.I data
+is NULL then zero is returned without setting elf_errno.
+
+.SH EXAMPLE
+.nf
+  size_t offset = 0;
+  GElf_Nhdr nhdr;
+  size_t name_offset;
+  size_t desc_offset;
+  while (offset < data->d_size
+         && (offset = gelf_getnote (data, offset,
+                                    &nhdr, &name_offset, &desc_offset)) > 0)
+    {
+      const char *name = nhdr.n_namesz == 0 ? "" : data->d_buf + name_offset;
+      const char *desc = nhdr.n_descsz == 0 ? "" : data->d_buf + desc_offset;
+
+      /* Process note here.  name and desc are not guaranteed to be
+         zero-terminated.  The presence of null characters should be
+         verified using n_namesz and n_descsz.  */
+      [...]
+    }
+.fi
+
+.SH SEE ALSO
+.BR libelf (3),
+.BR elf (5)
+
+.SH ATTRIBUTES
+.TS
+allbox;
+lbx lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.na
+.nh
+.BR gelf_getnote ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH REPORTING BUGS
+Report bugs to <elfutils-devel@sourceware.org> or https://sourceware.org/bugzilla/.
+
+.SH HISTORY
+.B gelf_getnote
+first appeared in elfutils 0.130.  This function is an elfutils libelf extension and
+may not be available in other libelf implementations.

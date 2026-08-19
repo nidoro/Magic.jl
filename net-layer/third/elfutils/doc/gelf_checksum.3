@@ -1,0 +1,70 @@
+.TH GELF_CHECKSUM 3 2025-12-31 "Libelf" "Libelf Programmer's Manual"
+
+.SH NAME
+gelf_checksum \- compute the checksum for an ELF object file
+
+.SH SYNOPSIS
+.nf
+.B #include <gelf.h>
+
+.BI "long int gelf_checksum (Elf *" elf ");"
+
+.SH DESCRIPTION
+Compute a checksum for the ELF object file referred to by
+.IR elf .
+This function acts as a wrapper around
+.BR elf32_checksum ()
+and
+.BR elf64_checksum ().
+The binary class of
+.I elf
+is used to automatically select between
+.BR elf32_checksum ()
+and
+.BR elf64_checksum ().
+
+The checksum is computed from permanent parts of the ELF file and
+the result is repeatable.  To be repeatable, strippable sections are
+not included in computing the checksum.
+.B SHT_NOBITS
+sections are also not included when computing the checksum.  The checksum
+can be used as a value for
+.BR DT_CHECKSUM .
+
+.SH PARAMETERS
+.TP
+.I elf
+The ELF object file for which the checksum is to be computed.
+
+.SH RETURN VALUE
+On success, return the computed checksum. On failure, return -1
+and set elf_errno.  If
+.I elf
+is NULL then -1 is returned without setting elf_errno.
+
+The checksum is always calculated as a 4-byte value. If
+.I long int
+is larger than 4 bytes, then the checksum will be extended by padding
+with zeros.
+
+.SH SEE ALSO
+.BR elf32_checksum (3),
+.BR elf64_checksum (3),
+.BR libelf (3),
+.BR elf (5)
+
+.SH ATTRIBUTES
+.TS
+allbox;
+lbx lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.na
+.nh
+.BR gelf_checksum ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH REPORTING BUGS
+Report bugs to <elfutils-devel@sourceware.org> or https://sourceware.org/bugzilla/.

@@ -1,0 +1,78 @@
+.TH GELF_UPDATE_EHDR 3 2025-09-17 "Libelf" "Libelf Programmer's Manual"
+
+.SH NAME
+gelf_update_ehdr \- copy a class\-independent ELF header into an ELF descriptor
+
+.SH SYNOPSIS
+.nf
+.B #include <gelf.h>
+
+.BI "int gelf_update_ehdr(Elf *" elf ", GElf_Ehdr *" src ");"
+.fi
+
+.SH DESCRIPTION
+.BR gelf_update_ehdr ()
+copies the class\-independent ELF header from the structure pointed to by
+.I src
+into the ELF descriptor
+.I elf .
+The header is translated as necessary to match the class (
+.B ELFCLASS32
+or
+.BR ELFCLASS64 )
+of the underlying object.
+
+If
+.I elf
+has class
+.B ELFCLASS32
+then
+.BR e_entry ,
+.B e_phoff
+and
+.B e_shoff
+must be expressible as 32-bit values.  This function also marks the Ehdr
+dirty (see
+.BR elf_flagehdr ()).
+
+.SH PARAMETERS
+.TP
+.I elf
+Pointer to an ELF descriptor of kind
+.BR ELF_K_ELF .
+
+.TP
+.I src
+Pointer to a
+.B GElf_Ehdr
+structure that holds the caller’s desired header contents. Must not be NULL.
+
+.SH RETURN VALUE
+On success,
+.BR gelf_update_ehdr ()
+returns a non-zero value.  On failure, it returns 0 and sets elf_errno.  If
+.I elf
+is NULL, then 0 is returned without setting elf_errno.
+
+.SH SEE ALSO
+.BR gelf_getehdr (3),
+.BR gelf_newehdr (3),
+.BR elf_flagehdr (3),
+.BR libelf (3),
+.BR elf (5)
+
+.SH ATTRIBUTES
+.TS
+allbox;
+lbx lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.na
+.nh
+.BR gelf_update_ehdr ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH REPORTING BUGS
+Report bugs to <elfutils-devel@sourceware.org> or https://sourceware.org/bugzilla/.

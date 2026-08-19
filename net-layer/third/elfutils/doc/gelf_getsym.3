@@ -1,0 +1,94 @@
+.TH GELF_GETSYM 3 2025-12-29 "Libelf" "Libelf Programmer's Manual"
+
+.SH NAME
+gelf_getsym \- Retrieve class\-independent symbol information from the symbol
+table at the given index
+
+.SH SYNOPSIS
+.nf
+.B #include <gelf.h>
+
+.BI "GElf_Sym *gelf_getsym (Elf_Data *" data ", int " ndx ", GElf_Sym *" dst ");"
+
+.SH DESCRIPTION
+Translate the symbol table entry at index
+.I ndx
+from
+.I data
+into a class\-independent representation stored in
+.IR *dst .
+
+.PP
+.I data
+must be the
+.B Elf_Data
+of a section with type
+.B SHT_SYMTAB
+or
+.BR SHT_DYNSYM .
+
+The number of symbols in the symbol table can be calculated by dividing the
+size of the corresponding section (\fBsh_size\fP or \fBd_size\fP)
+by the size of a symbol table entry.  The size of a symbol table entry can be
+obtained from
+.B sh_entsize
+or
+.BR gelf_fsize (3).
+
+If the corresponding elf contains more than 64K sections then
+.BR gelf_getsymshndx
+should be used to retrieve a symbol's section index.  See
+.BR gelf_getsymshndx (3)
+for more information.
+
+.SH PARAMETERS
+.TP
+.I data
+Pointer to an
+.B Elf_Data
+of a
+.B SHT_SYMTAB
+or
+.B SHT_DYNSYM
+section.
+
+.TP
+.I ndx
+Zero\-based index of the symbol table entry within
+.IR data .
+
+.TP
+.I dst
+Pointer to a caller\-provided structure for storing the symbol table entry.
+.I dst
+must not be NULL.
+
+.SH RETURN VALUE
+On success, this function returns
+.IR dst .
+On failure, it returns NULL and sets elf_errno.  If
+.I data
+is NULL, then NULL is returned without setting elf_errno.
+
+.SH SEE ALSO
+.BR gelf_getdyn (3),
+.BR gelf_getsymshndx (3),
+.BR gelf_update_sym (3),
+.BR libelf (3),
+.BR elf (5)
+
+.SH ATTRIBUTES
+.TS
+allbox;
+lbx lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.na
+.nh
+.BR gelf_getsym ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH REPORTING BUGS
+Report bugs to <elfutils-devel@sourceware.org> or https://sourceware.org/bugzilla/.

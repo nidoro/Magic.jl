@@ -1,0 +1,73 @@
+.TH GELF_GETPHDR 3 2025-12-23 "Libelf" "Libelf Programmer's Manual"
+
+.SH NAME
+gelf_getphdr \- Retrieve class-independent program header table entries for an ELF object file
+
+.SH SYNOPSIS
+.nf
+.B #include <gelf.h>
+
+.BI "GElf_Phdr *gelf_getphdr (Elf *" elf ", int " ndx ", GElf_Phdr *" dst ");"
+
+.SH DESCRIPTION
+Retrieve the class-independent program header table entry at index
+.I ndx
+for ELF descriptor
+.I elf
+and store it in
+.IR dst .
+See
+.BR elf_getphdrnum (3)
+for information on how to acquire the number of entries in the program header
+table.
+
+.SH PARAMETERS
+.TP
+.I elf
+ELF descriptor of kind
+.B ELF_K_ELF
+from which to retrieve the program header table entry.
+
+.TP
+.I ndx
+The index of the program header table entry to be retrieved.
+
+.TP
+.I dst
+Pointer to a caller\-provided
+.B GElf_Phdr
+that will receive the requested program header table entry.
+
+.SH RETURN VALUE
+On success, the requested entry is copied into
+.I dst
+and
+.I dst is returned.
+On failure, NULL is returned and elf_errno is set.  If
+.I elf
+is NULL, then NULL is returned and elf_errno is not set.
+
+.SH SEE ALSO
+.BR elf32_getphdr (3),
+.BR elf64_getphdr (3),
+.BR elf_getphdrnum (3),
+.BR gelf_newphdr (3),
+.BR gelf_update_phdr (3),
+.BR libelf (3),
+.BR elf (5)
+
+.SH ATTRIBUTES
+.TS
+allbox;
+lbx lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.na
+.nh
+.BR gelf_getphdr ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH REPORTING BUGS
+Report bugs to <elfutils-devel@sourceware.org> or https://sourceware.org/bugzilla/.

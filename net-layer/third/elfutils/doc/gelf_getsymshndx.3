@@ -1,0 +1,175 @@
+.TH GELF_GETSYMSHNDX 3 2025-12-30 "Libelf" "Libelf Programmer's Manual"
+
+.SH NAME
+gelf_getsymshndx \- Retrieve symbol information and separate section index
+from the symbol table at the given index.
+
+.SH SYNOPSIS
+.nf
+.B #include <gelf.h>
+
+.BI "GElf_Sym *gelf_getsymshndx (Elf_Data *" symdata ", Elf_Data *" shndxdata ", int " ndx ", GElf_Sym *" sym ", Elf32_Word *" xshndx ");"
+
+.SH DESCRIPTION
+This function retrieves the symbol information for a symbol at index
+.I ndx
+in
+.I symdata
+of a section with type
+.B SHT_SYMTAB
+and stores it in
+.IR sym .
+This function also retrieves the symbol's extended section index from
+.B shndxdata
+of a section with type
+.BR SHT_SYMTAB_SHNDX
+and stores it in
+.IR xshndx .
+
+.I xshndx
+will contain a non-zero value only for the symbols which have an
+.I st_shndx
+value of
+.BR SHN_XINDEX .
+See
+.B EXAMPLE
+below.
+
+The number of symbols in the symbol table can be calculated by dividing the
+size of
+.I symdata
+by the size of a symbol table entry.
+The size of
+.I symdata
+can be obtained from
+.I symdata->d_size
+or from the corresponding section header's
+.BR sh_size .
+The size of a symbol table entry can be obtained from
+.BR gelf_fsize (3)
+with
+.B ELF_T_SYM
+or from the corresponding section header's
+.BR sh_entsize .
+
+A
+.B SHT_SYMTAB_SHNDX
+section is present in ELF binaries when the number of sections is too large to
+be represented as an unsigned 16-bit value.  In this case the
+.B st_shndx
+field of a
+.B GElf_Sym
+will be set to
+.B SHN_XINDEX
+to indicate that the symbol's section index can be found in the
+.B SHT_SYMTAB_SHNDX
+section.
+.I shndxdata
+for this section can be acquired using
+.BR elf_scnshndx (3),
+.BR elf_getscn (3),
+and
+.BR elf_getdata (3).
+The number of entries in
+.I shndxdata
+must be equal to the number of entries in
+.IR symdata .
+Entry
+.I ndx
+in
+.I shndxdata
+corresponds to entry
+.I ndx
+in
+.IR symdata .
+
+.SH PARAMETERS
+.TP
+.I symdata
+Pointer to
+.B Elf_Data
+for a
+.B SHT_SYMTAB
+section.
+
+.TP
+.I shndxdata
+Pointer to
+.B Elf_Data
+for a
+.B SHT_SYMTAB_SHNDX
+section. May be NULL.
+
+.TP
+.I ndx
+Zero\-based index of the symbol table entry in
+.B symdata
+and extended section index entry in
+.BR shndxdata .
+
+.TP
+.I sym
+Pointer to a caller\-provided
+.B GElf_Sym
+structure for storing the symbol table entry.  Must not be NULL.
+
+.TP
+.I xshndx
+Pointer to a caller\-provided
+.B Elf32_Word
+for storing the extended section index associated with the symbol.  May
+be NULL.
+
+.SH RETURN VALUE
+On success, this function updates
+.I sym
+and
+.I xshndx
+(if not NULL) and returns
+.IR sym .
+On failure, it returns NULL and sets elf_errno.  If
+.I symdata
+is NULL, then NULL is returned and elf_errno is not set.
+.I xshndx
+is set only if both itself and
+.I shndxdata
+are not NULL.
+
+.SH EXAMPLE
+.nf
+  GElf_Sym sym;
+  Elf32_Word shndx;
+
+  /* If the symbol uses an extended section index, gelf_getsymshndx stores
+     it in shndx.  Otherwise the symbol's section index is taken directly
+     from sym.st_shndx.  */
+  if (gelf_getsymshndx (symdata, shndxdata, ndx, &sym, &shndx) != NULL
+      && sym.st_shndx != SHN_XINDEX)
+    shndx = sym.st_shndx;
+.fi
+
+.SH SEE ALSO
+.BR elf_getdata (3),
+.BR elf_getscn (3),
+.BR elf_scnshndx (3),
+.BR gelf_fsize (3),
+.BR gelf_getsym (3),
+.BR gelf_update_symshndx (3),
+.BR libelf (3),
+.BR elf (5)
+
+.SH ATTRIBUTES
+.TS
+allbox;
+lbx lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.na
+.nh
+.BR gelf_getsymshndx ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH REPORTING BUGS
+Report bugs to <elfutils-devel@sourceware.org> or https://sourceware.org/bugzilla/.

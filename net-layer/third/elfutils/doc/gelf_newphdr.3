@@ -1,0 +1,87 @@
+.TH GELF_NEWPHDR 3 2025-09-23 "Libelf" "Libelf Programmer's Manual"
+
+.SH NAME
+gelf_newphdr \- allocate and initialize a new program header table
+
+.SH SYNOPSIS
+.nf
+.B #include <gelf.h>
+
+.BI "void *gelf_newphdr(Elf *" elf ", size_t " phnum ");"
+.fi
+
+.SH DESCRIPTION
+.BR gelf_newphdr ()
+creates a new program header table with
+.I phnum
+entries for the ELF descriptor
+.IR elf ,
+zeroing all entries. If a program header table already exists for
+.IR elf ,
+it is discarded. If
+.I phnum
+is zero, any existing program header table is removed.
+
+.PP
+This array is maintained within the ELF descriptor and must not be freed
+directly. After calling
+.BR gelf_newphdr (),
+any previously obtained program header pointers for the same descriptor
+become invalid.  An ELF header must exist before creating a program header
+table.
+
+.SH PARAMETERS
+.TP
+.I elf
+Pointer to an ELF descriptor of kind
+.BR ELF_K_ELF .
+
+.TP
+.I phnum
+Number of entries in the new program header table.  If zero, any existing
+program header table is removed.
+
+.SH RETURN VALUE
+On success, returns a non-NULL void pointer to the new program header table.
+The new program header table can be retrieved as a
+.B GElf_Phdr *
+using
+.BR gelf_getphdr ().
+.BR elf32_getphdr ()
+or
+.BR elf64_getphdr ()
+can also be used depending on the class of
+.IR elf .
+If
+.I phnum
+is 0, then any existing program header table is removed and NULL is returned.
+On failure, NULL is returned and elf_errno is set.  If
+.I elf
+is NULL, then NULL is returned without setting elf_errno.
+
+Other libelf implementations of
+.BR gelf_newphdr ()
+may use a different return type.
+
+.SH SEE ALSO
+.BR gelf_getphdr (3),
+.BR gelf_update_phdr (3),
+.BR libelf (3),
+.BR elf (5)
+
+.SH ATTRIBUTES
+
+.TS
+allbox;
+lbx lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.na
+.nh
+.BR gelf_newphdr ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH REPORTING BUGS
+Report bugs to <elfutils-devel@sourceware.org> or https://sourceware.org/bugzilla/.

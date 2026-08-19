@@ -1,0 +1,87 @@
+.TH GELF_NEWEHDR 3 2025-09-17 "Libelf" "Libelf Programmer's Manual"
+
+.SH NAME
+gelf_newehdr \- allocate and initialize a new ELF file header
+
+.SH SYNOPSIS
+.nf
+.B #include <gelf.h>
+
+.BI "void *gelf_newehdr(Elf *" elf ", int " class ");"
+.fi
+
+.SH DESCRIPTION
+.BR gelf_newehdr ()
+allocates and initializes a new ELF header for
+.IR elf ,
+if a header does not already exist.  When a new ELF header is created,
+all of its fields are zero-initialized.
+
+.PP
+The caller must specify the ELF class via
+.IR class ,
+which must be either:
+.TP
+.B ELFCLASS32
+Request a 32\-bit ELF file header.
+.TP
+.B ELFCLASS64
+Request a 64\-bit ELF file header.
+
+.SH PARAMETERS
+.TP
+.I elf
+Pointer to an ELF descriptor of kind
+.BR ELF_K_ELF .
+
+.TP
+.I class
+The requested ELF class for the new header. Must be
+.B ELFCLASS32
+or
+.BR ELFCLASS64 .
+
+.SH RETURN VALUE
+On success,
+.BR gelf_newehdr ()
+will return a non-zero value.  The ELF header of
+.I elf
+can be retrieved using
+.BR gelf_getehdr ().
+.BR elf32_getehdr ()
+or
+.BR elf64_getehdr ()
+can also be used depending on the ELF class specified by
+.IR class .
+
+On failure, NULL is returned and elf_errno is set.  If
+.I elf
+is NULL then NULL is returned without setting elf_errno.
+
+In other libelf implementations the
+.BR gelf_newehdr ()
+return value may be a different type.
+
+.SH SEE ALSO
+.BR elf32_getehdr ()
+.BR elf64_getehdr ()
+.BR gelf_getehdr (3),
+.BR gelf_update_ehdr (3),
+.BR libelf (3),
+.BR elf (5)
+
+.SH ATTRIBUTES
+.TS
+allbox;
+lbx lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.na
+.nh
+.BR gelf_newehdr ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH REPORTING BUGS
+Report bugs to <elfutils-devel@sourceware.org> or https://sourceware.org/bugzilla/.

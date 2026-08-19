@@ -1,0 +1,92 @@
+.TH GELF_UPDATE_PHDR 3 2025-12-27 "Libelf" "Libelf Programmer's Manual"
+
+.SH NAME
+gelf_update_phdr \- copy a class\-independent program header table entry into an ELF descriptor
+
+.SH SYNOPSIS
+.nf
+.B #include <gelf.h>
+
+.BI "int gelf_update_phdr (Elf *" elf ", int " ndx ", GElf_Phdr *" src ");"
+
+.SH DESCRIPTION
+.BR gelf_update_phdr ()
+copies the class\-independent program header table entry from the structure
+pointed to by
+.I src
+into the program header table of
+.I elf
+at index
+.I ndx .
+The program header table entry is translated as necessary to match the class
+(\fBELFCLASS32\fP or \fBELFCLASS64\fP) of the underlying object file.
+
+If
+.I elf
+has class
+.B ELFCLASS32
+then
+.BR p_offset ,
+.BR p_vaddr ,
+.BR p_paddr ,
+.BR p_filesz ,
+.BR p_memsz ,
+and
+.B p_align
+must fit within unsigned 32-bit values.
+
+.SH PARAMETERS
+.TP
+.I elf
+Pointer to an ELF descriptor of kind
+.BR ELF_K_ELF .
+
+.TP
+.I ndx
+Index of the program header table entry to be updated.  The number of program
+header table entries associated with
+.I elf
+can be obtained with
+.BR elf_getphdrnum ().
+
+.TP
+.I src
+Pointer to a
+.B GElf_Phdr
+structure that holds the caller's desired program header table entry contents.
+.I src
+must not be NULL.
+
+.SH RETURN VALUE
+On success, this function returns a non-zero value and updates the program
+header table entry at index
+.IR ndx .
+The program header table will be flagged with
+.BR ELF_F_DIRTY .
+On failure, it returns 0 and sets elf_errno.  If
+.I elf
+is NULL then 0 is returned without setting elf_errno.
+
+.SH SEE ALSO
+.BR elf_flagphdr (3),
+.BR elf_getphdrnum (3),
+.BR gelf_getphdr (3),
+.BR gelf_newphdr (3),
+.BR libelf (3),
+.BR elf (5)
+
+.SH ATTRIBUTES
+.TS
+allbox;
+lbx lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.na
+.nh
+.BR gelf_update_phdr ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH REPORTING BUGS
+Report bugs to <elfutils-devel@sourceware.org> or https://sourceware.org/bugzilla/.

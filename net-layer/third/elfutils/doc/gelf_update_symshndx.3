@@ -1,0 +1,188 @@
+.TH GELF_UPDATE_SYMSHNDX 3 2025-12-30 "Libelf" "Libelf Programmer's Manual"
+
+.SH NAME
+gelf_update_symshndx \- Update class\-independent symbol information and
+extended section index in symbol table
+
+.SH SYNOPSIS
+.nf
+.B #include <gelf.h>
+
+.BI "int gelf_update_symshndx (Elf_Data *" symdata ", Elf_Data *" shndxdata ", int " ndx ", GElf_Sym *" sym ", Elf32_Word " xshndx ");"
+
+.SH DESCRIPTION
+This function updates
+.I symdata
+and
+.IR shndxdata ,
+at index
+.I ndx
+with the class\-independent symbol information from
+.I sym
+and the section index
+.IR xshndx .
+.I symdata
+should be an
+.B Elf_Data
+pointer for an
+.B SHT_SYMTAB
+or
+.B SHT_DYNSYM
+section and
+.I shndxdata
+should be an
+.B Elf_Data
+pointer for an
+.B SHT_SYMTAB_SHNDX
+section.
+
+The number of symbols in the symbol table can be calculated by dividing the
+size of
+.I symdata
+by the size of a symbol table entry.
+The size of
+.I symdata
+can be obtained from
+.I symdata->d_size
+or from the corresponding section header's
+.BR sh_size .
+The size of a symbol table entry can be obtained from
+.BR gelf_fsize ()
+with
+.B ELF_T_SYM
+or from the corresponding section header's
+.BR sh_entsize .
+
+A
+.B SHT_SYMTAB_SHNDX
+section is present in ELF binaries when the number of sections is too large to
+be represented as an unsigned 16-bit value.  In this case the
+.B st_shndx
+field of a
+.B GElf_Sym
+will be set to
+.B SHN_XINDEX
+to indicate that the symbol's section index can be found in the
+.B SHT_SYMTAB_SHNDX
+section.
+.I shndxdata
+for this section can be acquired using
+.BR elf_scnshndx (3),
+.BR elf_getscn (3),
+and
+.BR elf_getdata (3).
+The number of entries in
+.I shndxdata
+must be equal to the number of entries in
+.IR symdata .
+Entry
+.I ndx
+in
+.I shndxdata
+corresponds to entry
+.I ndx
+in
+.IR symdata .
+
+.SH PARAMETERS
+.TP
+.I symdata
+Pointer to
+.B Elf_Data
+for a section with type
+.B SHT_SYMTAB
+or
+.BR SHT_DYNSYM .
+
+.TP
+.I shndxdata
+Pointer to
+.B Elf_Data
+for a section with type
+.BR SHT_SYMTAB_SHNDX .
+.I shndxdata
+may be NULL.  If
+.I shndxdata
+is NULL, then
+.I xshndx
+must be zero.
+
+.TP
+.I ndx
+Zero\-based index of the symbol table entry and extended section index entry
+to be updated.
+
+.TP
+.I sym
+Pointer to a caller\-provided symbol table entry.  For
+.B ELFCLASS32
+binaries,
+.B st_value
+and
+.B st_size
+should be able to fit within unsigned 32-bit values.
+.I sym
+must not be NULL.
+
+.TP
+.I xshndx
+Updated extended section index entry to be associated with
+.IR sym .
+Must be zero if
+.I shndxdata
+is NULL.  If
+.I sym->st_shndx
+is not
+.B SHN_XINDEX
+then
+.I xshndx
+should be
+.BR SHN_UNDEF .
+
+.SH RETURN VALUE
+On success, a non-zero value is returned and the entries at index
+.I ndx
+in
+.I symdata
+and
+.I shndxdata
+(if not NULL)
+are updated with
+.I sym
+and
+.IR xshndx ,
+respectively.  The sections associated with
+.I symdata
+and
+.I shndxdata
+are flagged with
+.BR ELF_F_DIRTY .
+On failure, zero is returned, elf_errno is set.  If
+.I sym
+is NULL, then NULL is returned without setting elf_errno.
+
+.SH SEE ALSO
+.BR elf_getdata (3),
+.BR elf_getscn (3),
+.BR elf_scnshndx (3),
+.BR gelf_fsize (3),
+.BR gelf_getsymshndx (3),
+.BR gelf_update_sym (3),
+.BR libelf (3),
+.BR elf (5)
+
+.SH ATTRIBUTES
+.TS
+allbox;
+lbx lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.na
+.nh
+.BR gelf_update_symshndx ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH REPORTING BUGS
+Report bugs to <elfutils-devel@sourceware.org> or https://sourceware.org/bugzilla/.

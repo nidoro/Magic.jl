@@ -1,0 +1,146 @@
+.TH GELF_GETVERSYM 3 2025-09-27 "Libelf" "Libelf Programmer's Manual"
+
+.SH NAME
+gelf_getversym, gelf_getverdef, gelf_getverdaux, gelf_getverneed, gelf_getvernaux \- retrieve GNU symbol versioning entries
+
+.SH SYNOPSIS
+.nf
+.B #include <gelf.h>
+
+.BI "GElf_Versym  *gelf_getversym (Elf_Data *" data ", int " ndx ", GElf_Versym  *" dst ");"
+.BI "GElf_Verdef  *gelf_getverdef (Elf_Data *" data ", int " offset ", GElf_Verdef  *" dst ");"
+.BI "GElf_Verdaux *gelf_getverdaux(Elf_Data *" data ", int " offset ", GElf_Verdaux *" dst ");"
+.BI "GElf_Verneed *gelf_getverneed(Elf_Data *" data ", int " offset ", GElf_Verneed *" dst ");"
+.BI "GElf_Vernaux *gelf_getvernaux(Elf_Data *" data ", int " offset ", GElf_Vernaux *" dst ");"
+.fi
+
+.SH DESCRIPTION
+These functions provide class\-independent access to GNU ELF symbol
+version information. The requested entry is retrieved from
+.I data
+and stored in the caller\-supplied
+.IR dst .
+
+.TP
+.BR gelf_getversym ()
+Retrieves the symbol version index at index
+.I ndx
+from the
+.B SHT_GNU_versym
+section associated with
+.IR data .
+
+.TP
+.BR gelf_getverdef ()
+Retrieves the version definition entry at section offset
+.I offset
+from the
+.B SHT_GNU_verdef
+section associated with
+.IR data .
+
+.TP
+.BR gelf_getverdaux ()
+Retrieves the version definition auxiliary entry at section offset
+.I offset
+from the
+.B SHT_GNU_verdef
+section associated with
+.IR data .
+
+.TP
+.BR gelf_getverneed ()
+Retrieves the version needed entry at section offset
+.I offset
+from the
+.B SHT_GNU_verneed
+section associated with
+.IR data .
+
+.TP
+.BR gelf_getvernaux ()
+Retrieves the version needed auxiliary entry at section offset
+.I offset
+from the
+.B SHT_GNU_verneed
+section associated with
+.IR data .
+
+.SH PARAMETERS
+.TP
+.I data
+Pointer to an
+.B Elf_Data
+corresponding to the appropriate GNU versioning section.
+
+.TP
+.I ndx
+(For
+.BR gelf_getversym ()
+only.)
+Zero\-based index of the entry within
+.IR data .
+.TP
+.I offset
+(For
+.BR gelf_getverdef (),
+.BR gelf_getverdaux (),
+.BR gelf_getverneed (),
+and
+.BR gelf_getvernaux ().)
+Section\-relative byte offset of the entry within
+.IR data .
+
+.TP
+.I dst
+Pointer to a caller\-provided entry of the appropriate type:
+.BR GElf_Versym ,
+.BR GElf_Verdef ,
+.BR GElf_Verdaux ,
+.BR GElf_Verneed ,
+or
+.BR GElf_Vernaux .
+This argument must not be NULL.
+
+.SH RETURN VALUE
+On success, these functions store the requested entry in
+.I dst
+and return
+.IR dst .
+On failure, these functions return NULL and set elf_errno.  If
+.I data
+is NULL, then NULL is returned without setting elf_errno.
+
+.SH SEE ALSO
+.BR gelf_update_verdaux (3),
+.BR gelf_update_verdef (3),
+.BR gelf_update_vernaux (3),
+.BR gelf_update_verneed (3),
+.BR gelf_update_versym (3),
+.BR libelf (3),
+.BR elf (5)
+
+
+.SH ATTRIBUTES
+.TS
+allbox;
+lbx lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.na
+.nh
+.BR gelf_getversym (),
+.br
+.BR gelf_getverdef (),
+.br
+.BR gelf_getverdaux(),
+.br
+.BR gelf_getverneed (),
+.br
+.BR gelf_getvernaux ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH REPORTING BUGS
+Report bugs to <elfutils-devel@sourceware.org> or https://sourceware.org/bugzilla/.

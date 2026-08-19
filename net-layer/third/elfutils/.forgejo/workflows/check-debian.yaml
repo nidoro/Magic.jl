@@ -1,0 +1,42 @@
+name: debian-build-tests
+
+on:
+  pull_request:
+    types: [opened, synchronized, reopened]
+
+jobs:
+  check:
+    runs-on: sourceware-debian-runner
+    steps:
+      - name: setup packages
+        run: |
+          apt-get update
+          apt-get upgrade -y -q
+          apt-get -y -q=2 install binutils tar xz-utils make libc6-dev gcc g++ coreutils git autoconf automake autopoint lsb-release bzip2 zlib1g-dev zlib1g-dev:native libbz2-dev liblzma-dev libzstd-dev zstd m4 gettext gawk gcc-multilib flex bison pkgconf procps libarchive-tools curl cpio rpm2cpio iproute2 socat jq fish libarchive-dev libjson-c-dev libmicrohttpd-dev libcurl4-gnutls-dev libsqlite3-dev valgrind libubsan1
+
+      - name: checkout git
+        run: |
+          git clone ${FORGEJO_SERVER_URL}/${FORGEJO_REPOSITORY} .
+          git fetch origin ${FORGEJO_REF}:${FORGEJO_REF}
+          git checkout ${FORGEJO_REF}
+
+      - name: autoreconf and configure
+        run: |
+          autoreconf -f -i
+          ./configure --enable-maintainer-mode
+
+      - name: make
+        run: make -j$(nproc)
+
+      - name: make check
+        run: make check -j$(nproc) || (cat tests/test-suite.log; false)
+
+      - name: make distcheck
+        run: make distcheck -j$(nproc)
+
+      - name: valgrind and undefined sanitizer
+        run: |
+          make clean
+          ./configure --enable-maintainer-mode --enable-valgrind --enable-sanitize-undefined
+          make -j$(nproc)
+          make check -j$(nproc) || (cat tests/test-suite.log; false)

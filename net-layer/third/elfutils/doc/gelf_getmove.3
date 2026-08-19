@@ -1,0 +1,83 @@
+.TH GELF_GETMOVE 3 2025-12-30 "Libelf" "Libelf Programmer's Manual"
+
+.SH NAME
+gelf_getmove \- Get move structure at the given index
+
+.SH SYNOPSIS
+.nf
+.B #include <gelf.h>
+
+.BI "GElf_Move *gelf_getmove (Elf_Data *" data ", int " ndx ", GElf_Move *" dst ");"
+
+.SH DESCRIPTION
+Copy a move structure at index
+.I ndx
+from a
+.B SHT_SUNW_move
+section associated with
+.I data
+into a class\-independent representation stored in
+.IR *dst .
+
+.I data
+should be associated with an ELF section with type
+.B SHT_SUNW_move
+section.
+.I data->d_type
+should be
+.BR ELF_T_MOVE .
+These types are Sun/Solaris extensions and are not typically used in GNU/Linux
+ELF files.
+
+.SH PARAMETERS
+.TP
+.I data
+Pointer to an
+.B Elf_Data
+of an
+.B SHT_SUNW_move
+section.
+.I data->d_type
+should be
+.BR ELF_T_MOVE .
+
+.TP
+.I ndx
+Zero\-based index of the move structure in
+.IR data .
+
+.TP
+.I dst
+Pointer to a caller\-provided structure for storing the requested move entry.
+.I dst
+must not be NULL.
+
+.SH RETURN VALUE
+On success, this function stores the requested move structure in
+.I dst
+and returns
+.IR dst .
+On failure, NULL is returned and elf_errno is set.  If
+.I data
+is NULL, then NULL is returned without setting elf_errno.
+
+.SH SEE ALSO
+.BR gelf_update_move (3),
+.BR libelf (3),
+.BR elf (5)
+
+.SH ATTRIBUTES
+.TS
+allbox;
+lbx lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.na
+.nh
+.BR gelf_getmove ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH REPORTING BUGS
+Report bugs to <elfutils-devel@sourceware.org> or https://sourceware.org/bugzilla/.

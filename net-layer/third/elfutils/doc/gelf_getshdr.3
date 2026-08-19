@@ -1,0 +1,66 @@
+.TH GELF_GETSHDR 3 2025-09-22 "Libelf" "Libelf Programmer's Manual"
+
+.SH NAME
+gelf_getshdr \- retrieve a section header into a class\-independent structure
+
+.SH SYNOPSIS
+.nf
+.B #include <gelf.h>
+
+.BI "GElf_Shdr *gelf_getshdr(Elf_Scn *" scn ", GElf_Shdr *" dst ");"
+.fi
+
+.SH DESCRIPTION
+.BR gelf_getshdr ()
+retrieves the section header associated with the section descriptor
+.IR scn ,
+translating it into the class\-independent
+.B GElf_Shdr
+representation. The header is copied into the structure referenced by
+.IR dst .
+
+.SH PARAMETERS
+.TP
+.I scn
+Pointer to a section descriptor of type
+.BR Elf_Scn .
+
+.TP
+.I dst
+Pointer to a caller\-provided
+.B GElf_Shdr
+structure to receive the section header.
+
+.SH RETURN VALUE
+On success,
+.B gelf_getshdr()
+stores the section header in
+.I dst
+and returns
+.IR dst .
+On failure, NULL is returned and elf_errno is set.  If
+.I scn
+is NULL then NULL is returned without setting elf_errno.
+
+.SH SEE ALSO
+.BR elf32_getshdr (3),
+.BR elf64_getshdr (3),
+.BR gelf_update_shdr (3),
+.BR libelf (3),
+.BR elf (5)
+
+.SH ATTRIBUTES
+.TS
+allbox;
+lbx lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.na
+.nh
+.BR gelf_getshdr ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH REPORTING BUGS
+Report bugs to <elfutils-devel@sourceware.org> or https://sourceware.org/bugzilla/.

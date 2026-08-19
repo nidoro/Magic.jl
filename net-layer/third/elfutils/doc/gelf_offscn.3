@@ -1,0 +1,72 @@
+.TH GELF_OFFSCN 3 2025-09-22 "Libelf" "Libelf Programmer's Manual"
+
+.SH NAME
+gelf_offscn \- return descriptor for an ELF section at a given file offset
+
+.SH SYNOPSIS
+.nf
+.B #include <gelf.h>
+
+.BI "Elf_Scn *gelf_offscn(Elf *" elf ", GElf_Off " offset ");"
+.fi
+
+.SH DESCRIPTION
+.BR gelf_offscn ()
+retrieves the section descriptor for the non-empty section with
+.B sh_offset
+equal to
+.IR offset .
+This function will not return descriptors for
+.B SHT_NOBITS
+sections since they are empty by definition.
+
+.SH PARAMETERS
+.TP
+.I elf
+Pointer to an ELF descriptor with kind
+.BR ELF_K_ELF .
+
+.TP
+.I offset
+The file offset (in bytes) of the section to be retrieved.
+
+.SH RETURN VALUE
+On success,
+.BR gelf_offscn ()
+returns a pointer to the
+.I Elf_Scn
+of the non-empty section with a sh_offset matching
+.IR offset .
+
+On failure,
+.B NULL
+is returned and elf_errno is set to indicate the error.  If
+.I elf
+is NULL, then NULL is returned without setting elf_errno.
+
+.SH SEE ALSO
+.BR elf32_offscn (3),
+.BR elf64_offscn (3),
+.BR libelf (3),
+.BR elf (5)
+
+.SH ATTRIBUTES
+.TS
+allbox;
+lbx lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.na
+.nh
+.BR gelf_offscn ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH REPORTING BUGS
+Report bugs to <elfutils-devel@sourceware.org> or https://sourceware.org/bugzilla/.
+
+HISTORY
+.B gelf_offscn
+first appeared in elfutils 0.112. This elfutils libelf function may not be
+found in other libelf implementations.

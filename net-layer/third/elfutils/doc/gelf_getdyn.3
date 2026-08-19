@@ -1,0 +1,77 @@
+.TH GELF_GETDYN 3 2025-12-30 "Libelf" "Libelf Programmer's Manual"
+
+.SH NAME
+gelf_getdyn \- Get class\-independent information from dynamic table at the given index
+
+.SH SYNOPSIS
+.nf
+.B #include <gelf.h>
+
+.BI "GElf_Dyn *gelf_getdyn (Elf_Data *" data ", int " ndx ", GElf_Dyn *" dst ");"
+
+.SH DESCRIPTION
+Retrieve a dynamic table entry from
+.I data
+at index
+.I ndx
+and store it in a class\-independent representation pointed to by
+.IR dst .
+
+.PP
+.I data
+must be an
+.B Elf_Data*
+associated with a section of type
+.B SHT_DYNAMIC
+
+.SH PARAMETERS
+.TP
+.I data
+Pointer to an
+.B Elf_Data
+of a section with type
+.BR SHT_DYNAMIC .
+.I data->d_type
+should be
+.BR ELF_T_DYN .
+
+.TP
+.I ndx
+Zero\-based index of the requested dynamic table entry within
+.IR data .
+
+.TP
+.I dst
+Pointer to a caller\-provided
+.B GElf_Dyn
+structure for storing the requested dynamic table entry.  Must not be NULL.
+
+.SH RETURN VALUE
+On success, this function updates
+.I dst
+with the requested dynamic table entry and returns
+.IR dst .
+On failure, it returns NULL and sets elf_errno.  If
+.I data
+is NULL, then NULL is returned without setting elf_errno.
+
+.SH SEE ALSO
+.BR gelf_update_dyn (3),
+.BR libelf (3),
+.BR elf (5)
+
+.SH ATTRIBUTES
+.TS
+allbox;
+lbx lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.na
+.nh
+.BR gelf_getdyn ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH REPORTING BUGS
+Report bugs to <elfutils-devel@sourceware.org> or https://sourceware.org/bugzilla/.

@@ -1,0 +1,6 @@
+/*.m4
+!/std-gnu11.m4
+!/ax_check_compile_flag.m4
+!/ax_cxx_compile_stdcxx.m4
+!/biarch.m4
+!/zip.m4

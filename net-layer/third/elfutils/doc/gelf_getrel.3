@@ -1,0 +1,92 @@
+.TH GELF_GETREL 3 2025-09-24 "Libelf" "Libelf Programmer's Manual"
+
+.SH NAME
+gelf_getrel, gelf_getrela \- retrieve relocation entries as class\-independent structures
+
+.SH SYNOPSIS
+.nf
+.B #include <gelf.h>
+
+.BI "GElf_Rel  *gelf_getrel (Elf_Data *" data ", int " ndx ", GElf_Rel  *" dst ");"
+.BI "GElf_Rela *gelf_getrela(Elf_Data *" data ", int " ndx ", GElf_Rela *" dst ");"
+.fi
+
+.SH DESCRIPTION
+The
+.BR gelf_getrel ()
+and
+.BR gelf_getrela ()
+functions translate the REL or RELA relocation entry at index
+.I ndx
+from
+.I data
+into a class\-independent representation stored in
+.IR *dst .
+
+.PP
+.I data
+must be the
+.B Elf_Data
+of a section whose type matches the function being called:
+.BR SHT_REL
+for
+.BR gelf_getrel ()
+and
+.BR SHT_RELA
+for
+.BR gelf_getrela ().
+
+.SH PARAMETERS
+.TP
+.I data
+Pointer to an
+.B Elf_Data
+for a SHT_REL or SHT_RELA relocation section.
+
+.TP
+.I ndx
+Zero\-based index of the relocation entry within
+.IR data .
+
+.TP
+.I dst
+Pointer to a caller\-provided structure for storing the relocation:
+.B GElf_Rel
+for
+.BR gelf_getrel ()
+and
+.B GElf_Rela
+for
+.BR gelf_getrela ().
+.I dst
+must not be NULL.
+
+.SH RETURN VALUE
+On success, returns
+.IR dst .
+On failure, returns NULL and sets elf_errno.  If
+.I data
+is NULL, then NULL is returned without setting elf_errno.
+
+.SH SEE ALSO
+.BR elf_getdata (3),
+.BR gelf_update_rel (3),
+.BR gelf_update_rela (3),
+.BR libelf (3),
+.BR elf (5)
+
+.SH ATTRIBUTES
+.TS
+allbox;
+lbx lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.na
+.nh
+.BR gelf_getrel (),\~gelf_getrela ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH REPORTING BUGS
+Report bugs to <elfutils-devel@sourceware.org> or https://sourceware.org/bugzilla/.

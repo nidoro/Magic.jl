@@ -1,0 +1,47 @@
+name: fedora-build-tests
+
+on:
+  pull_request:
+    types: [opened, synchronized, reopened]
+
+jobs:
+  check:
+    runs-on: sourceware-fedora-runner
+    steps:
+      - name: setup packages
+        run: |
+          yum upgrade -y
+          yum install -y binutils file tar xz-devel make gcc gcc-g++ coreutils git autoconf automake gettext-devel lsb-release bzip2 zlib-devel bzip2-devel libzstd-devel zstd m4 gettext gawk flex bison pkgconf procps bsdtar curl cpio rpm rpm-devel ima-evm-utils-devel openssl-devel rpm-sign rpm-build iproute socat jq fish libarchive-devel json-c-devel libmicrohttpd-devel libcurl-devel sqlite-devel valgrind valgrind-devel libubsan systemd
+
+      - name: checkout git
+        run: |
+          git clone ${FORGEJO_SERVER_URL}/${FORGEJO_REPOSITORY} .
+          git fetch origin ${FORGEJO_REF}:${FORGEJO_REF}
+          git checkout ${FORGEJO_REF}
+
+      - name: autoreconf and configure
+        run: |
+          autoreconf -f -i
+          ./configure --enable-maintainer-mode
+
+      - name: make
+        run: make -j$(nproc)
+
+      - name: make check
+        run: make check -j$(nproc) || (cat tests/test-suite.log; false)
+
+      - name: rpmbuild
+        run: make rpmbuild
+
+      # Disabled for now.
+      # Inside the container helgrind gives two unexpected failures.
+      # run-native-test.sh and run-srcfiles-self.sh
+      # Failures cannot be replicated outside the container.
+      # Without helgrind there is a failure in run-eu-search-die.sh
+      # which can be replicated outside the container.
+      # - name: helgrind and thread-safety
+      #   run: |
+      #     make clean
+      #     ./configure --enable-maintainer-mode --enable-helgrind --enable-valgrind-annotations --enable-thread-safety
+      #     make -j$(nproc)
+      #     make check -j$(nproc) || (cat tests/test-suite.log; false)
