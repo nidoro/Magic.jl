@@ -2957,6 +2957,8 @@ bool HS_InitVHosts(HS_Server* server) {
     for (int i = 0; i < server->vhostsCount; ++i) {
         HS_VHost& v = server->vhosts[i];
         v.lwsVHost = lws_create_vhost(server->lwsContext, &v.lwsContextInfo);
+        v.port = lws_get_vhost_listen_port(v.lwsVHost);
+        HS_UpdateVHostHostString(server, v.name);
         result = v.lwsVHost ? result : false;
     }
     return result;

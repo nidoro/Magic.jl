@@ -10,7 +10,7 @@ can be created using the the `fragment()` function or the `@fragment` macro.
 Use fragments to avoid rerunning the entire app script on every widget
 interaction.
 
-### The `fragment()` function
+### The `fragment(...)` function
 
 Turns a function into a fragment.
 

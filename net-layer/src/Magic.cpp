@@ -54,6 +54,7 @@ struct MG_Client {
 
 enum MG_NetEventType {
     MG_NetEventType_None,
+    MG_NetEventType_ServerReady,
     MG_NetEventType_NewClient,
     MG_NetEventType_ClientLeft,
     MG_NetEventType_NewPayload,
@@ -100,6 +101,7 @@ struct MG_Global {
     int  docsPathSize;
     bool verbose;
     bool devMode;
+    bool tlsEnabled;
 
     HS_Server hserver;
 
@@ -450,7 +452,7 @@ int HS_CALLBACK(MG_PostRequestHandler, args) {
     return 1;
 }
 
-MG_API int HS_CALLBACK(MG_WSEventsHandler, args) {
+int HS_CALLBACK(MG_WSEventsHandler, args) {
     HS_VHost* vhost = HS_GetVHost(args->socket);
     MG_Client* mgClient = HS_GetClientData(MG_Client, args);
 
@@ -480,12 +482,19 @@ MG_API int HS_CALLBACK(MG_WSEventsHandler, args) {
         } break;
 
         case LWS_CALLBACK_PROTOCOL_INIT: {
+            g.tlsEnabled = lws_is_ssl(args->socket);
+
+            // Adopt IPC socket
+            //--------------------
 #ifdef _WIN32
             lws_sock_file_fd_type fd = {.sockfd=(long long unsigned int) g.fdSocket};
 #else
             lws_sock_file_fd_type fd = {.sockfd=g.fdSocket};
 #endif
             lws* wsi = lws_adopt_descriptor_vhost(vhost->lwsVHost, LWS_ADOPT_SOCKET, fd, "ws", 0);
+
+            MG_PushNetEvent({.type = MG_NetEventType_ServerReady});
+            MG_WakeUpAppLayer();
         } break;
 
         case LWS_CALLBACK_CLOSED: {
@@ -716,6 +725,7 @@ MG_API void* MG_RunServer(void*) {
 
     HS_RunForever(&g.hserver, true);
     HS_Destroy(&g.hserver);
+    // TODO: free Global stuff
     return 0;
 }
 
@@ -775,6 +785,20 @@ MG_API int MG_DoServiceWork() {
 MG_API void MG_StopServer() {
     lws_cancel_service(g.hserver.lwsContext);
     g.hserver.isRunning = false;
+}
+
+MG_API int MG_GetServerPort() {
+    HS_VHost* vhost = HS_GetVHost(&g.hserver, "magic-app");
+    return vhost->port;
+}
+
+MG_API bool MG_IsTLSEnabled() {
+    return g.tlsEnabled;
+}
+
+MG_API bool MG_IsHTTPSEnabled() {
+    HS_VHost* vhost = HS_GetVHost(&g.hserver, "magic-app");
+    return !SU_IsEmpty(vhost->sslPublicKeyPath);
 }
 
 } // extern "C"

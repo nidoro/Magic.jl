@@ -178,7 +178,16 @@ incremented.
 function fragment(func::Function; id::String=String(nameof(func)))
     task = task_local_storage("app_task")
 
-    wrapper = create_container(top_container(), Dict("display" => "contents", "flex-direction" => get_css_value(top_container(), "flex-direction")), Dict(), id, true)
+    wrapper = create_container(
+        top_container(),
+        Dict(
+            "display" => "contents",
+            "flex-direction" => get_css_value(top_container(), "flex-direction")
+        ),
+        Dict(),
+        id,
+        true
+    )
 
     frag = Fragment()
     frag.id = id

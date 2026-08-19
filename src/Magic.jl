@@ -81,18 +81,18 @@ set_description, UploadedFile, get_dot_magic_dir
 # Error stuff
 #----------------
 abstract type MagicError        <: Exception  end
-struct FileNotFoundError        <: MagicError file_path::String end
-struct DirectoryNotFoundError   <: MagicError dir_path::String end
-struct InvalidHostnameError     <: MagicError hostname::String end
-struct InvalidPortError         <: MagicError port::Int end
+struct FileNotFound             <: MagicError file_path::String end
+struct DirectoryNotFound        <: MagicError dir_path::String end
+struct InvalidHostname          <: MagicError hostname::String end
+struct InvalidPort              <: MagicError port::Int end
 struct InvalidUploadMaxSize     <: MagicError upload_max_size::Int end
 struct InvalidUploadMaxFiles    <: MagicError upload_max_files::Int end
 
-Base.showerror(io::IO, e::FileNotFoundError) = print(io, "File not found: $(e.file_path)")
-Base.showerror(io::IO, e::DirectoryNotFoundError) = print(io, "Directory not found: $(e.dir_path)")
-Base.showerror(io::IO, e::InvalidPortError) = print(io, "Invalid port: $(e.port) (must be 0-65535)")
-Base.showerror(io::IO, e::InvalidUploadMaxSize) = print(io, "Invalid upload_max_size: $(e.upload_max_size). It must be a number greater than or equal to 0.")
-Base.showerror(io::IO, e::InvalidUploadMaxFiles) = print(io, "Invalid upload_max_files: $(e.upload_max_files). It must be a number greater than or equal to 0.")
+Base.showerror(io::IO, e::FileNotFound)             = print(io, "File not found: $(e.file_path)")
+Base.showerror(io::IO, e::DirectoryNotFound)        = print(io, "Directory not found: $(e.dir_path)")
+Base.showerror(io::IO, e::InvalidPort)              = print(io, "Invalid port: $(e.port) (must be 0-65535)")
+Base.showerror(io::IO, e::InvalidUploadMaxSize)     = print(io, "Invalid upload max size: $(e.upload_max_size). It must be a number greater than or equal to 0.")
+Base.showerror(io::IO, e::InvalidUploadMaxFiles)    = print(io, "Invalid upload max files: $(e.upload_max_files). It must be a number greater than or equal to 0.")
 
 # Misc constants
 #-------------------
@@ -111,7 +111,10 @@ certs
 served-files/generated
 uploaded-files
 companion-host.json
+data/
 """
+
+const VERSION = VersionNumber(TOML.parsefile(joinpath(pkgdir(@__MODULE__), "Project.toml"))["version"])
 
 # Colored log utils. AC stands for "ANSI Color"
 #------------------------------------------------
@@ -158,10 +161,11 @@ end
 #---------------
 const NetEventType                       = Cint
 const NetEventType_None                  = Cint(0)
-const NetEventType_NewClient             = Cint(1)
-const NetEventType_ClientLeft            = Cint(2)
-const NetEventType_NewPayload            = Cint(3)
-const NetEventType_ServerLoopInterrupted = Cint(4)
+const NetEventType_ServerReady           = Cint(1)
+const NetEventType_NewClient             = Cint(2)
+const NetEventType_ClientLeft            = Cint(3)
+const NetEventType_NewPayload            = Cint(4)
+const NetEventType_ServerLoopInterrupted = Cint(5)
 
 @with_kw mutable struct NetEvent
     ev_type         ::NetEventType  = NetEventType_None
@@ -221,15 +225,12 @@ end
     dry_run_error       ::Union{RerunError, Nothing} = nothing
     upload_max_size     ::Int                       = 25*MiB
     upload_max_files    ::Int                       = 10
+
+    MAGIC_SO            ::String                    = ""
+    LIBMAGIC            ::Any                       = nothing
 end
 
-# Globals initialization
-#--------------------------
-MAGIC_SO    = nothing
-LIBMAGIC    = nothing
-USER_TYPES  = Dict{Symbol,DataType}()
-VERSION     = VersionNumber(TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))["version"])
-g           = Global()
+# USER_TYPES  = Dict{Symbol,DataType}() # DEPRECATED: for usage with @once
 
 function buffer_to_string(buffer::NTuple{N, UInt8}) where N
     # Find the null terminator
@@ -582,31 +583,31 @@ function rerun(client_id::Cint, payload::Dict)::Task
 end
 
 function lock_client(client_id::Cint)::Nothing
-    ccall((:MG_LockClient, MAGIC_SO), Cvoid, (Cint,), client_id)
+    ccall((:MG_LockClient, g.MAGIC_SO), Cvoid, (Cint,), client_id)
     return nothing
 end
 
 function unlock_client(client_id::Cint)::Nothing
-    ccall((:MG_UnlockClient, MAGIC_SO), Cvoid, (Cint,), client_id)
+    ccall((:MG_UnlockClient, g.MAGIC_SO), Cvoid, (Cint,), client_id)
     return nothing
 end
 
 function pop_net_event()::NetEvent
-    return ccall((:MG_PopNetEvent, MAGIC_SO), NetEvent, ())
+    return ccall((:MG_PopNetEvent, g.MAGIC_SO), NetEvent, ())
 end
 
 function push_app_event(app_event::AppEvent)::Nothing
-    ccall((:MG_PushAppEvent, MAGIC_SO), Cvoid, (AppEvent,), app_event)
+    ccall((:MG_PushAppEvent, g.MAGIC_SO), Cvoid, (AppEvent,), app_event)
     return nothing
 end
 
 function push_uri_mapping(uri::String, resource_path::String)::Nothing
-    ccall((:MG_PushURIMapping, MAGIC_SO), Cvoid, (Cstring, Cint, Cstring, Cint), uri, Cint(sizeof(uri)), resource_path, Cint(sizeof(resource_path)))
+    ccall((:MG_PushURIMapping, g.MAGIC_SO), Cvoid, (Cstring, Cint, Cstring, Cint), uri, Cint(sizeof(uri)), resource_path, Cint(sizeof(resource_path)))
     return nothing
 end
 
 function clear_uri_mapping()::Nothing
-    ccall((:MG_ClearURIMapping, MAGIC_SO), Cvoid, ())
+    ccall((:MG_ClearURIMapping, g.MAGIC_SO), Cvoid, ())
     return nothing
 end
 
@@ -829,35 +830,31 @@ function start_app(
     # Input validation
     #----------------------
     if !is_valid_hostname(host_name)
-        throw(InvalidHostnameError(host_name))
-        return nothing
+        throw(InvalidHostname(host_name))
     end
 
-    if port < 1 || port > 65535
-        throw(InvalidPortError(port))
-        return nothing
+    if port < 0 || port > 65535
+        throw(InvalidPort(port))
     end
 
     if upload_max_size < 0
         throw(InvalidUploadMaxSize(upload_max_size))
-        return nothing
     end
 
     if upload_max_files < 0
         throw(InvalidUploadMaxFiles(upload_max_files))
-        return nothing
     end
 
     global g = Global()
-    g.verbose = verbose
     g.dev_mode = dev_mode
+    g.verbose = verbose
 
     if g.dev_mode
         @warn "Starting Magic.jl on dev mode"
     end
 
-    global MAGIC_SO = get_dyn_lib_path()
-    global LIBMAGIC = Libdl.dlopen(MAGIC_SO, Libdl.RTLD_NOW)
+    g.MAGIC_SO = get_dyn_lib_path()
+    g.LIBMAGIC = Libdl.dlopen(g.MAGIC_SO, Libdl.RTLD_NOW)
     g.sessions = Dict{Ptr{Cvoid}, Session}()
     g.first_pass = true
     g.initialized = true
@@ -869,8 +866,7 @@ function start_app(
     g.upload_max_files = upload_max_files
 
     if !isfile(g.script_path)
-        throw(FileNotFoundError(g.script_path))
-        return nothing
+        throw(FileNotFound(g.script_path))
     end
 
     if dot_magic_dir === nothing
@@ -880,8 +876,7 @@ function start_app(
     end
 
     if !isdir(g.dot_magic_dir)
-        throw(DirectoryNotFoundError(g.dot_magic_dir))
-        return nothing
+        throw(DirectoryNotFound(g.dot_magic_dir))
     end
 
     g.dot_magic_dir = realpath(g.dot_magic_dir)
@@ -891,7 +886,7 @@ function start_app(
     else
         docs_path = joinpath(pwd(), docs_path)
         if !isdir(docs_path)
-            throw(DirectoryNotFoundError(docs_path))
+            throw(DirectoryNotFound(docs_path))
             return nothing
         end
     end
@@ -899,7 +894,8 @@ function start_app(
     @info """
         $(AC_Bold("Configuration"))
         App script           : $(g.script_path)
-        Host                 : $(g.host_name):$(g.port)
+        Hostname             : $(g.host_name)
+        Port                 : $(g.port) $(g.port == 0 ? "(let the OS pick a port)" : "")
         Upload max size      : $(Float64(g.upload_max_size)/MiB) MiB
         Upload max files     : $(g.upload_max_files)
         Process working dir  : $(pwd())
@@ -912,8 +908,8 @@ function start_app(
     ipc_port = getsockname(ipc_server)[2]
 
     init_net_layer(
-        host_name,
-        port,
+        g.host_name,
+        g.port,
         docs_path,
         Int(ipc_port),
         g.dot_magic_dir,
@@ -947,8 +943,6 @@ function start_app(
     # When a net-layer event happens, it forwards the event to the App-layer
     # loop by pushing the event to the `internal_events` channel.
     #---------------------------------------------------------------------------
-    @info "NetLayerStarted\nNow serving at http://$(host_name):$(port)"
-
     Threads.@spawn begin
         stop_loop = false
 
@@ -977,7 +971,10 @@ function start_app(
             ev = take!(g.internal_events)
 
             if ev.ev_type == InternalEventType_Network
-                if ev.data.ev_type == NetEventType_NewClient
+                if ev.data.ev_type == NetEventType_ServerReady
+                    g.port = get_server_port()
+                    @info "NetLayerStarted\nNow serving at http$(is_https_enabled() ? "s" : "")://$(g.host_name):$(g.port)"
+                elseif ev.data.ev_type == NetEventType_NewClient
                     session_id = buffer_to_string(ev.data.session_id)
                     @debug "NetEventType_NewClient | ClientId=$(ev.data.client_id) | SessionId=$(session_id)"
                     handle_new_client(ev.data.client_id, session_id)
@@ -1108,7 +1105,7 @@ function start_app(
         e isa InterruptException || rethrow()
     end
 
-    Libdl.dlclose(LIBMAGIC)
+    Libdl.dlclose(g.LIBMAGIC)
 
     @info "ServerLoopStopped"
 end
@@ -1116,11 +1113,11 @@ end
 function create_app_event(event_type::AppEventType, client_id::Cint, payload::Union{String, Nothing})::AppEvent
     payload_ptr = payload !== nothing ? payload : Ptr{Cchar}(0)
     payload_size = payload !== nothing ? Cint(sizeof(payload)) : Cint(0)
-    return ccall((:MG_CreateAppEvent, MAGIC_SO), AppEvent, (AppEventType, Cint, Ptr{Cchar}, Cint), event_type, client_id, payload_ptr, payload_size)
+    return ccall((:MG_CreateAppEvent, g.MAGIC_SO), AppEvent, (AppEventType, Cint, Ptr{Cchar}, Cint), event_type, client_id, payload_ptr, payload_size)
 end
 
 function destroy_net_event(ev::NetEvent)::Nothing
-    ccall((:MG_DestroyNetEvent, MAGIC_SO), Cvoid, (NetEvent,), ev)
+    ccall((:MG_DestroyNetEvent, g.MAGIC_SO), Cvoid, (NetEvent,), ev)
 end
 
 function init_net_layer(
@@ -1136,7 +1133,7 @@ function init_net_layer(
 )
 
     ccall(
-        (:MG_InitNetLayer, MAGIC_SO),
+        (:MG_InitNetLayer, g.MAGIC_SO),
         Cvoid,
         (Cstring, Cint, Cint, Cstring, Cint, Cint, Cstring, Cint, Cstring, Cint, Cint, Cint, Cint),
         host_name, Cint(sizeof(host_name)), port, docs_path, Cint(sizeof(docs_path)), Cint(ipc_port), dot_magic_dir, Cint(sizeof(dot_magic_dir)), package_root_dir, Cint(sizeof(package_root_dir)), Cint(upload_max_size), Cint(verbose), Cint(dev_mode)
@@ -1144,15 +1141,27 @@ function init_net_layer(
 end
 
 function server_is_running()::Bool
-    return ccall((:MG_ServerIsRunning, MAGIC_SO), Cint, ())
+    return ccall((:MG_ServerIsRunning, g.MAGIC_SO), Cint, ())
 end
 
 function do_service_work()::Int
-    return ccall((:MG_DoServiceWork, MAGIC_SO), Cint, ())
+    return ccall((:MG_DoServiceWork, g.MAGIC_SO), Cint, ())
 end
 
 function stop_server()
-    return ccall((:MG_StopServer, MAGIC_SO), Cvoid, ())
+    return ccall((:MG_StopServer, g.MAGIC_SO), Cvoid, ())
+end
+
+function get_server_port()::Int
+    return ccall((:MG_GetServerPort, g.MAGIC_SO), Cint, ())
+end
+
+function is_tls_enabled()::Bool
+    return ccall((:MG_IsTLSEnabled, g.MAGIC_SO), Cint, ())
+end
+
+function is_https_enabled()::Bool
+    return ccall((:MG_IsHTTPSEnabled, g.MAGIC_SO), Cint, ())
 end
 
 # Entry points

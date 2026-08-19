@@ -5,3 +5,4 @@ companion-host.json
 certs
 served-files/generated
 uploaded-files
+data/
