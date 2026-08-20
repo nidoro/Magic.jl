@@ -17,7 +17,7 @@ Call this function from the REPL to start the web app. Example:
 
 ```julia
 function start_app(
-    script_path         ::String="app.jl";
+    script_or_func      ::Union{String, Function}="app.jl";
     host_name           ::String="localhost",
     port                ::Int=3443,
     upload_max_size     ::Int=25*MiB,
@@ -31,7 +31,7 @@ function start_app(
 
  Argument        | Description
 ---------------- |-------------
- `script_path` | A `String` specifying the path to the application script to run.
+ `script_or_func` | A `String` specifying the path to the entry point script or `Function` specifying the entry point function. Default: "app.jl".
  `host_name`   | A `String` specifying the hostname or IP address the server should bind to. Default is `"localhost"`.
  `port`        | An `Int` specifying the port number on which the server will listen. Default is `3443`.
  `upload_max_size` | An `Int` specifying the maximum file size acceptable by `file_uploader` widgets. Default is 25 MiB.
