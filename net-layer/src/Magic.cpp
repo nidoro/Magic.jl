@@ -490,6 +490,7 @@ int HS_CALLBACK(MG_PostRequestHandler, args) {
 int HS_CALLBACK(MG_WSEventsHandler, args) {
     HS_VHost* vhost = HS_GetVHost(args->socket);
     MG_Client* mgClient = HS_GetClientData(MG_Client, args);
+    int callbackResult = 0;
 
     LU_Log(LU_Debug, "HandleLWSEvent | %s", HS_ToString(args->reason));
 
@@ -499,7 +500,7 @@ int HS_CALLBACK(MG_WSEventsHandler, args) {
         } break;
 
         case LWS_CALLBACK_SERVER_WRITEABLE: {
-            HS_WriteNextPacket(&mgClient->writeQueue);
+            callbackResult = HS_WriteNextPacket(&mgClient->writeQueue);
         } break;
 
         case LWS_CALLBACK_ESTABLISHED: {
@@ -626,7 +627,7 @@ int HS_CALLBACK(MG_WSEventsHandler, args) {
         default: break;
     }
 
-    return 0;
+    return callbackResult;
 }
 
 MG_API void MG_PushURIMapping(const char* uri, int uriSize, const char* filePath, int filePathSize) {
