@@ -307,6 +307,15 @@ function get_session_data()::Any
     return task.session.user_session_data
 end
 
+function get_session(client_id::Cint)::Session
+    return g.sessions[client_id]
+end
+
+function get_session_data(client_id::Cint)::Any
+    session = get_session(client_id)
+    return session.user_session_data
+end
+
 @doc @doc(get_session_data) set_session_data
 function set_session_data(session_data::Any)::Nothing
     task = task_local_storage("app_task")
@@ -377,6 +386,57 @@ function get_url_path()::String
     return task.session.location["pathname"]
 end
 
+function parse_query(query::AbstractString)::Dict{String,String}
+    d = Dict{String,String}()
+    q = startswith(query, "?") ? query[2:end] : query
+    isempty(q) && return d
+
+    for pair in split(q, "&")
+        isempty(pair) && continue
+        kv = split(pair, "=", limit=2)
+        key = unescape_uri(kv[1])
+        value = length(kv) > 1 ? unescape_uri(kv[2]) : ""
+        d[key] = value
+    end
+    return d
+end
+
+function unescape_uri(s::AbstractString)::String
+    s = replace(s, "+" => " ")
+    io = IOBuffer()
+    i = firstindex(s)
+    while i <= lastindex(s)
+        c = s[i]
+        if c == '%' && i + 2 <= lastindex(s)
+            hex = s[i+1:i+2]
+            write(io, Char(parse(UInt8, hex, base=16)))
+            i = nextind(s, i, 3)
+        else
+            write(io, c)
+            i = nextind(s, i)
+        end
+    end
+    return String(take!(io))
+end
+
+function get_url_search()::String
+    task = task_local_storage("app_task")
+    return task.session.location["search"]
+end
+
+function get_url_search(client_id::Cint)::String
+    session = g.sessions[client_id]
+    return session.location["search"]
+end
+
+function get_query_params()::Dict
+    return parse_query(get_url_search())
+end
+
+function get_query_params(client_id::Cint)::Dict
+    return parse_query(get_url_search(client_id))
+end
+
 # PageConfig
 #---------------------
 @with_kw mutable struct PageConfig
@@ -386,6 +446,7 @@ end
     description     ::String = "Web app made with Magic.jl"
     style           ::String = ""
     file_path       ::String = ""
+    html_injection  ::Dict{String, String} = Dict()
     first_pass      ::Bool   = true
     user_page_data  ::Any    = nothing
 
@@ -661,6 +722,22 @@ function add_css_rule(style::String)::Nothing
     return add_css_rule(task.current_page, style)
 end
 
+@doc DOC_PAGE_STATIC_SETTINGS
+function inject_html(page::PageConfig; html::String="", file_path::Union{String, Nothing}=nothing, location::String="body_bottom")::Nothing
+    if file_path !== nothing
+        html *= read(file_path, String)
+    end
+    get!(page.html_injection, location, "")
+    page.html_injection[location] *= html
+    return nothing
+end
+
+@doc DOC_PAGE_STATIC_SETTINGS
+function inject_html(; html::String="", file_path::Union{String, Nothing}=nothing, location::String="body_bottom")::Nothing
+    task = task_local_storage("app_task")
+    return inject_html(task.current_page, html=html, file_path=file_path, location=location)
+end
+
 function begin_page_config(page::PageConfig)::Nothing
     task = task_local_storage("app_task")
     task.current_page = page
@@ -679,11 +756,20 @@ function create_page_html(page::PageConfig, output_path::String)::Nothing
     title = length(page.title) > 0 ? page.title : g.base_page_config.title
     description = length(page.description) > 0 ? page.description : g.base_page_config.description
 
+    get!(page.html_injection, "head_top", "")
+    get!(page.html_injection, "head_bottom", "")
+    get!(page.html_injection, "body_top", "")
+    get!(page.html_injection, "body_bottom", "")
+
     page_html = replace(
         template,
         "<title>Magic App</title>" => "<title>$(title)</title>",
         "<meta property=\"og:description\" content=\"Web app made with Magic.jl\">" => "<meta property=\"og:description\" content=\"$(description)\">",
-        "<!-- MAGIC PAGE STYLE -->" => "<style>$(page.style)</style>"
+        "<!-- MAGIC PAGE STYLE -->" => "<style>$(page.style)</style>",
+        "<!-- HTML HEAD TOP INJECTION -->" => page.html_injection["head_top"],
+        "<!-- HTML HEAD BOTTOM INJECTION -->" => page.html_injection["head_bottom"],
+        "<!-- HTML BODY TOP INJECTION -->" => page.html_injection["body_top"],
+        "<!-- HTML BODY BOTTOM INJECTION -->" => page.html_injection["body_bottom"],
     )
 
     write(output_path, page_html)
@@ -921,6 +1007,15 @@ end
 function set_app_data(app_data::Any)::Nothing
     g.user_app_data = app_data
     return nothing
+end
+
+function set_callback(callback::Function)::Nothing
+    g.callback = callback
+    return nothing
+end
+
+function get_server_origin()::String
+    return "http$(is_https_enabled() ? "s" : "")://$(g.host_name):$(g.port)"
 end
 
 # Misc
