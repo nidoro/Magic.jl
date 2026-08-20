@@ -3138,7 +3138,7 @@ void HS_WriteString(HS_Packet* packet, const char* string) {
 void HS_CloseConnection(HS_PacketQueue* queue, int closeStatus) {
     HS_Packet packet = {};
     packet.closeStatus = closeStatus;
-    lws_callback_on_writable(queue->socket);
+    HS_SendPacket(queue, packet);
 }
 
 bool HS_ReceiveMessageFragment(HS_CallbackArgs* args, char** receivedBuffer, int* receivedSize, int* receivedCap, HS_CallbackFunc processCompleteMessage) {
