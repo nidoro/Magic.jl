@@ -77,6 +77,7 @@ enum MG_AppEventType {
     MG_AppEventType_DownloadReady,
     MG_AppEventType_ServerStopRequested,
     MG_AppEventType_FatalError,
+    MG_AppEventType_DisconnectRequested,
 };
 
 struct MG_AppEvent {
@@ -608,11 +609,14 @@ int HS_CALLBACK(MG_WSEventsHandler, args) {
                         } else {
                             // NOTE: No pending download response. Nothing to do.
                         }
+                    } else if (ev.type == MG_AppEventType_DisconnectRequested) {
+                        LU_Log(LU_Debug, "AppEventType_DisconnectRequested | ClientId=%d");
+                        HS_CloseConnection(&mgClient->writeQueue, LWS_CLOSE_STATUS_NORMAL);
+                        MG_DestroyAppEvent(ev);
                     } else {
                         DD_Assert2(0, "Unreachable: Unknown event %d", ev.type);
                     }
                 } else if (ev.type == MG_AppEventType_ServerStopRequested) {
-                    printf("MG_AppEventType_ServerStopRequested\n");
                     MG_HandleSigInt(0);
                 } else if (ev.type == MG_AppEventType_FatalError) {
                     LU_Log(LU_Important, "MG_AppEventType_FatalError");
