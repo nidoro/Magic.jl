@@ -2,6 +2,35 @@ const KiB = 1024;
 const MiB = 1024*KiB;
 const GiB = 1024*MiB;
 
+class Magic {
+    constructor() {
+        this.eventListener = () => {};
+    }
+
+    setEventListener(eventListener) {
+        this.eventListener = eventListener;
+    }
+
+    requestRerun(events) {
+        requestUpdate(events);
+    }
+
+    disconnect(reason) {
+        wsSendObj({
+            type: "disconnect",
+            reason: reason,
+        });
+    }
+
+    getRerunCount() {
+        return g.reruns;
+    }
+
+    waitingRerun() {
+        return g.lastValidRerunResponse != null;
+    }
+}
+
 class MG_Icon extends HTMLElement {
     constructor() {
         super();
@@ -28,6 +57,8 @@ const FILE_UPLOADER_DEFAULT_INNER_HTML = `
     </div>
 `;
 
+var magic = new Magic();
+
 var g = {
     ws: null,
     devMode: false,
@@ -36,6 +67,7 @@ var g = {
     sessionId: null,
     uploadMaxSize: null,
     uploadMaxFiles: null,
+    reruns: 0,
 
     coolDown: {},
 };
@@ -1168,6 +1200,16 @@ async function wsOnMessage(event) {
             }
             ackInvalidState();
         }
+
+        g.reruns += 1;
+
+        requestAnimationFrame(() => {
+            if (g.reruns == 1) {
+                magic.eventListener({type: "first_run_complete"});
+            }
+
+            magic.eventListener({type: "rerun_complete"});
+        });
     } else if (msg.type == "please_refresh") {
         location.reload();
     } else if (msg.type == "response_hello") {
