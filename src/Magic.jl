@@ -76,8 +76,8 @@ is_app_first_pass, is_page_first_pass, is_session_first_pass,
 gen_serveable_path, make_serveable_copy, move_to_serveable_dir,
 fragment, @fragment, get_url_path, is_on_page, get_current_page, add_page,
 add_css_rule, add_font, begin_page_config, end_page_config, set_title,
-set_description, UploadedFile, get_dot_magic_dir, inject_html, get_url_search,
-get_query_params, get_server_origin, stop_app
+set_description, UploadedFile, get_dot_magic_dir, get_dot_magic_path,
+inject_html, get_url_search, get_query_params, get_server_origin, stop_app
 
 # Includes
 #------------
