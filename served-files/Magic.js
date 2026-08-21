@@ -27,7 +27,7 @@ class Magic {
     }
 
     waitingRerun() {
-        return g.lastValidRerunResponse != null;
+        return g.waitingRerun > 0;
     }
 }
 
@@ -68,6 +68,7 @@ var g = {
     uploadMaxSize: null,
     uploadMaxFiles: null,
     reruns: 0,
+    waitingRerun: 0,
 
     coolDown: {},
 };
@@ -102,6 +103,8 @@ function requestUpdate(events) {
         request_id: g.nextRequestId++,
         events,
     });
+
+    g.waitingRerun += 1;
 }
 
 function ackInvalidState() {
@@ -1201,6 +1204,7 @@ async function wsOnMessage(event) {
             ackInvalidState();
         }
 
+        g.waitingRerun -= 1;
         g.reruns += 1;
 
         requestAnimationFrame(() => {

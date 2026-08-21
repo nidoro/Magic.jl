@@ -1,5 +1,39 @@
 using Magic
 
+test_page = ENV["MAGIC_TEST_PAGE"]
+test_actions_script = ENV["MAGIC_TEST_ACTIONS_SCRIPT"]
+test_clients = parse(Int, ENV["MAGIC_TEST_CLIENTS"])
+
+function start_test()::Nothing
+    app_data = get_app_data()
+
+    test_url = "$(get_server_origin())/?chromium_instance=$(length(app_data.chromium_instances)+1)"
+
+    cmd = "chromium --headless --disable-gpu $test_url"
+    proc = run(Cmd(String.(split(cmd))), wait=false)
+
+    sleep(0.25)
+    if process_running(proc)
+        push!(app_data.chromium_instances, proc)
+    else
+        throw(Magic.TestFailed(test_url, "Failed to spawn a chromium instance"))
+    end
+
+    return nothing
+end
+
+function test_successfull(client_id::Cint)::Tuple{Bool, String}
+    if (test_page, test_actions_script) == ("01-counter.jl", "01-counter.js")
+        session_data = get_session_data(client_id)
+        if session_data == 30
+            return (true, "")
+        else
+            return (false, "Click count should be 30, but it is $(session_data)")
+        end
+    end
+    return false
+end
+
 function kill_chromium_instance(instance::Base.Process)::Nothing
     if process_running(instance)
         kill(instance)
@@ -21,18 +55,8 @@ function callback(reason::Magic.CallbackReason, args...)
     app_data = get_app_data()
 
     if     reason == Magic.CallbackReason_ServerReady
-        for i in 1:10
-            test_url = "$(get_server_origin())/01-counter?chromium_instance=$(i)"
-
-            cmd = "chromium --headless --disable-gpu $test_url"
-            proc = run(Cmd(String.(split(cmd))), wait=false)
-
-            sleep(0.25)
-            if process_running(proc)
-                push!(app_data.chromium_instances, proc)
-            else
-                throw(Magic.TestFailed(test_url, "Failed to spawn a chromium instance"))
-            end
+        for i in range(1, test_clients)
+            start_test()
         end
     elseif reason == Magic.CallbackReason_ClientLeft
         client_id = args[1]
@@ -43,12 +67,13 @@ function callback(reason::Magic.CallbackReason, args...)
         kill_chromium_instance(proc)
         app_data.done += 1
 
-        test_url = "$(get_server_origin())/01-counter?chromium_instance=$(p)"
+        test_url = "$(get_server_origin())/?chromium_instance=$(p)"
 
-        session_data = get_session_data(client_id)
-        if session_data != 30
+        success, feedback = test_successfull(client_id)
+
+        if !success
             kill_all_chromium_instances()
-            throw(Magic.TestFailed(test_url, "Click count should be 30, but it is $(session_data)"))
+            throw(Magic.TestFailed(test_url, feedback))
         end
 
         if app_data.done == length(app_data.chromium_instances)
@@ -69,18 +94,14 @@ end
     app_data = AppData([], 0)
     set_app_data(app_data)
 
-    add_page("/01-counter")
     Magic.set_callback(callback)
 end
 
-page = get_current_page()
-
 @page_startup begin
     inject_html(html="<script>")
-    inject_html(file_path=joinpath(@__DIR__, ".$(page.uris[1]).js"))
+    inject_html(file_path=joinpath(@__DIR__, test_actions_script))
     inject_html(html="</script>")
 end
 
-if page !== missing
-    include("../examples$(page.uris[1]).jl")
-end
+include("../examples/$(test_page)")
+

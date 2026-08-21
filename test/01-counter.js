@@ -1,4 +1,6 @@
+
 let actions = [];
+let nextAction = 0;
 
 for (let i = 0; i < 5; i++) {
     actions.push(() => {
@@ -20,9 +22,9 @@ for (let i = 0; i < 10; i++) {
 
 function eventListener(event) {
     if (event.type == "rerun_complete") {
-        let r = magic.getRerunCount() - 1;
-        if (r < actions.length) {
-            actions[r]();
+        if (nextAction < actions.length) {
+            actions[nextAction]();
+            nextAction += 1;
         } else if (!magic.waitingRerun()) {
             magic.disconnect("test_done");
         }
