@@ -76,7 +76,8 @@ is_app_first_pass, is_page_first_pass, is_session_first_pass,
 gen_serveable_path, make_serveable_copy, move_to_serveable_dir,
 fragment, @fragment, get_url_path, is_on_page, get_current_page, add_page,
 add_css_rule, add_font, begin_page_config, end_page_config, set_title,
-set_description, UploadedFile, get_dot_magic_dir
+set_description, UploadedFile, get_dot_magic_dir, inject_html, get_url_search,
+get_query_params, get_server_origin, stop_app
 
 # Error stuff
 #----------------
@@ -88,6 +89,7 @@ struct InvalidPort              <: MagicError port::Int end
 struct InvalidUploadMaxSize     <: MagicError upload_max_size::Int end
 struct InvalidUploadMaxFiles    <: MagicError upload_max_files::Int end
 struct ClientSideError          <: MagicError payload::Dict end
+struct TestFailed               <: MagicError test_id::String; info::String end
 
 Base.showerror(io::IO, e::InvalidFile)              = print(io, "File not found or invalid: $(e.file_path)")
 Base.showerror(io::IO, e::InvalidDirectory)         = print(io, "Directory not found or invalid: $(e.dir_path)")
@@ -95,6 +97,7 @@ Base.showerror(io::IO, e::InvalidPort)              = print(io, "Invalid port: $
 Base.showerror(io::IO, e::InvalidUploadMaxSize)     = print(io, "Invalid upload max size: $(e.upload_max_size). Please provide a number greater than or equal to 0.")
 Base.showerror(io::IO, e::InvalidUploadMaxFiles)    = print(io, "Invalid upload max files: $(e.upload_max_files). Please provide a number greater than or equal to 0.")
 Base.showerror(io::IO, e::ClientSideError)          = print(io, "Client side error:\n$(JSON.json(e.payload, 4))")
+Base.showerror(io::IO, e::TestFailed)               = print(io, "Test failed: $(e.test_id)\n$(e.info)")
 
 # Misc constants
 #-------------------
@@ -185,6 +188,7 @@ const AppEventType_NewPayload           = Cint(1)
 const AppEventType_DownloadReady        = Cint(2)
 const AppEventType_ServerStopRequested  = Cint(3)
 const AppEventType_FatalError           = Cint(4)
+const AppEventType_DisconnectRequested  = Cint(5)
 
 @with_kw mutable struct AppEvent
     ev_type         ::AppEventType  = AppEventType_None
@@ -211,10 +215,13 @@ end
 @enum CallbackReason begin
     CallbackReason_ServerReady
     CallbackReason_NewClient
+    CallbackReason_BeforeSessionFirstPass
+    CallbackReason_AfterSessionFirstPass
     CallbackReason_ClientLeft
     CallbackReason_NewPayload
     CallbackReason_TaskFinished
     CallbackReason_ClientSideError
+    CallbackReason_DisconnectRequested
 end
 
 # Global
@@ -222,7 +229,7 @@ end
 @with_kw mutable struct Global
     initialized         ::Bool                      = false
     dot_magic_dir       ::String                    = ""
-    script_path         ::Union{String, Nothing}    = nothing
+    script_or_func      ::Union{String, Function}   = "app.jl"
     script_name         ::Union{String, Nothing}    = nothing
     host_name           ::String                    = ""
     port                ::Int                       = 3443
@@ -382,7 +389,11 @@ end
 
 function run_user_script()::Nothing
     task = task_local_storage("app_task")
-    Base.include(task.session.app_mod, g.script_path)
+    if g.script_or_func isa String
+        Base.include(task.session.app_mod, g.script_or_func)
+    else
+        Base.invokelatest(g.script_or_func)
+    end
     return nothing
 end
 
@@ -562,7 +573,15 @@ function rerun(client_id::Cint, payload::Dict)::Task
 
             # Run user fragment
             #-------------------
+            if is_session_first_pass()
+                Base.invokelatest(g.callback, CallbackReason_BeforeSessionFirstPass, client_id, session.session_id)
+            end
+
             invokelatest(frag.func)
+
+            if is_session_first_pass()
+                Base.invokelatest(g.callback, CallbackReason_AfterSessionFirstPass, client_id, session.session_id)
+            end
 
             # Remove dead widgets
             #-------------------------
@@ -801,7 +820,7 @@ Call this function from the REPL to start the web app. Example:
 
 ```julia
 function start_app(
-    script_path         ::String="app.jl";
+    script_or_func      ::String="app.jl";
     host_name           ::String="localhost",
     port                ::Int=3443,
     upload_max_size     ::Int=25*MiB,
@@ -815,7 +834,7 @@ function start_app(
 
  Argument        | Description
 ---------------- |-------------
- `script_path` | A `String` specifying the path to the application script to run.
+ `script_or_func` | A `String` specifying the path to the entry point script or `Function` specifying the entry point function. Default: "app.jl".
  `host_name`   | A `String` specifying the hostname or IP address the server should bind to. Default is `"localhost"`.
  `port`        | An `Int` specifying the port number on which the server will listen. Default is `3443`.
  `upload_max_size` | An `Int` specifying the maximum file size acceptable by `file_uploader` widgets. Default is 25 MiB.
@@ -833,7 +852,7 @@ Once called, this function blocks the current process and keeps the server
 running until it is stopped with `Ctrl+C`.
 """
 function start_app(
-    script_path::String="app.jl";
+    script_or_func::Union{String, Function}="app.jl";
     host_name::String="localhost",
     port::Int=3443,
     upload_max_size::Int=25*MiB,
@@ -878,15 +897,20 @@ function start_app(
     g.sessions = Dict{Ptr{Cvoid}, Session}()
     g.first_pass = true
     g.initialized = true
-    g.script_path = joinpath(pwd(), expanduser(script_path))
-    g.script_name = basename(script_path)
+    if script_or_func isa String
+        g.script_or_func = joinpath(pwd(), expanduser(script_or_func))
+        g.script_name = basename(script_or_func)
+    else
+        g.script_or_func = script_or_func
+        g.script_name = String(nameof(script_or_func))
+    end
     g.host_name = host_name
     g.port = port
     g.upload_max_size = upload_max_size
     g.upload_max_files = upload_max_files
 
-    if !isfile(g.script_path)
-        throw(InvalidFile(g.script_path))
+    if script_or_func isa String && !isfile(g.script_or_func)
+        throw(InvalidFile(g.script_or_func))
     end
 
     if dot_magic_dir === nothing
@@ -913,7 +937,7 @@ function start_app(
 
     @info """
         $(AC_Bold("Configuration"))
-        App script           : $(g.script_path)
+        App script/function  : $(g.script_or_func)
         Hostname             : $(g.host_name)
         Port                 : $(g.port) $(g.port == 0 ? "(let the OS pick a port)" : "")
         Upload max size      : $(Float64(g.upload_max_size)/MiB) MiB
@@ -995,9 +1019,9 @@ function start_app(
                     g.port = get_server_port()
 
                     println()
-                    @info "NetLayerStarted\nNow serving at http$(is_https_enabled() ? "s" : "")://$(g.host_name):$(g.port)"
+                    @info "NetLayerStarted\nNow serving at $(get_server_origin())"
 
-                    g.callback(CallbackReason_ServerReady)
+                    Base.invokelatest(g.callback, CallbackReason_ServerReady)
 
                     if init_and_quit
                         stop_app()
@@ -1007,12 +1031,11 @@ function start_app(
                     @debug "NetEventType_NewClient | ClientId=$(ev.data.client_id) | SessionId=$(session_id)"
                     handle_new_client(ev.data.client_id, session_id)
 
-                    g.callback(CallbackReason_NewClient, ev.data.client_id)
+                    Base.invokelatest(g.callback, CallbackReason_NewClient, ev.data.client_id)
                 elseif ev.data.ev_type == NetEventType_ClientLeft
                     @debug "NetEventType_ClientLeft | ClientId=$(ev.data.client_id)"
+                    Base.invokelatest(g.callback, CallbackReason_ClientLeft, ev.data.client_id)
                     handle_client_left(ev.data.client_id)
-
-                    g.callback(CallbackReason_ClientLeft, ev.data.client_id)
                 elseif ev.data.ev_type == NetEventType_NewPayload
                     @debug "NetEventType_NewPayload | ClientId=$(ev.data.client_id)"
                     payload_string = unsafe_string(ev.data.payload, ev.data.payload_size)
@@ -1071,12 +1094,19 @@ function start_app(
                         write(g.ipc_connection, " ")
                     elseif payload["type"] == "error"
                         @debug "ClientSideError | ClientId=$(session.client_id) | SessionId=$(session.session_id)"
-                        g.callback(CallbackReason_ClientSideError, ev.data.client_id, payload)
+                        Base.invokelatest(g.callback, CallbackReason_ClientSideError, ev.data.client_id, session.session_id, payload)
+                    elseif payload["type"] == "disconnect"
+                        @debug "DisconnectRequested | ClientId=$(session.client_id) | SessionId=$(session.session_id) | Reason=$(payload["reason"])"
+                        Base.invokelatest(g.callback, CallbackReason_DisconnectRequested, ev.data.client_id, session.session_id, payload)
+
+                        app_event = create_app_event(AppEventType_DisconnectRequested, session.client_id, nothing)
+                        push_app_event(app_event)
+                        write(g.ipc_connection, " ")
                     else
                         @error "Unknown payload type '$(payload["type"])'"
                     end
 
-                    g.callback(CallbackReason_NewPayload, ev.data.client_id, payload)
+                    Base.invokelatest(g.callback, CallbackReason_NewPayload, ev.data.client_id, session.session_id, payload)
                 elseif ev.data.ev_type == NetEventType_ServerLoopInterrupted
                     @info "NetEventType_ServerLoopInterrupted"
                     close(g.ipc_connection)
@@ -1132,7 +1162,7 @@ function start_app(
 
                         write(g.ipc_connection, " ")
 
-                        g.callback(CallbackReason_TaskFinished, ev.data.client_id)
+                        Base.invokelatest(g.callback, CallbackReason_TaskFinished, ev.data.client_id)
                     else
                         @debug "ClientlessTaskFinished | ClientId=$(ev.data.client_id)"
                         try_rm("$(g.dot_magic_dir)/.Magic/served-files/generated/$(session.session_id)", recursive=true, force=true)
