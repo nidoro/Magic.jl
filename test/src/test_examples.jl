@@ -42,8 +42,24 @@ function test_successfull(client_id::Cint)::Tuple{Bool, String}
         end
 
         return (true, "")
+
+    elseif (test_page, test_actions_script) == ("07-probability.jl", "07-probability.js")
+        expected = ("Gamma", 2.5, 3.0)
+        realized = (
+            Magic.get_widget_by_label(client_id, "Function").value,
+            round(Magic.get_widget_by_label(client_id, "Shape (α)").value; digits=1),
+            round(Magic.get_widget_by_label(client_id, "Rate (β)").value; digits=1),
+        )
+
+        if expected != realized
+            return (false, "Expected widget values to be $(expected), but they are $(realized)")
+        end
+
+        return (true, "")
     end
-    return false
+
+    # NOTE: We should never reach here
+    return (false, "Test not found!")
 end
 
 function start_test()::Nothing

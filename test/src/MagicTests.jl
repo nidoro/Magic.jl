@@ -81,4 +81,17 @@ end
     @test Magic.g.test_successfull
 end
 
+@testset "examples/07-probability.jl + 07-probability.js" begin
+    @info """
+    ------------------------------------------------------------------
+    Test: examples/07-probability.jl + 07-probability.js
+    ------------------------------------------------------------------------
+    """
+    ENV["MAGIC_TEST_PAGE"] = "07-probability.jl"
+    ENV["MAGIC_TEST_ACTIONS_SCRIPT"] = "07-probability.js"
+    ENV["MAGIC_TEST_CLIENTS"] = 6
+    @test start_app("src/test_examples.jl", port=PORT, dev_mode=true) === nothing
+    @test Magic.g.test_successfull
+end
+
 end
