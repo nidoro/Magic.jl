@@ -15,7 +15,7 @@ module MagicTests
 using ReTest
 using Magic
 
-const PORT = 0
+const PORT = 3443
 
 @testset "function start_app(...) input validation" begin
     @info """
@@ -51,7 +51,7 @@ end
     ENV["MAGIC_TEST_PAGE"] = "01-counter.jl"
     ENV["MAGIC_TEST_ACTIONS_SCRIPT"] = "01-counter.js"
     ENV["MAGIC_TEST_CLIENTS"] = 10
-    @test start_app("src/test_examples.jl", port=PORT, dev_mode=true) === nothing
+    @test start_app("src/test_examples.jl", dot_magic_dir="../examples", port=PORT, dev_mode=true) === nothing
     @test Magic.g.test_successfull
 end
 
@@ -64,7 +64,7 @@ end
     ENV["MAGIC_TEST_PAGE"] = "02-todo.jl"
     ENV["MAGIC_TEST_ACTIONS_SCRIPT"] = "02-todo.js"
     ENV["MAGIC_TEST_CLIENTS"] = 8
-    @test start_app("src/test_examples.jl", port=PORT, dev_mode=true) === nothing
+    @test start_app("src/test_examples.jl", dot_magic_dir="../examples", port=PORT, dev_mode=true) === nothing
     @test Magic.g.test_successfull
 end
 
@@ -77,7 +77,7 @@ end
     ENV["MAGIC_TEST_PAGE"] = "05-curves.jl"
     ENV["MAGIC_TEST_ACTIONS_SCRIPT"] = "05-curves.js"
     ENV["MAGIC_TEST_CLIENTS"] = 8
-    @test start_app("src/test_examples.jl", port=PORT, dev_mode=true) === nothing
+    @test start_app("src/test_examples.jl", dot_magic_dir="../examples", port=PORT, dev_mode=true) === nothing
     @test Magic.g.test_successfull
 end
 
@@ -90,7 +90,7 @@ end
     ENV["MAGIC_TEST_PAGE"] = "07-probability.jl"
     ENV["MAGIC_TEST_ACTIONS_SCRIPT"] = "07-probability.js"
     ENV["MAGIC_TEST_CLIENTS"] = 6
-    @test start_app("src/test_examples.jl", port=PORT, dev_mode=true) === nothing
+    @test start_app("src/test_examples.jl", dot_magic_dir="../examples", port=PORT, dev_mode=true) === nothing
     @test Magic.g.test_successfull
 end
 
