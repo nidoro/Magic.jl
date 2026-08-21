@@ -4,6 +4,8 @@
 #
 # > cd test
 # > julia --project
+# pkg> dev ..
+# pkg> instantiate
 # julia> using Revise, Magic, MagicTests, ReTest
 # julia> retest(#= test name or number =#)
 #
