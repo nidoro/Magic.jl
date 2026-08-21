@@ -64,7 +64,7 @@ end
 @page_startup begin
     set_title("Avatar Creator | Magic.jl Demo")
     set_description("Avatar Creator using DiceBear | Magic.jl Demo")
-    add_font("Pacifico", ".Magic/served-files/fonts/Pacifico-Regular.ttf")
+    add_font("Pacifico", "$(get_dot_magic_path())/served-files/fonts/Pacifico-Regular.ttf")
     add_css_rule("""
         h1 {
             font-family: Pacifico;
