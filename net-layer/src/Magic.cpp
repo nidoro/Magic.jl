@@ -450,7 +450,7 @@ int HS_CALLBACK(MG_PostRequestHandler, args) {
     char ignore[PATH_MAX] = {};
     char sessionId[PATH_MAX] = {};
     char fileId[MG_FILE_ID_SIZE+1] = {};
-    char filePath[PATH_MAX] = {};
+    char filePath[2*PATH_MAX] = {};
     char fileName[PATH_MAX] = {};
 
     if (SU_StartsWith(client->uri, "/.Magic/uploaded-files/")) {
@@ -465,7 +465,7 @@ int HS_CALLBACK(MG_PostRequestHandler, args) {
 
                 MG_GenFileId(fileId);
                 const char* ext = MG_GetExtension(fileName);
-                sprintf(filePath, "%s/%s%s", client->uri+1, fileId, ext);
+                sprintf(filePath, "%s/%s/%s%s", g.dotMagicDirPath, client->uri+1, fileId, ext);
                 FU_WriteEntireFile(filePath, client->receivedBuffer, client->receivedSize);
 
                 HS_InitResponseBuffer(client, 512);
