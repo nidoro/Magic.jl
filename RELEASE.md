@@ -9,6 +9,10 @@ the app entry point.
 automated tests of dry-runs.
 - New: port 0 can now be passed to `start_app` to let the OS pick an available
 port for the server.
+- Bug-fix: font path on avatar example updated to handle cases where the .Magic
+location is arbitratily defined.
+- Bug-fix: when using relative path, `add_font` was not aways properly striping
+away the .Magic/served-files path from the provided path.
 - Internal: Introduces the first tests to the package, some unit tests, some
 end-to-end tests.
 - Internal: New dependencies backward.hpp, elfutils, xz, bzip2 and zstd, used
