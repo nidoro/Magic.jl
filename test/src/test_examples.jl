@@ -120,5 +120,5 @@ end
     inject_html(html="</script>")
 end
 
-include("../examples/$(test_page)")
+include("../../examples/$(test_page)")
 

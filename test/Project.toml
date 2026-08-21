@@ -1,3 +1,6 @@
+name = "MagicTests"
+uuid = "86b2ee99-db01-4838-bcee-86a7c5c1c23f"
+
 [deps]
 CodecZlib = "944b1d66-785c-5afd-91f1-9de20f533193"
 ColorVectorSpace = "c3611d14-8923-5661-9e6a-0046d554d3a4"
@@ -14,6 +17,7 @@ Magic = "938144cb-3a24-4977-a248-a12dea9dd101"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+ReTest = "e0db7c4e-2690-44b9-bad6-7687da720f89"
 Shapefile = "8e980c4a-a4fe-5da2-b3a7-4b4b0353a2f4"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 Tar = "a4e569a6-e804-4fa4-b0f3-eef7a1d5b13e"
