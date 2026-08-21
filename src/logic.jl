@@ -640,6 +640,10 @@ end
 
 @doc DOC_PAGE_STATIC_SETTINGS
 function add_font(page::PageConfig, font_name::String, src_or_path::String)::Nothing
+    if isfile(src_or_path)
+        src_or_path = realpath(src_or_path)
+    end
+
     add_css_rule(page, """
         @font-face {
             font-family: "$(font_name)";
