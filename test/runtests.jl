@@ -27,4 +27,13 @@ should_run("01-counter.jl + 01-counter.js") && @testset "Example: 01-counter.jl 
     ENV["MAGIC_TEST_ACTIONS_SCRIPT"] = "01-counter.js"
     ENV["MAGIC_TEST_CLIENTS"] = 10
     @test start_app("test_examples.jl", dev_mode=true) === nothing
+    @test Magic.g.test_successfull
+end
+
+should_run("02-todo.jl + 02-todo.js") && @testset "Example: 01-counter.jl + 01-counter.js" begin
+    ENV["MAGIC_TEST_PAGE"] = "02-todo.jl"
+    ENV["MAGIC_TEST_ACTIONS_SCRIPT"] = "02-todo.js"
+    ENV["MAGIC_TEST_CLIENTS"] = 5
+    @test start_app("test_examples.jl", dev_mode=true) === nothing
+    @test Magic.g.test_successfull
 end

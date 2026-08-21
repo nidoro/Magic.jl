@@ -247,6 +247,7 @@ end
     dry_run_error       ::Union{RerunError, Nothing} = nothing
     upload_max_size     ::Int                       = 25*MiB
     upload_max_files    ::Int                       = 10
+    test_successfull    ::Bool                      = false
 
     callback            ::Union{Function, Nothing}  = nothing
     MAGIC_SO            ::String                    = ""

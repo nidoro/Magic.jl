@@ -4,6 +4,32 @@ test_page = ENV["MAGIC_TEST_PAGE"]
 test_actions_script = ENV["MAGIC_TEST_ACTIONS_SCRIPT"]
 test_clients = parse(Int, ENV["MAGIC_TEST_CLIENTS"])
 
+function test_successfull(client_id::Cint)::Tuple{Bool, String}
+    if (test_page, test_actions_script) == ("01-counter.jl", "01-counter.js")
+        session_data = get_session_data(client_id)
+        if session_data != 30
+            return (false, "Click count should be 30, but it is $(session_data)")
+        end
+        return (true, "")
+    elseif (test_page, test_actions_script) == ("02-todo.jl", "02-todo.js")
+        expected_items = (Item("New item 2", false), Item("New item 3", false), Item("New item 4", false))
+
+        session_data = get_session_data(client_id)
+
+        if length(session_data.items) == length(expected_items)
+            for i in range(1, length(expected_items))
+                if session_data.items[i].name != expected_items[i].name || session_data.items[i].status != expected_items[i].status
+                    return (false, "Item $(i) should be $(expected_items[i]), but it is $(session_data.items[i]).")
+                end
+            end
+        else
+            return (false, "Expected $(length(expected_items)) items on the list, but got $(length(session_data.items)).")
+        end
+        return (true, "")
+    end
+    return false
+end
+
 function start_test()::Nothing
     app_data = get_app_data()
 
@@ -20,18 +46,6 @@ function start_test()::Nothing
     end
 
     return nothing
-end
-
-function test_successfull(client_id::Cint)::Tuple{Bool, String}
-    if (test_page, test_actions_script) == ("01-counter.jl", "01-counter.js")
-        session_data = get_session_data(client_id)
-        if session_data == 30
-            return (true, "")
-        else
-            return (false, "Click count should be 30, but it is $(session_data)")
-        end
-    end
-    return false
 end
 
 function kill_chromium_instance(instance::Base.Process)::Nothing
@@ -62,22 +76,25 @@ function callback(reason::Magic.CallbackReason, args...)
         client_id = args[1]
 
         query = get_query_params(client_id)
-        p = parse(Int, query["chromium_instance"])
-        proc = app_data.chromium_instances[p]
-        kill_chromium_instance(proc)
-        app_data.done += 1
+        if haskey(query, "chromium_instance")
+            p = parse(Int, query["chromium_instance"])
+            proc = app_data.chromium_instances[p]
+            kill_chromium_instance(proc)
+            app_data.done += 1
 
-        test_url = "$(get_server_origin())/?chromium_instance=$(p)"
+            test_url = "$(get_server_origin())/?chromium_instance=$(p)"
 
-        success, feedback = test_successfull(client_id)
+            success, feedback = test_successfull(client_id)
 
-        if !success
-            kill_all_chromium_instances()
-            throw(Magic.TestFailed(test_url, feedback))
-        end
+            if !success
+                kill_all_chromium_instances()
+                throw(Magic.TestFailed(test_url, feedback))
+            end
 
-        if app_data.done == length(app_data.chromium_instances)
-            stop_app()
+            if app_data.done == length(app_data.chromium_instances)
+                Magic.g.test_successfull = true
+                stop_app()
+            end
         end
     elseif reason == Magic.CallbackReason_ClientSideError
         client_id, session_id, payload = args
