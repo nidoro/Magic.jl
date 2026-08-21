@@ -80,12 +80,6 @@ end
 
 # Fragment
 #-----------------------
-@with_kw mutable struct Fragment
-    id              ::String   = ""
-    func            ::Function = ()->()
-    container_props ::Dict     = Dict()
-end
-
 function push_fragment(frag::Fragment)::Nothing
     task = task_local_storage("app_task")
     push!(task.fragment_stack, frag)
@@ -212,35 +206,6 @@ macro fragment(block)
             $(esc(block))
         end)
     )
-end
-
-# Session
-#-------------
-@with_kw mutable struct RerunRequest
-    payload::Dict = Dict()
-end
-
-@with_kw struct RerunError
-    message     ::String = ""
-    stacktrace  ::String = ""
-end
-
-@with_kw mutable struct Session
-    client_id                   ::Cint                      = 0
-    session_id                  ::String                    = ""
-    widgets                     ::Dict{String, Widget}      = Dict{String, Widget}()
-    fragments                   ::Dict{String, Fragment}    = Dict{String, Fragment}()
-    location                    ::Dict                      = Dict()
-    user_session_data           ::Any                       = nothing
-    first_pass                  ::Bool                      = true
-    widget_defaults             ::Dict{String, Any}         = Dict{String, Any}()
-    rerun_task                  ::Union{Task, Nothing}      = nothing
-    rerun_queue                 ::Vector{RerunRequest}      = Vector{RerunRequest}()
-    waiting_invalid_state_ack   ::Bool                      = false
-    client_left                 ::Bool                      = false
-    rerun_error                 ::Union{RerunError, Nothing} = nothing
-    refresh                     ::Bool                      = false
-    app_mod                     ::Module                    = Module(:MagicApp)
 end
 
 """
@@ -435,25 +400,6 @@ end
 
 function get_query_params(client_id::Cint)::Dict
     return parse_query(get_url_search(client_id))
-end
-
-# PageConfig
-#---------------------
-@with_kw mutable struct PageConfig
-    id              ::String = ""
-    uris            ::Vector{String} = Vector{String}()
-    title           ::String = "Magic App"
-    description     ::String = "Web app made with Magic.jl"
-    style           ::String = ""
-    file_path       ::String = ""
-    html_injection  ::Dict{String, String} = Dict()
-    first_pass      ::Bool   = true
-    user_page_data  ::Any    = nothing
-
-    set_title       ::Function = (args...; kwargs...)->()
-    set_description ::Function = (args...; kwargs...)->()
-    add_font        ::Function = (args...; kwargs...)->()
-    add_css_rule    ::Function = (args...; kwargs...)->()
 end
 
 function define_page_config_func(page, func_name)

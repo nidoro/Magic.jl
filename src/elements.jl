@@ -1,37 +1,3 @@
-# Widget
-#-----------------
-const WidgetKind                = Int
-const WidgetKind_None           = 0
-const WidgetKind_Button         = 1
-const WidgetKind_Selectbox      = 2
-const WidgetKind_Checkboxes     = 3
-const WidgetKind_Radio          = 4
-const WidgetKind_Image          = 5
-const WidgetKind_DataFrame      = 6
-const WidgetKind_TextInput      = 7
-const WidgetKind_NumberInput    = 8
-const WidgetKind_ColorPicker    = 9
-const WidgetKind_Code           = 10
-const WidgetKind_FileUploader   = 11
-const WidgetKind_Slider         = 12
-
-@with_kw mutable struct Widget
-    id          ::String                    = ""
-    user_id     ::Union{String, Nothing}    = nothing
-    kind        ::WidgetKind                = WidgetKind_None
-    clicked     ::Bool                      = false
-    value       ::Any                       = nothing
-    changes     ::Dict{Int, Dict{String, Any}} = Dict{Int, Dict{String, Any}}()
-    alive       ::Bool                      = true
-    fragment_id ::String                    = ""
-
-    onclick     ::Function                  = (args...; kwargs...)->()
-    onchange    ::Function                  = (args...; kwargs...)->()
-    args        ::Vector                    = Vector()
-
-    props::Dict = Dict()
-end
-
 # Button
 #-----------
 function create_button(
@@ -1406,18 +1372,6 @@ function dataframe(
     return create_dataframe(widgets, top_container(), id, data, cc, height, onchange, args)
 end
 
-# File uploader
-#-----------------
-@with_kw mutable struct UploadedFile
-    id::String          = ""
-    name::String        = ""
-    extension::String   = ""
-    path::String        = ""
-    type::String        = ""
-    size::Int           = 0
-    last_modified::Int  = 0
-end
-
 function create_file_uploader(
     widgets::Dict{String, Widget},
     parent::Dict,
@@ -1975,6 +1929,19 @@ function get_widget_by_user_id(widgets::Dict{String, Widget}, user_id::String)::
     return missing
 end
 
+function get_widget_by_label(client_id::Cint, label::String)::Union{Widget, Missing}
+    session = get_session(client_id)
+
+    for widget in values(session.widgets)
+        props = widget.props
+        if haskey(props, "label") && props["label"] == label
+            return widget
+        end
+    end
+
+    return missing
+end
+
 DOC_WIDGET_VALUE = """
 # Widget Value
 
@@ -2097,13 +2064,17 @@ function set_default_value(user_id::String, value::Any)::Nothing
     return nothing
 end
 
+function get_widget_default_value(session::Session, user_id::String)::Any
+    if haskey(session.widget_defaults, user_id)
+        return session.widget_defaults[user_id]
+    end
+    return missing
+end
+
 @doc DOC_WIDGET_VALUE get_default_value
 function get_default_value(user_id::String)::Any
     task = task_local_storage("app_task")
-    if haskey(task.session.widget_defaults, user_id)
-        return task.session.widget_defaults[user_id]
-    end
-    return missing
+    return get_widget_default_value(task.session, user_id)
 end
 
 @doc DOC_WIDGET_VALUE set_value
@@ -2119,14 +2090,12 @@ function set_value(user_id::String, value::Any)::Nothing
     return nothing
 end
 
-@doc DOC_WIDGET_VALUE get_value
-function get_value(user_id::String)::Any
-    task = task_local_storage("app_task")
-    widget = get_widget_by_user_id(task.session.widgets, user_id)
+function get_widget_value(session::Session, user_id::String)::Any
+    widget = get_widget_by_user_id(session.widgets, user_id)
     if widget === missing
-        return get_default_value(user_id)
+        return get_widget_default_value(session, user_id)
     elseif widget.value === nothing
-        def_value = get_default_value(user_id)
+        def_value = get_widget_default_value(session, user_id)
         if def_value !== missing
             return def_value
         else
@@ -2134,6 +2103,17 @@ function get_value(user_id::String)::Any
         end
     end
     return widget.value
+end
+
+@doc DOC_WIDGET_VALUE get_value
+function get_value(user_id::String)::Any
+    task = task_local_storage("app_task")
+    return get_widget_value(task.session, user_id)
+end
+
+function get_widget_value(client_id::Cint, user_id::String)::Any
+    session = get_session(client_id)
+    return get_widget_value(session, user_id)
 end
 
 function get_changes(user_id::String)::Union{Missing, Dict{Int, Dict{String, Any}}}
