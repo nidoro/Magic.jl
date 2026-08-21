@@ -13,8 +13,6 @@ examples/.Magic/certs
 examples/.Magic/served-files/generated
 examples/data/
 
-test/.Magic/
-
 net-layer/third/openssl-OpenSSL_1_1_1t/*.so*
 net-layer/third/openssl-OpenSSL_1_1_1t/*.a
 net-layer/third/openssl-OpenSSL_1_1_1t/*.o
