@@ -11,6 +11,7 @@ function test_successfull(client_id::Cint)::Tuple{Bool, String}
             return (false, "Click count should be 30, but it is $(session_data)")
         end
         return (true, "")
+
     elseif (test_page, test_actions_script) == ("02-todo.jl", "02-todo.js")
         expected_items = (Item("New item 2", false), Item("New item 3", false), Item("New item 4", false))
 
@@ -25,6 +26,21 @@ function test_successfull(client_id::Cint)::Tuple{Bool, String}
         else
             return (false, "Expected $(length(expected_items)) items on the list, but got $(length(session_data.items)).")
         end
+        return (true, "")
+
+    elseif (test_page, test_actions_script) == ("05-curves.jl", "05-curves.js")
+        expected = (2.0, 4.1, 1.6, 2.0)
+        realized = (
+            round(Magic.get_widget_by_label(client_id, "🔴 Curve Shift").value; digits=1),
+            round(Magic.get_widget_by_label(client_id, "🟢 Curve Shift").value; digits=1),
+            round(Magic.get_widget_by_label(client_id, "🔴 Curve Scale").value; digits=1),
+            round(Magic.get_widget_by_label(client_id, "🟢 Curve Scale").value; digits=1),
+        )
+
+        if expected != realized
+            return (false, "Expected slider values to be $(expected), but they are $(realized)")
+        end
+
         return (true, "")
     end
     return false
