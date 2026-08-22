@@ -581,7 +581,10 @@ int HS_CALLBACK(MG_WSEventsHandler, args) {
                         if (arrcount(mgClient->waitingDownload)) {
                             HS_HTTPClient* waiting = mgClient->waitingDownload[0];
 
-                            if (SU_StartsWith(ev.downloadPath, ".Magic/served-files/")) {
+                            char serveableDir[2*PATH_MAX] = {};
+                            snprintf(serveableDir, sizeof(serveableDir), "%s/.Magic/served-files/", g.dotMagicDirPath);
+
+                            if (SU_StartsWith(ev.downloadPath, serveableDir)) {
                                 FILE* file = fopen(ev.downloadPath, "rb");
 
                                 if (file) {
