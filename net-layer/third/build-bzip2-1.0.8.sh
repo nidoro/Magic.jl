@@ -6,6 +6,7 @@ pushd $THIS_DIR/bzip2-1.0.8
 
 mkdir -p $DEST_DIR
 
+make clean
 make CFLAGS="-O2 -fPIC -Wall -Winline" -j8
 make install PREFIX=$DEST_DIR
 

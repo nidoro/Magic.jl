@@ -6,6 +6,7 @@ pushd $THIS_DIR/elfutils
 
 mkdir -p $DEST_DIR
 
+make distclean
 autoreconf -i -f
 CFLAGS="-fPIC" CXXFLAGS="-fPIC" ./configure --prefix=$DEST_DIR --enable-maintainer-mode --disable-debuginfod --enable-static
 
