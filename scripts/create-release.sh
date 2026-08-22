@@ -1,19 +1,19 @@
 #!/bin/bash
 
 if [ -z "$1" ]; then
-    echo "Error: Tag name required. Example: v1.0.0"
-    echo "Usage: $0 <tag_name>"
+    echo "Error: Version required. Example: 1.0.0"
+    echo "Usage: $0 <version_number>"
     exit 1
 fi
 
-TAG_NAME=$1
+MAGIC_VERSION=$1
 EXTRA_ARGS=
 
 if [ $# -gt 1 ]; then
     EXTRA_ARGS="${@:2}"
 fi
 
-gh release create $TAG_NAME \
+gh release create v$MAGIC_VERSION \
     $EXTRA_ARGS \
     --notes-file RELEASE.md \
     ./build/linux-x86_64/artifacts-linux-x86_64.tar.gz \

@@ -1,15 +1,13 @@
 #!/bin/bash
 
-set -xe
-
 if [ -z "$1" ]; then
-    echo "Error: Tag name required. Example: v1.0.0"
-    echo "Usage: $0 <tag_name>"
+    echo "Error: Version required. Example: 1.0.0"
+    echo "Usage: $0 <version_number>"
     exit 1
 fi
 
-TAG_NAME=$1
-COMMIT_SHA=$(git rev-list -n 1 $TAG_NAME)
+MAGIC_VERSION=$1
+COMMIT_SHA=$(git rev-list -n 1 v$MAGIC_VERSION)
 
 gh api repos/:owner/:repo/commits/$COMMIT_SHA/comments \
 -f body="@JuliaRegistrator register
