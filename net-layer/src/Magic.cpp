@@ -304,22 +304,23 @@ void MG_HandleSigInt(void* _) {
 
 #ifndef _WIN32
 void MG_HandleFatalSignal(void* sig) {
-    int signal = (intptr_t) sig;
+    if (pthread_equal(pthread_self(), g.threadId)) {
+        int signal = (intptr_t) sig;
+        printf("\r  \n");
+        LU_Log(LU_Important, "FatalSignalReceived | Signal=%d", signal);
 
-    printf("\r  \n");
-    LU_Log(LU_Important, "FatalSignalReceived | Signal=%d", signal);
+        backward::StackTrace st;
+        st.load_here(32);
+        st.skip_n_firsts(4);
+        backward::Printer p;
+        p.print(st);
 
-    backward::StackTrace st;
-    st.load_here(32);
-    st.skip_n_firsts(4);
-    backward::Printer p;
-    p.print(st);
-
-    if (g.devMode && g.signalRecoveryPointSet) {
-        siglongjmp(g.signalRecoveryPoint, 1);
-    } else {
-        LU_Log(LU_Debug, "Panic: no recovery point set - nothing safe to do but bail");
-        exit(1);
+        if (g.devMode && g.signalRecoveryPointSet) {
+            siglongjmp(g.signalRecoveryPoint, 1);
+        } else {
+            LU_Log(LU_Debug, "Panic: no recovery point set - nothing safe to do but bail");
+            exit(1);
+        }
     }
 }
 #endif
@@ -764,10 +765,10 @@ MG_API void* MG_RunServer(void*) {
     bool serviceDrainNeeded = false;
 
 #ifndef _WIN32
+    SG_RegisterHandler(SIGSEGV, MG_HandleFatalSignal, (void*) SIGSEGV);
     SG_RegisterHandler(SIGABRT, MG_HandleFatalSignal, (void*) SIGABRT);
     SG_RegisterHandler(SIGFPE, MG_HandleFatalSignal, (void*) SIGFPE);
     SG_RegisterHandler(SIGILL, MG_HandleFatalSignal, (void*) SIGILL);
-    SG_RegisterHandler(SIGSEGV, MG_HandleFatalSignal, (void*) SIGSEGV);
 
     // NOTE: Try to stop the server loop cleanly after interruption via
     // signals. This is not safe because the program may have been
