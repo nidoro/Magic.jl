@@ -56,6 +56,10 @@ function test_successfull(client_id::Cint)::Tuple{Bool, String}
         end
 
         return (true, "")
+
+    elseif (test_page, test_actions_script) == ("20-image-filters.jl", "20-image-filters.js")
+        # In this test, reaching the end means success.
+        return (true, "")
     end
 
     # NOTE: We should never reach here
@@ -65,10 +69,13 @@ end
 function start_test()::Nothing
     app_data = get_app_data()
 
-    test_url = "$(get_server_origin())/?chromium_instance=$(length(app_data.chromium_instances)+1)"
+    n = length(app_data.chromium_instances)+1
+    test_url = "$(get_server_origin())/?chromium_instance=$(n)"
+    mkpath("./log")
 
-    cmd = "chromium --headless --disable-gpu $test_url"
-    proc = run(Cmd(String.(split(cmd))), wait=false)
+    command_line = "chromium --headless --disable-gpu --enable-logging=stderr --ignore-certificate-errors $test_url"
+    cmd = Cmd(String.(split(command_line)))
+    proc = run(pipeline(cmd, stdout="./log/chromium_$(n).log", stderr="./log/chromium_$(n).log"), wait=false)
 
     sleep(0.25)
     if process_running(proc)

@@ -94,4 +94,17 @@ end
     @test Magic.g.test_successfull
 end
 
+@testset "examples/20-image-filters.jl 20-image-filters.js" begin
+    @info """
+    ------------------------------------------------------------------
+    Test: examples/20-image-filters.jl 20-image-filters.js
+    ------------------------------------------------------------------------
+    """
+    ENV["MAGIC_TEST_PAGE"] = "20-image-filters.jl"
+    ENV["MAGIC_TEST_ACTIONS_SCRIPT"] = "20-image-filters.js"
+    ENV["MAGIC_TEST_CLIENTS"] = 5
+    @test start_app("src/test_examples.jl", dot_magic_dir="../examples", port=PORT, dev_mode=true) === nothing
+    @test Magic.g.test_successfull
+end
+
 end
