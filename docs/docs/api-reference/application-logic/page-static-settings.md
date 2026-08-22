@@ -92,4 +92,28 @@ Argument        | Description
 ---------------- |-------------
  `rule`        | `String`. A valid CSS rule. Example: <pre>h1, h2, h3, h4, h5, h6 \{<br/>  color: navy;<br/>\}</pre>
 
+## inject_html
 
+Injects arbitrary code into the HTML page served to the clients.
+
+Example:
+
+```julia
+inject_html(html="<div>Hello!</div>")
+```
+
+### Function Signature
+
+```julia
+function inject_html(;
+    html::String="",
+    file_path::Union{String, Nothing}=nothing,
+    location::String="body_bottom"
+)::Nothing
+```
+
+Argument        | Description
+---------------- |-------------
+ `html`        | `String` with the HTML code to be injected into the page.
+ `file_path`   | `String` specifying the file containing the HTML that should be injected into the page.
+ `location`   | `String` specifying the location *in the page* where the HTML should be injected. Possible values: `"body_bottom"` (default, injects near the bottom of the HTML body), `"body_top"` (injects near the top of the HTML body), `"head_bottom"` (injects near the bottom of the HTML head), `"head_top"` (injects near the top of the HTML head).
