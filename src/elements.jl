@@ -73,7 +73,7 @@ function button(
     label   ::String    ="";
     style   ::String    ="secondary",
     icon    ::String    ="",
-    onclick ::Function  =(args...; kwargs...)->(),
+    onclick ::Function  =()->(),
     args    ::Vector    =Vector()
 )::Bool
 ```
