@@ -19,10 +19,8 @@ function start_app(
     port                ::Int=3443,
     upload_max_size     ::Int=25*MiB,
     upload_max_files    ::Int=10,
-    docs_path           ::Union{String, Nothing}=nothing,
     init_and_quit       ::Bool=false,
     verbose             ::Bool=false,
-    dev_mode            ::Bool=false
 )::Nothing
 ```
 
@@ -33,10 +31,8 @@ function start_app(
  `port`        | An `Int` specifying the port number on which the server will listen. Default is `3443`.
  `upload_max_size` | An `Int` specifying the maximum file size acceptable by `file_uploader` widgets. Default is 25 MiB.
  `upload_max_files` | An `Int` specifying the maximum number of file acceptable by `file_uploader` widgets. Default is 10.
- `docs_path`   | A `String` specifying a path to Magic's docs where it has been built, or `nothing` (default). If a `String` is passed, the docs will be served under `/docs`.
  `init_and_quit` | A `Bool`. If `true`, Magic will initialize the server and immediately return. Useful for automating dry-run tests.
  `verbose`    | A `Bool`. If `true`, Magic will log more information.
- `dev_mode`    | A `Bool`. If `true`, development mode is enabled. This activates features such as more verbose error reporting and loading of locally built `libmagic.so`.
 
 ### Return Value
 
@@ -57,6 +53,7 @@ function start_app(
     callback::Union{Function, Nothing}=nothing,
     verbose::Bool=false,
     dev_mode::Bool=false,
+    rethrow_rerun_exceptions::Bool=false,
 )::Nothing
 
     # Input validation
@@ -81,6 +78,7 @@ function start_app(
     g.dev_mode = dev_mode
     g.verbose = verbose
     g.callback = callback !== nothing ? callback : (reason, args...) -> ()
+    g.rethrow_rerun_exceptions = rethrow_rerun_exceptions
 
     if g.dev_mode
         @warn "Starting Magic.jl on dev mode"
@@ -140,6 +138,24 @@ function start_app(
         Directory of '.Magic': $(g.dot_magic_dir)
         """
 
+    # Generate directories and files
+    #-----------------------------------
+    try_rm("$(g.dot_magic_dir)/.Magic/served-files/generated", recursive=true, force=true)
+    try_rm("$(g.dot_magic_dir)/.Magic/uploaded-files", recursive=true, force=true)
+    mkpath("$(g.dot_magic_dir)/.Magic/served-files/generated/app/pages")
+    cp(joinpath(@__DIR__, "../served-files/MagicPageTemplate.html"), "$(g.dot_magic_dir)/.Magic/served-files/generated/app/pages/first.html", force=true)
+
+    if !isfile("$(g.dot_magic_dir)/.Magic/.gitignore")
+        write("$(g.dot_magic_dir)/.Magic/.gitignore", DOT_MAGIC_GITIGNORE)
+    end
+
+    g.base_page_config.title = "Magic App"
+    g.base_page_config.description = "Web app made with Magic.jl"
+
+    # First dry-run attempt
+    #-----------------------
+    execute_dry_runs()
+
     # Setup net layer connection
     #--------------------------------
     ipc_server = listen(IPv4(127,0,0,1), 0)
@@ -159,21 +175,7 @@ function start_app(
     g.ipc_connection = accept(ipc_server)
     push_uri_mapping("/", "/generated/app/pages/first.html")
 
-    # Generate directories and files
-    #-----------------------------------
-    try_rm("$(g.dot_magic_dir)/.Magic/served-files/generated", recursive=true, force=true)
-    try_rm("$(g.dot_magic_dir)/.Magic/uploaded-files", recursive=true, force=true)
-    mkpath("$(g.dot_magic_dir)/.Magic/served-files/generated/app/pages")
-    cp(joinpath(@__DIR__, "../served-files/MagicPageTemplate.html"), "$(g.dot_magic_dir)/.Magic/served-files/generated/app/pages/first.html", force=true)
-
-    if !isfile("$(g.dot_magic_dir)/.Magic/.gitignore")
-        write("$(g.dot_magic_dir)/.Magic/.gitignore", DOT_MAGIC_GITIGNORE)
-    end
-
-    g.base_page_config.title = "Magic App"
-    g.base_page_config.description = "Web app made with Magic.jl"
-
-    if execute_dry_runs()
+    if g.dry_run_error === nothing
         create_static_pages()
     end
 
@@ -377,7 +379,9 @@ function start_app(
     Libdl.dlclose(g.LIBMAGIC)
 
     @info "ServerLoopStopped"
+    return nothing
 end
+
 function get_rerun_error(e::Exception)::RerunError
     bt = catch_backtrace()
     frames = filtered_stacktrace(bt)
@@ -598,6 +602,13 @@ function rerun(client_id::Cint, payload::Dict)::Task
                         widget.value = new_value
 
                         invokelatest(widget.onchange, widget.args...)
+                    elseif widget.kind == WidgetKind_Selectbox
+                        if !widget.props["multiple"]
+                            widget.value = get_item_by_repr(widget.props["options"], front_event["new_value"])
+                        else
+                            widget.value = front_event["new_value"]
+                        end
+                        invokelatest(widget.onchange, widget.args...)
                     elseif widget.kind in [WidgetKind_Selectbox, WidgetKind_Radio, WidgetKind_TextInput, WidgetKind_ColorPicker]
                         widget.value = front_event["new_value"]
                         invokelatest(widget.onchange, widget.args...)
@@ -695,9 +706,27 @@ function rerun(client_id::Cint, payload::Dict)::Task
         else
             @debug "TaskStoped | Client=$(client_id) | Session=$(task.session.session_id)"
         end
+
+        if g.rethrow_rerun_exceptions
+            rethrow()
+        end
     end
 
     return session.rerun_task
+end
+
+function wait_rerun(task::Task)::Nothing
+    try
+        wait(task)
+    catch e
+        if e isa TaskFailedException
+            original = e.task.result
+            rethrow(original)
+        else
+            rethrow()
+        end
+    end
+    return nothing
 end
 
 function is_rerun_request_valid(session::Session, request::RerunRequest)::Bool
@@ -747,7 +776,7 @@ function execute_dry_runs()::Bool
 
     handle_new_client(Cint(0), "0")
     @info "Dry Run: First pass over '$(g.script_name)'.\n$(AC_Green("@app_startup")) code blocks will run now."
-    wait(rerun(Cint(0), dry_run_payload))
+    wait_rerun(rerun(Cint(0), dry_run_payload))
     rerun_error = g.sessions[Cint(0)].rerun_error
     handle_client_left(Cint(0))
 
@@ -765,7 +794,7 @@ function execute_dry_runs()::Bool
             dry_run_payload["location"]["href"] = "https://$(g.host_name):$(g.port)" * page.uris[1]
             dry_run_payload["location"]["pathname"] = page.uris[1]
 
-            wait(rerun(Cint(0), dry_run_payload))
+            wait_rerun(rerun(Cint(0), dry_run_payload))
             rerun_error = g.sessions[Cint(0)].rerun_error
             handle_client_left(Cint(0))
 

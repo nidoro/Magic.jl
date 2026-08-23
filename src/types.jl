@@ -20,6 +20,23 @@ data/
 
 const VERSION = VersionNumber(TOML.parsefile(joinpath(pkgdir(@__MODULE__), "Project.toml"))["version"])
 
+function parse_material_icon_codepoints(path::AbstractString)::Dict{String, Char}
+    icons = Dict{String,Char}()
+    for line in eachline(path)
+        line = strip(line)
+        isempty(line) && continue
+
+        parts = split(line)
+        length(parts) == 2 || continue
+
+        name, hex = parts
+        icons[String(name)] = Char(parse(UInt32, hex, base=16))
+    end
+    return icons
+end
+
+const MATERIAL_ICON_CODEPOINTS = parse_material_icon_codepoints(joinpath(pkgdir(@__MODULE__), "served-files/fonts/MaterialIconsOutlined-Regular.codepoints"))
+
 # Widget
 #-----------------
 const WidgetKind                = Int
@@ -260,7 +277,9 @@ end
     dry_run_error       ::Union{RerunError, Nothing} = nothing
     upload_max_size     ::Int                       = 25*MiB
     upload_max_files    ::Int                       = 10
+
     test_successfull    ::Bool                      = false
+    rethrow_rerun_exceptions::Bool                  = false
 
     callback            ::Union{Function, Nothing}  = nothing
     MAGIC_SO            ::String                    = ""
@@ -292,6 +311,13 @@ struct InvalidUploadMaxSize     <: MagicError upload_max_size::Int end
 struct InvalidUploadMaxFiles    <: MagicError upload_max_files::Int end
 struct ClientSideError          <: MagicError payload::Dict end
 struct TestFailed               <: MagicError test_id::String; info::String end
+struct InvalidArgument          <: MagicError arg::Tuple; info::String end
+
+# To be used with InvalidArgument
+macro named(expr)
+    name = string(expr)
+    return :($name, $(esc(expr)))
+end
 
 Base.showerror(io::IO, e::InvalidFile)              = print(io, "File not found or invalid: $(e.file_path)")
 Base.showerror(io::IO, e::InvalidDirectory)         = print(io, "Directory not found or invalid: $(e.dir_path)")
@@ -300,6 +326,7 @@ Base.showerror(io::IO, e::InvalidUploadMaxSize)     = print(io, "Invalid upload 
 Base.showerror(io::IO, e::InvalidUploadMaxFiles)    = print(io, "Invalid upload max files: $(e.upload_max_files). Please provide a number greater than or equal to 0.")
 Base.showerror(io::IO, e::ClientSideError)          = print(io, "Client side error:\n$(JSON.json(e.payload, 4))")
 Base.showerror(io::IO, e::TestFailed)               = print(io, "Test failed: $(e.test_id)\n$(e.info)")
+Base.showerror(io::IO, e::InvalidArgument)          = print(io, "Invalid value to argument `$(e.arg[1])`: $(e.arg[2])\n$(e.info)")
 
 # Colored log utils. AC stands for "ANSI Color"
 #------------------------------------------------

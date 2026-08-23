@@ -82,3 +82,61 @@ function is_valid_hostname(hostname::String)
 
     return true
 end
+
+function assert_string_in_list(arg::Tuple, white_list::Tuple)::Nothing
+    arg[2] in white_list || throw(InvalidArgument(arg, "`$(arg[1])` should be one of these: $(white_list)."))
+    return nothing
+end
+
+function assert_key_in_dict(arg::Tuple, dict::Dict)::Nothing
+    haskey(dict, arg[2]) || throw(InvalidArgument(arg, "`$(arg[1])` : $(white_list)."))
+    return nothing
+end
+
+function assert_valid_material_icon(args::Tuple)::Nothing
+    if !startswith(args[2], "material/")
+        throw(InvalidArgument(args, "`icon` must have the format \"material/icon_name\". Example: \"material/person\""))
+    end
+
+    icon_name = replace(args[2], "material/" => "")
+    if !haskey(MATERIAL_ICON_CODEPOINTS, icon_name)
+        throw(InvalidArgument(args, "\"$(icon_name)\" is not a valid icon name. Checkout https://fonts.google.com/icons?icon.set=Material+Icons to find the name of the icon you want."))
+    end
+    return nothing
+end
+
+function function_accepts_arg_count(f::Function, arg_count::Int)::Bool
+    ms = methods(f)
+    ok = any(ms) do m
+        m.nargs-1 == arg_count
+    end
+    return ok
+end
+
+function get_item_by_repr(list::Union{Vector, Tuple}, rep::String)::Any
+    for entry in list
+        if typeof(entry) <: Number
+            rep_number = tryparse(typeof(entry), rep)
+            if !isnothing(rep_number)
+                if isapprox(entry, rep_number, atol=0.000000001)
+                    return entry
+                end
+            end
+        elseif entry == rep
+            return entry
+        end
+    end
+    return missing
+end
+
+function print_stacktrace(;skip::Int=0)::Nothing
+    frames = stacktrace()
+    println(sprint(Base.show_backtrace, frames[(skip+1):end]))
+    return nothing
+end
+
+function caller_location()::String
+    frame = stacktrace()[4]
+    return "$(frame.file):$(frame.line)"
+end
+

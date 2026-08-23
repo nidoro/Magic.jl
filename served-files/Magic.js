@@ -732,7 +732,8 @@ function createAppElement(parent, props, fragmentId) {
         }
 
         if (props.value != null) {
-            requestAnimationFrame(() => slcElem.setValue(props.value, {silent: true}));
+            let repr = `${props.value}`;
+            requestAnimationFrame(() => slcElem.setValue(repr, {silent: true}));
         }
 
         newElements.push(inpElem);

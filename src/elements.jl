@@ -7,10 +7,22 @@ function create_button(
     style::String,
     icon::String,
     onclick::Function,
-    args::Vector,
+    args::Union{Vector, Tuple},
     download_path::Union{String, Nothing},
     download_name::Union{String, Nothing}
 )::Bool
+
+    # Input validation
+    #---------------------
+    assert_string_in_list(@named(style), ("primary", "secondary", "naked"))
+
+    if !isempty(icon)
+        assert_valid_material_icon(@named(icon))
+    end
+
+    if !function_accepts_arg_count(onclick, length(args))
+        throw(InvalidArgument(@named(onclick), "`onclick` should accept the same number of arguments passed in `args` ($length(args))."))
+    end
 
     props = Dict{String, Any}(
         "type" => "button",
@@ -78,7 +90,7 @@ function button(
 
 `true` if the button was clicked, `false` otherwise.
 """
-function button(label::String=""; style::String="secondary", icon::String="", onclick::Function=(args...; kwargs...)->(), args::Vector=Vector())::Bool
+function button(label::String=""; style::String="secondary", icon::String="", onclick::Function=(args...; kwargs...)->(), args::Union{Vector, Tuple}=Vector())::Bool
     task = task_local_storage("app_task")
     widgets = task.session.widgets
     return create_button(widgets, top_container(), label, style, icon, onclick, args, nothing, nothing)
@@ -609,18 +621,45 @@ function create_selectbox(
     parent::Dict,
     user_id::Any,
     label::String,
-    options::Vector,
-    initial_value::Union{String, Vector, Nothing},
+    options::Union{Vector, Tuple},
+    initial_value::Union{String, Number, Vector, Tuple, Nothing},
     multiple::Bool,
     placeholder::Union{String, Nothing},
     onchange::Function,
-    css=Dict
-)::Union{String, Vector, Nothing}
+    css=Dict,
+    caller_loc::String="",
+)::Union{String, Number, Vector, Nothing}
+
+    ignored_default_value = nothing
+    ignored_initial_value = nothing
+
+    # Input validation
+    #---------------------
+    default_value = maybe_get_default_value(user_id)
+    if !isnothing(default_value) && !ismissing(default_value)
+        if !multiple
+            if !(default_value in options)
+                ignored_default_value = default_value
+                default_value = nothing
+            end
+        else
+            # TODO: Validate default_value when selectbox is in multiple mode
+        end
+    end
+
+    if !multiple
+        if !(initial_value in options)
+            ignored_initial_value = initial_value
+            initial_value = nothing
+        end
+    else
+        # TODO: Validate initial_value when selectbox is in multiple mode
+    end
 
     props = Dict(
         "type" => "selectbox",
         "user_id" => user_id,
-        "default_value" => maybe_get_default_value(user_id),
+        "default_value" => default_value,
         "initial_value" => initial_value,
         "label" => label,
         "options" => options,
@@ -630,11 +669,13 @@ function create_selectbox(
     )
 
     if props["placeholder"] == nothing
-        if props["default_value"] !== nothing && props["default_value"] !== missing
-            if typeof(props["default_value"]) == String
-                props["placeholder"] = props["default_value"]
+        if !isnothing(default_value) && !ismissing(default_value)
+            if typeof(default_value) == String
+                props["placeholder"] = default_value
+            elseif typeof(default_value) <: Number
+                props["placeholder"] = repr(default_value)
             else
-                props["placeholder"] = join([replace(option, "\"" => "") for option in repr.(props["default_value"])], ", ")
+                props["placeholder"] = join([replace(option, "\"" => "") for option in repr.(default_value)], ", ")
             end
         else
             props["placeholder"] = ""
@@ -653,6 +694,14 @@ function create_selectbox(
         widget = widgets[props["id"]]
         widget.alive = true
     else
+        if !isnothing(ignored_default_value) && !ismissing(ignored_default_value)
+            @warn "$(caller_loc):\nThe default value \"$(ignored_default_value)\" set to this selectbox was ignored because it is not an option in the provided `options`."
+        end
+
+        if !isnothing(ignored_initial_value)
+            @warn "$(caller_loc):\nThe initial value \"$(ignored_initial_value)\" set to this selectbox was ignored because it is not an option in the provided `options`."
+        end
+
         widget = Widget()
         widget.kind = WidgetKind_Selectbox
         widget.id = props["id"]
@@ -666,7 +715,7 @@ function create_selectbox(
     props["value"] = widget.value
     widget.props = props
 
-    return coalesce(widget.value, props["default_value"])
+    return coalesce(widget.value, default_value)
 end
 
 """
@@ -709,17 +758,17 @@ function selectbox(
 The currently selected value. If `multiple` is `false`, this is either a single `String` value from `options` or `nothing`. If `multiple` is `true`, this is either a `Vector` of selected values or `nothing`.
 """
 function selectbox(
-        label::String,
-        options::Vector;
-        initial_value::Union{String, Vector, Nothing}=nothing,
-        id::Any=nothing,
-        multiple::Bool=false,
-        show_label::Bool=true,
-        placeholder::Union{String, Nothing}=nothing,
-        fill_width::Bool=false,
-        onchange::Function=(args...; kwargs...)->(),
-        css::Dict=Dict()
-    )::Union{String, Vector, Nothing}
+    label::String,
+    options::Union{Vector, Tuple};
+    initial_value::Union{String, Number, Vector, Tuple, Nothing}=nothing,
+    id::Any=nothing,
+    multiple::Bool=false,
+    show_label::Bool=true,
+    placeholder::Union{String, Nothing}=nothing,
+    fill_width::Bool=false,
+    onchange::Function=(args...; kwargs...)->(),
+    css::Dict=Dict()
+)::Union{String, Number, Vector, Nothing}
 
     task = task_local_storage("app_task")
     parent = top_container()
@@ -736,7 +785,7 @@ function selectbox(
         merge!(css, container_css)
     end
 
-    return create_selectbox(widgets, parent, id, label, options, initial_value, multiple, placeholder, onchange, css)
+    return create_selectbox(widgets, parent, id, label, options, initial_value, multiple, placeholder, onchange, css, caller_location())
 end
 
 # Color Picker

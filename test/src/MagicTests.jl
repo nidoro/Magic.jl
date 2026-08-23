@@ -17,10 +17,10 @@ using Magic
 
 const PORT = 3443
 
-@testset "function start_app(...) input validation" begin
+@testset "start_app(...) input validation" begin
     @info """
     ------------------------------------------------------------------
-    Test: function start_app(...) input validation
+    Test: start_app(...) input validation
     ------------------------------------------------------------------------
     """
     @test_throws Magic.InvalidFile              start_app("__NON_EXISTING_FILE__", dev_mode=true, init_and_quit=true)
@@ -31,6 +31,50 @@ const PORT = 3443
     @test_throws Magic.InvalidUploadMaxFiles    start_app("src/test_examples.jl", upload_max_files=-1, dev_mode=true, init_and_quit=true)
     @test_throws Magic.InvalidDirectory         start_app("src/test_examples.jl", dot_magic_dir="__NON_EXISTING_DIR__", dev_mode=true, init_and_quit=true)
     @test_throws Magic.InvalidDirectory         start_app("src/test_examples.jl", docs_path="__NON_EXISTING_DIR__", dev_mode=true, init_and_quit=true)
+end
+
+@testset "Function as entry point" begin
+    @info """
+    ------------------------------------------------------------------
+    Test: Function as entry point
+    ------------------------------------------------------------------------
+    """
+    function test_app()
+        button("Ok!")
+    end
+
+    @test start_app(test_app, port=PORT, dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true) === nothing
+end
+
+@testset "button(...) input validation" begin
+    @info """
+    ------------------------------------------------------------------
+    Test: button(...) input validation
+    ------------------------------------------------------------------------
+    """
+    function test_style()   button("Button", style="INVALID_STYLE") end
+    function test_icon()    button("Button", icon="INVALID_ICON") end
+    function test_onclick() button("Button", onclick=()->(), args=(1,2,3)) end
+
+    @test_throws Magic.InvalidArgument start_app(test_style, port=PORT, dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true)
+    @test_throws Magic.InvalidArgument start_app(test_icon, port=PORT, dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true)
+    @test_throws Magic.InvalidArgument start_app(test_onclick, port=PORT, dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true)
+end
+
+@testset "selectbox(...) input validation" begin
+    @info """
+    ------------------------------------------------------------------
+    Test: selectbox(...) input validation
+    ------------------------------------------------------------------------
+    """
+    if false
+        function test_return()
+            set_default_value("slc", 4)
+            val = selectbox("Select Box", [1, 2, 3, "abc", 3.14], initial_value=5, id="slc")
+        end
+
+        start_app(test_return, port=PORT, dev_mode=true, init_and_quit=false, rethrow_rerun_exceptions=true)
+    end
 end
 
 @testset "Examples dry run" begin
