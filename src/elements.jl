@@ -21,7 +21,7 @@ function create_button(
     end
 
     if !function_accepts_arg_count(onclick, length(args))
-        throw(InvalidArgument(@named(onclick), "`onclick` should accept the same number of arguments passed in `args` ($length(args))."))
+        throw(InvalidArgument(@named(onclick), "`onclick` should accept the same number of arguments passed in `args` ($(length(args)))."))
     end
 
     props = Dict{String, Any}(
@@ -626,34 +626,64 @@ function create_selectbox(
     multiple::Bool,
     placeholder::Union{String, Nothing},
     onchange::Function,
+    args::Union{Vector, Tuple},
     css=Dict,
     caller_loc::String="",
-)::Union{String, Number, Vector, Nothing}
-
-    ignored_default_value = nothing
-    ignored_initial_value = nothing
+)::Union{String, Number, Vector, Tuple, Nothing}
 
     # Input validation
     #---------------------
+
+    # onchange validation
+    if !function_accepts_arg_count(onchange, length(args))
+        throw(InvalidArgument(@named(onchange), "`onchange` should accept the same number of arguments passed in `args` ($(length(args)))."))
+    end
+
+    # Default value validation
     default_value = maybe_get_default_value(user_id)
     if !isnothing(default_value) && !ismissing(default_value)
         if !multiple
-            if !(default_value in options)
-                ignored_default_value = default_value
-                default_value = nothing
+            if default_value isa Union{String, Number}
+                if !(default_value in options)
+                    throw(InvalidArgument(@named(default_value), "$(caller_loc):\nYou tried to assign a default value to this selectbox that is not in the provided `options`."))
+                end
+            else
+                throw(InvalidArgument(@named(default_value), "$(caller_loc):\nYou tried to assign a default value to this selectbox that is not a String or Number."))
             end
         else
-            # TODO: Validate default_value when selectbox is in multiple mode
+            if default_value isa Union{Vector, Tuple}
+                for v in default_value
+                    if !(v in options)
+                        throw(InvalidArgument(@named(default_value), "$(caller_loc):\nYou tried to assign a default value to this multiselect selectbox that contains entries that are not in the provided `options`."))
+                    end
+                end
+            else
+                throw(InvalidArgument(@named(default_value), "$(caller_loc):\nYou tried to assign a default value to this multiselect selectbox that is not a Vector or Tuple."))
+            end
         end
     end
 
-    if !multiple
-        if !(initial_value in options)
-            ignored_initial_value = initial_value
-            initial_value = nothing
+    # Initial value validation
+    if !isnothing(initial_value)
+        if !multiple
+            if initial_value isa Union{String, Number}
+                if !(initial_value in options)
+                    throw(InvalidArgument(@named(initial_value), "$(caller_loc):\nYou tried to assign an initial value to this selectbox that is not in the provided `options`."))
+                end
+            else
+                throw(InvalidArgument(@named(initial_value), "$(caller_loc):\nYou tried to assign an initial value to this selectbox that is not a String or Number."))
+            end
+        else
+            if initial_value isa Union{Vector, Tuple}
+                for v in initial_value
+                    if !(v in options)
+                        throw(InvalidArgument(@named(initial_value), "$(caller_loc):\nYou tried to assign an initial value to this multiselect selectbox that contains entries that are not in the provided `options`."))
+                    end
+                end
+            else
+                throw(InvalidArgument(@named(initial_value), "$(caller_loc):\nYou tried to assign an initial value to this multiselect selectbox that is not a Vector or Tuple."))
+            end
         end
-    else
-        # TODO: Validate initial_value when selectbox is in multiple mode
     end
 
     props = Dict(
@@ -694,14 +724,6 @@ function create_selectbox(
         widget = widgets[props["id"]]
         widget.alive = true
     else
-        if !isnothing(ignored_default_value) && !ismissing(ignored_default_value)
-            @warn "$(caller_loc):\nThe default value \"$(ignored_default_value)\" set to this selectbox was ignored because it is not an option in the provided `options`."
-        end
-
-        if !isnothing(ignored_initial_value)
-            @warn "$(caller_loc):\nThe initial value \"$(ignored_initial_value)\" set to this selectbox was ignored because it is not an option in the provided `options`."
-        end
-
         widget = Widget()
         widget.kind = WidgetKind_Selectbox
         widget.id = props["id"]
@@ -766,9 +788,10 @@ function selectbox(
     show_label::Bool=true,
     placeholder::Union{String, Nothing}=nothing,
     fill_width::Bool=false,
-    onchange::Function=(args...; kwargs...)->(),
+    onchange::Function=()->(),
+    args::Union{Vector, Tuple}=Vector(),
     css::Dict=Dict()
-)::Union{String, Number, Vector, Nothing}
+)::Union{String, Number, Vector, Tuple, Nothing}
 
     task = task_local_storage("app_task")
     parent = top_container()
@@ -785,7 +808,7 @@ function selectbox(
         merge!(css, container_css)
     end
 
-    return create_selectbox(widgets, parent, id, label, options, initial_value, multiple, placeholder, onchange, css, caller_location())
+    return create_selectbox(widgets, parent, id, label, options, initial_value, multiple, placeholder, onchange, args, css, caller_location())
 end
 
 # Color Picker
@@ -2131,8 +2154,37 @@ function set_value(user_id::String, value::Any)::Nothing
     task = task_local_storage("app_task")
     widget = get_widget_by_user_id(task.session.widgets, user_id)
     if widget !== missing
-        widget.value = value
-        widget.props["value"] = value
+        if widget.kind == WidgetKind_Selectbox
+            if !isnothing(value)
+                if !widget.props["multiple"]
+                    if value isa Union{String, Number}
+                        if value in widget.props["options"]
+                            widget.value = value
+                        else
+                            throw(Magic.InvalidArgument(@named(value), "You tried to assign to a selectbox a value that is not one of the options of the selecbox."))
+                        end
+                    else
+                        throw(Magic.InvalidArgument(@named(value), "You tried to assign to a selectbox a value is not a String or Number."))
+                    end
+                else
+                    if value isa Union{Vector, Tuple}
+                        for v in value
+                            if !(v in widget.props["options"])
+                                throw(Magic.InvalidArgument(@named(value), "You tried to assign to a multiselect selectbox one or more values that are not one of the options of the selecbox: `$(v)`."))
+                            end
+                        end
+                        widget.value = value
+                    else
+                        throw(Magic.InvalidArgument(@named(value), "You tried to assign to a multiselect selectbox a value is not a Vector or Tuple."))
+                    end
+                end
+            else
+                widget.value = value
+            end
+        else
+            widget.value = value
+            widget.props["value"] = value
+        end
     else
         # TODO: Handle widget not found
     end

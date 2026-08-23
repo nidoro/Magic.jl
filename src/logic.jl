@@ -603,10 +603,16 @@ function rerun(client_id::Cint, payload::Dict)::Task
 
                         invokelatest(widget.onchange, widget.args...)
                     elseif widget.kind == WidgetKind_Selectbox
-                        if !widget.props["multiple"]
-                            widget.value = get_item_by_repr(widget.props["options"], front_event["new_value"])
+                        if isnothing(front_event["new_value"])
+                            widget.value = nothing
+                        elseif !widget.props["multiple"]
+                            widget.value = get_item_by_its_stringified_version(widget.props["options"], front_event["new_value"])
                         else
-                            widget.value = front_event["new_value"]
+                            new_value = []
+                            for val in front_event["new_value"]
+                                push!(new_value, get_item_by_its_stringified_version(widget.props["options"], val))
+                            end
+                            widget.value = new_value
                         end
                         invokelatest(widget.onchange, widget.args...)
                     elseif widget.kind in [WidgetKind_Selectbox, WidgetKind_Radio, WidgetKind_TextInput, WidgetKind_ColorPicker]

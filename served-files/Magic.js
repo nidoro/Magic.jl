@@ -732,8 +732,17 @@ function createAppElement(parent, props, fragmentId) {
         }
 
         if (props.value != null) {
-            let repr = `${props.value}`;
-            requestAnimationFrame(() => slcElem.setValue(repr, {silent: true}));
+            if (!props.multiple) {
+                let repr = `${props.value}`;
+                requestAnimationFrame(() => slcElem.setValue(repr, {silent: true}));
+            } else {
+                let repr = [];
+                console.log(props.value);
+                for (let val of props.value) {
+                    repr.push(`${val}`);
+                }
+                requestAnimationFrame(() => slcElem.setValue(repr, {silent: true}));
+            }
         }
 
         newElements.push(inpElem);

@@ -113,7 +113,7 @@ function function_accepts_arg_count(f::Function, arg_count::Int)::Bool
     return ok
 end
 
-function get_item_by_repr(list::Union{Vector, Tuple}, rep::String)::Any
+function get_item_by_its_stringified_version(list::Union{Vector, Tuple}, rep::String)::Any
     for entry in list
         if typeof(entry) <: Number
             rep_number = tryparse(typeof(entry), rep)

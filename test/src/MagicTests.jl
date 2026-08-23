@@ -61,19 +61,172 @@ end
     @test_throws Magic.InvalidArgument start_app(test_onclick, port=PORT, dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true)
 end
 
-@testset "selectbox(...) input validation" begin
+@testset "simple selectbox(...) input validation and initialization" begin
     @info """
     ------------------------------------------------------------------
-    Test: selectbox(...) input validation
+    Test: simple selectbox(...) input validation and initialization
     ------------------------------------------------------------------------
     """
-    if false
-        function test_return()
-            set_default_value("slc", 4)
-            val = selectbox("Select Box", [1, 2, 3, "abc", 3.14], initial_value=5, id="slc")
-        end
 
-        start_app(test_return, port=PORT, dev_mode=true, init_and_quit=false, rethrow_rerun_exceptions=true)
+    # Tests that don't throw exceptions
+    #--------------------------------------
+    tests = [
+        # Test that the type of the value assigned at initialization matches the value of its corresponding option
+        function ()
+            val = selectbox("Select Box", [1, 2, 3, "abc", 3.14], initial_value=3)
+            Magic.g.test_successfull = val == 3 && typeof(val) == typeof(3)
+        end,
+
+        function ()
+            val = selectbox("Select Box", [1, 2, 3, "abc", 3.14], initial_value=3.14)
+            Magic.g.test_successfull = val == 3.14 && typeof(val) == typeof(3.14)
+        end,
+
+        # Test that set_value will work when given valid arguments
+        function ()
+            selectbox("Select Box", [1, 2, 3, "abc", 3.14], id="slc")
+            set_value("slc", 3.14)
+            val = get_value("slc")
+            Magic.g.test_successfull = val == 3.14 && typeof(val) == typeof(3.14)
+        end,
+    ]
+
+    for test in tests
+        @test start_app(test, port=PORT, dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true) == nothing
+        @test Magic.g.test_successfull
+    end
+
+    # Tests that throw InvalidArgument
+    #-----------------------------------
+    tests = [
+        # Test that it will fail when given an initial_value that is not in options
+        function ()
+            selectbox("Select Box", [1, 2, 3, "abc", 3.14], initial_value=5)
+        end,
+
+        # Test that it will fail when given an initial_value that is not a String or Number
+        function ()
+            selectbox("Select Box", [1, 2, 3, "abc", 3.14], initial_value=[1])
+        end,
+
+        # Test that it will fail when given a default_value that it is not in options
+        function ()
+            set_default_value("slc", 5)
+            selectbox("Select Box", [1, 2, 3, "abc", 3.14], id="slc")
+        end,
+
+        # Test that it will fail when given a default_value that it is not a String or Number
+        function ()
+            set_default_value("slc", [1])
+            selectbox("Select Box", [1, 2, 3, "abc", 3.14], id="slc")
+        end,
+
+        # Test that set_value will fail when trying to assign a value that does not a String or Number
+        function ()
+            selectbox("Select Box", [1, 2, 3, "abc", 3.14], id="slc")
+            set_value("slc", [])
+        end,
+
+        # Test that set_value will fail when trying to assign a value that does not exist in options
+        function ()
+            selectbox("Select Box", [1, 2, 3, "abc", 3.14], id="slc")
+            set_value("slc", "invalid")
+        end,
+
+        # Test that it will fail when given an onclick callback that accepts a different number of arguments from length(args)
+        function ()
+            selectbox("Select Box", [1, 2, 3, "abc", 3.14], onchange=()->(), args=[1,2,3])
+        end,
+    ]
+
+    for test in tests
+        @test_throws Magic.InvalidArgument start_app(test, port=PORT, dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true)
+    end
+end
+
+@testset "multiselect selectbox(...) input validation and initialization" begin
+    @info """
+    ------------------------------------------------------------------
+    Test: multiselect selectbox(...) input validation and initialization
+    ------------------------------------------------------------------------
+    """
+
+    # Tests that don't throw exceptions
+    #--------------------------------------
+    tests = [
+        # Test that the type of the value assigned at initialization matches the value of its corresponding option
+        function ()
+            val = selectbox("Select Box", [1, 2, 3, "abc", 3.14], multiple=true, initial_value=[2, "abc"])
+            Magic.g.test_successfull = Tuple(typeof.(val)) == (typeof(2), String)
+        end,
+
+        function ()
+            val = selectbox("Select Box", [1, 2, 3, "abc", 3.14], multiple=true, initial_value=(1, 3.14))
+            Magic.g.test_successfull = Tuple(typeof.(val)) == (typeof(1), typeof(3.14))
+        end,
+
+        # Test that set_value will work when given valid arguments
+        function ()
+            selectbox("Select Box", [1, 2, 3, "abc", 3.14], multiple=true, id="slc")
+            set_value("slc", [3.14, "abc"])
+            val = get_value("slc")
+            Magic.g.test_successfull = Tuple(typeof.(val)) == (typeof(3.14), String)
+        end,
+
+        # Test that set_value will work when given empty list as argument
+        function ()
+            selectbox("Select Box", [1, 2, 3, "abc", 3.14], multiple=true, id="slc")
+            set_value("slc", [])
+            val = get_value("slc")
+            Magic.g.test_successfull = isempty(val)
+        end,
+    ]
+
+    for test in tests
+        @test start_app(test, port=PORT, dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true) == nothing
+        @test Magic.g.test_successfull
+    end
+
+    # Tests that throw InvalidArgument
+    #-----------------------------------
+    tests = [
+        # Test that it will fail when given an initial_value that contains values that are not in options
+        function ()
+            selectbox("Select Box", [1, 2, 3, "abc", 3.14], multiple=true, initial_value=[1, "invalid", 3.14])
+        end,
+
+        # Test that it will fail when given an initial_value that contains values that is not a Vector or Tuple
+        function ()
+            selectbox("Select Box", [1, 2, 3, "abc", 3.14], multiple=true, initial_value=1)
+        end,
+
+        # Test that it will fail when given a default_value that contains values that are not in options
+        function ()
+            set_default_value("slc", [1, "invalid", 3.14])
+            selectbox("Select Box", [1, 2, 3, "abc", 3.14], multiple=true, id="slc")
+        end,
+
+        # Test that it will fail when given a default_value that is not a Vector or Tuple
+        function ()
+            set_default_value("slc", 3.14)
+            selectbox("Select Box", [1, 2, 3, "abc", 3.14], multiple=true, id="slc")
+        end,
+
+        # Test that set_value will fail when trying to assign a value that does not a Vector or Tuple
+        function ()
+            selectbox("Select Box", [1, 2, 3, "abc", 3.14], multiple=true, id="slc")
+            set_value("slc", 2)
+        end,
+
+        # Test that set_value will fail when trying to assign a value that does not exist in options
+        function ()
+            selectbox("Select Box", [1, 2, 3, "abc", 3.14], multiple=true, id="slc")
+            set_value("slc", [1, "invalid", 3.14])
+        end,
+    ]
+
+    for test in tests
+        @test_throws Magic.InvalidArgument start_app(test, port=PORT, dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true)
     end
 end
 
