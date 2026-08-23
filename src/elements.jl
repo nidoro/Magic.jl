@@ -74,14 +74,14 @@ function button(
     style   ::String    ="secondary",
     icon    ::String    ="",
     onclick ::Function  =()->(),
-    args    ::Vector    =Vector()
+    args::Union{Vector, Tuple}=Vector()
 )::Bool
 ```
 
  Argument  | Description
 ---------- |-------------
  `label`   | A `String` to be displayed inside the button. It can contain HTML.
- `style`   | A `String`. Should be either `primary`, `secondary`, or `naked`. Default: `secondary`.
+ `style`   | A `String` specifying the predefined style to be applied to the button. Possible values: `primary`, `secondary` (default), or `naked`.
  `icon`    | A `String` in the format `material/icon_name`. Example: `material/thumb_up`.<br/><br/>Check out https://fonts.google.com/icons?icon.set=Material+Icons to learn the icon names.
  `onclick` | A callback `Function`. This function will be called when the button is clicked, before the app script is rerun.
  `args`    | A `Vector` of arguments that will be passed to the `onclick` callback function.
@@ -90,7 +90,14 @@ function button(
 
 `true` if the button was clicked, `false` otherwise.
 """
-function button(label::String=""; style::String="secondary", icon::String="", onclick::Function=()->(), args::Union{Vector, Tuple}=Vector())::Bool
+function button(
+    label::String="";
+    style::String="secondary",
+    icon::String="",
+    onclick::Function=()->(),
+    args::Union{Vector, Tuple}=Vector()
+)::Bool
+
     task = task_local_storage("app_task")
     widgets = task.session.widgets
     return create_button(widgets, top_container(), label, style, icon, onclick, args, nothing, nothing)
