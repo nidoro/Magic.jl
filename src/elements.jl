@@ -90,7 +90,7 @@ function button(
 
 `true` if the button was clicked, `false` otherwise.
 """
-function button(label::String=""; style::String="secondary", icon::String="", onclick::Function=(args...; kwargs...)->(), args::Union{Vector, Tuple}=Vector())::Bool
+function button(label::String=""; style::String="secondary", icon::String="", onclick::Function=()->(), args::Union{Vector, Tuple}=Vector())::Bool
     task = task_local_storage("app_task")
     widgets = task.session.widgets
     return create_button(widgets, top_container(), label, style, icon, onclick, args, nothing, nothing)
@@ -168,7 +168,7 @@ function download_button(
     file_name::Union{String, Nothing}=nothing,
     style::String="secondary",
     icon::String="material/download",
-    onclick::Function=(args...; kwargs...)->(),
+    onclick::Function=()->(),
     args::Vector=Vector()
 )::Bool
 
