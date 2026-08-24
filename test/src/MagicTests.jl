@@ -15,7 +15,7 @@ module MagicTests
 using ReTest
 using Magic
 
-const PORT = 3443
+const PORT = 0
 const SUPPRESS_OUTPUT = true
 
 macro maybe_suppress(ex)
@@ -310,6 +310,14 @@ end
             val = get_value("cbx")
             Magic.g.test_successfull = val == false
         end,
+
+        # Test that set_value with nothing is equivalent to set_value with false
+        function ()
+            checkbox("Checkbox", initial_value=true, id="cbx")
+            set_value("cbx", nothing)
+            val = get_value("cbx")
+            Magic.g.test_successfull = val == false
+        end,
     ]
 
     @maybe_suppress begin
@@ -377,6 +385,22 @@ end
             val = get_value("cbx")
             Magic.g.test_successfull = val == ("abc", 3.14)
         end,
+
+        # Test that set_value with empty list works
+        function ()
+            checkboxes("Checkboxes", (1, 2, 3, "abc", 3.14), id="cbx")
+            set_value("cbx", [])
+            val = get_value("cbx")
+            Magic.g.test_successfull = isempty(val)
+        end,
+
+        # Test that set_value with nothing is equivalent to set_value with empty list
+        function ()
+            checkboxes("Checkboxes", (1, 2, 3, "abc", 3.14), id="cbx")
+            set_value("cbx", nothing)
+            val = get_value("cbx")
+            Magic.g.test_successfull = isempty(val)
+        end,
     ]
 
     @maybe_suppress begin
@@ -426,6 +450,103 @@ end
         function ()
             checkboxes("Checkboxes", [1, 2, 3, "abc", 3.14], id="cbx")
             set_value("cbx", [1, "invalid", 3.14])
+        end,
+    ]
+
+    @maybe_suppress begin
+        for test in tests
+            @test_throws Magic.InvalidArgument start_app(test, port=PORT, dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true)
+        end
+    end
+end
+
+@testset "radio(...) input validation and initialization" begin
+    @maybe_suppress @info """
+    ------------------------------------------------------------------
+    Test: radio(...) input validation and initialization
+    ------------------------------------------------------------------------
+    """
+
+    # Tests that don't throw exceptions
+    #--------------------------------------
+    tests = [
+        # Test that the value assigned at initialization is the returned value
+        function ()
+            val = radio("Radio", [1, 2, 3, "abc", 3.14], initial_value=3.14)
+            Magic.g.test_successfull = val == 3.14
+        end,
+
+        # Test that default_value will be used if initial_value is not provided
+        function ()
+            set_default_value("rad", 3.14)
+            val = radio("Radio", (1, 2, 3, "abc", 3.14), id="rad")
+            Magic.g.test_successfull = val == 3.14
+        end,
+
+        # Test that set_value will work when given valid arguments
+        function ()
+            radio("Radio", (1, 2, 3, "abc", 3.14), id="rad")
+            set_value("rad", 3.14)
+            val = get_value("rad")
+            Magic.g.test_successfull = val == 3.14
+        end,
+
+        # Test that set_value with nothing will assign the first value of the list of options
+        function ()
+            radio("Radio", (1, 2, 3, "abc", 3.14), id="rad")
+            set_value("rad", nothing)
+            val = get_value("rad")
+            Magic.g.test_successfull = val == 1
+        end,
+    ]
+
+    @maybe_suppress begin
+        for test in tests
+            @test start_app(test, port=PORT, dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true) == nothing
+            @test Magic.g.test_successfull
+        end
+    end
+
+    # Tests that throw InvalidArgument
+    #-----------------------------------
+    tests = [
+        # Test that it will fail when given empty options
+        function ()
+            radio("Radio", [])
+        end,
+
+        # Test that it will fail when options contains invalid elements
+        function ()
+            radio("Radio", [1, 2, 3, Dict()])
+        end,
+
+        # Test that it will fail when given an initial_value that contains values that are not in options
+        function ()
+            radio("Radio", [1, 2, 3, "abc", 3.14], initial_value="invalid")
+        end,
+
+        # Test that it will fail when given a default_value that contains values that are not in options
+        function ()
+            set_default_value("rad", "invalid")
+            radio("Radio", [1, 2, 3, "abc", 3.14], id="rad")
+        end,
+
+        # Test that it will fail when given a default_value that is not a String or Number
+        function ()
+            set_default_value("rad", Dict())
+            radio("Radio", [1, 2, 3, "abc", 3.14], id="rad")
+        end,
+
+        # Test that set_value will fail when trying to assign a value that is not a String or Number
+        function ()
+            radio("Radio", [1, 2, 3, "abc", 3.14], id="rad")
+            set_value("rad", [])
+        end,
+
+        # Test that set_value will fail when trying to assign a value that does not exist in options
+        function ()
+            radio("Radio", [1, 2, 3, "abc", 3.14], id="rad")
+            set_value("rad", "invalid")
         end,
     ]
 

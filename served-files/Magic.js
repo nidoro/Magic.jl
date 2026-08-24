@@ -838,7 +838,7 @@ function createAppElement(parent, props, fragmentId) {
                 elem.setAttribute("dd-group", props.id);
 
                 elem.innerText = op;
-                elem.value = op;
+                elem.value = `${op}`;
 
                 if (op == props.options[0]) {
                     elem.setAttribute("dd-onanychange", "radChange()");
@@ -855,7 +855,7 @@ function createAppElement(parent, props, fragmentId) {
         }
 
         requestAnimationFrame(() => {
-            DD_Radio.selectInGroup(props.id, props.value, {silent: true});
+            DD_Radio.selectInGroup(props.id, `${props.value}`, {silent: true});
         })
     } else if (props.type == "image") {
         let elem = document.querySelector(`[data-mg-id="${props.id}"]`);

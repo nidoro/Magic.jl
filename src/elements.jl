@@ -1171,9 +1171,36 @@ function create_radio(
     parent::Dict,
     user_id::Any,
     label::String,
-    options::Vector,
-    initial_value::Union{String, Nothing}
-)::Union{String, Nothing}
+    options::Union{AbstractVector, Tuple},
+    initial_value::Union{String, Number, Nothing},
+    caller_loc::String="",
+)::Union{String, Number, Nothing}
+
+    # Input validation
+    #----------------------
+    if isempty(options)
+        throw(InvalidArgument(@named(options), "$(caller_loc):\n`options` can't be empty."))
+    end
+
+    if !all(entry -> entry isa Union{String, Number}, options)
+        throw(InvalidArgument(@named(options), "$(caller_loc):\n`options` contains elements that are not String or Number."))
+    end
+
+    default_value = maybe_get_default_value(user_id)
+    if !isnothing(default_value) && !ismissing(default_value)
+        if !(default_value isa Union{String, Number})
+            throw(InvalidArgument(@named(default_value), "$(caller_loc):\nYou tried to assign a default value to this radio that is not a String or Number."))
+        end
+        if !(default_value in options)
+            throw(InvalidArgument(@named(default_value), "$(caller_loc):\nYou tried to assign a default value to this radio that is not one of the possible radio values provided in `options`."))
+        end
+    end
+
+    if !isnothing(initial_value)
+        if !(initial_value in options)
+            throw(InvalidArgument(@named(initial_value), "$(caller_loc):\nYou tried to assign an initial value to this radio that is not one of the possible radio values provided in `options`."))
+        end
+    end
 
     props = Dict(
         "type" => "radio",
@@ -1183,8 +1210,8 @@ function create_radio(
         "initial_value" => initial_value,
     )
 
-    if props["initial_value"] === nothing
-        props["initial_value"] = coalesce(maybe_get_default_value(user_id), options[1])
+    if isnothing(props["initial_value"])
+        props["initial_value"] = coalesce(default_value, options[1])
     end
 
     props["local_id"] = bytes2hex(sha256(JSON.json(props)))
@@ -1243,14 +1270,14 @@ The currently selected value from `options`, or `nothing` if no option is select
 """
 function radio(
     label::String,
-    options::Vector;
+    options::Union{AbstractVector, Tuple};
     id::Any=nothing,
-    initial_value::Union{String, Nothing}=nothing
-)::Union{String, Nothing}
+    initial_value::Union{String, Number, Nothing}=nothing
+)::Union{String, Number, Nothing}
 
     task = task_local_storage("app_task")
     widgets = task.session.widgets
-    return create_radio(widgets, top_container(), id, label, options, initial_value)
+    return create_radio(widgets, top_container(), id, label, options, initial_value, caller_location())
 end
 
 # Image
@@ -2052,15 +2079,6 @@ end
 #---------
 maybe_get_default_value = (user_id::Union{String, Nothing}) -> (user_id != nothing ? get_default_value(user_id) : nothing)
 
-function coalesce(args...)
-    for arg in args
-        if arg !== nothing && arg !== missing
-            return arg
-        end
-    end
-    return nothing
-end
-
 function get_widget_by_user_id(widgets::Dict{String, Widget}, user_id::String)::Union{Widget, Missing}
     for widget in values(widgets)
         if widget.user_id == user_id
@@ -2271,15 +2289,33 @@ function set_value(user_id::String, value::Any)::Nothing
                     end
                 end
             else
-                widget.value = value
+                if !widget.props["multiple"]
+                    widget.value = false
+                else
+                    widget.value = []
+                end
+            end
+        elseif widget.kind == WidgetKind_Radio
+            if !isnothing(value)
+                if value isa Union{String, Number}
+                    if value in widget.props["options"]
+                        widget.value = value
+                    else
+                        throw(Magic.InvalidArgument(@named(value), "You tried to assign to a radio a value is not one of its possible value options."))
+                    end
+                else
+                    throw(Magic.InvalidArgument(@named(value), "You tried to assign to a radio a value is not a String or Number."))
+                end
+            else
+                widget.value = widget.props["options"][1]
             end
         else
             widget.value = value
-            widget.props["value"] = value
         end
     else
         # TODO: Handle widget not found
     end
+    widget.props["value"] = widget.value
     return nothing
 end
 

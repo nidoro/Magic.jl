@@ -556,7 +556,7 @@ function rerun(client_id::Cint, payload::Dict)::Task
                 end
             end
 
-            # TODO: Although we receive a list of events from the front-end, at the
+            # NOTE: Although we receive a list of events from the front-end, at the
             # moment we don't expect it to have more than one event.
             for front_event in payload["events"]
                 widget = session.widgets[front_event["widget_id"]]
@@ -620,7 +620,10 @@ function rerun(client_id::Cint, payload::Dict)::Task
                             widget.value = new_value
                         end
                         invokelatest(widget.onchange, widget.args...)
-                    elseif widget.kind in [WidgetKind_Selectbox, WidgetKind_Radio, WidgetKind_TextInput, WidgetKind_ColorPicker]
+                    elseif widget.kind == WidgetKind_Radio
+                        widget.value = get_item_by_its_stringified_version(widget.props["options"], front_event["new_value"])
+                        invokelatest(widget.onchange, widget.args...)
+                    elseif widget.kind in [WidgetKind_TextInput, WidgetKind_ColorPicker]
                         widget.value = front_event["new_value"]
                         invokelatest(widget.onchange, widget.args...)
                     elseif widget.kind == WidgetKind_NumberInput
