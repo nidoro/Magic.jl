@@ -568,11 +568,16 @@ function rerun(client_id::Cint, payload::Dict)::Task
                     end
                 elseif front_event["type"] == "change"
                     if widget.kind == WidgetKind_Checkboxes
-                        if widget.props["multiple"]
-                            widget.value = front_event["new_value"]
-                        else
+                        if !widget.props["multiple"]
                             widget.value = (length(front_event["new_value"]) > 0)
+                        else
+                            new_value = []
+                            for val in front_event["new_value"]
+                                push!(new_value, get_item_by_its_stringified_version(widget.props["options"], val))
+                            end
+                            widget.value = new_value
                         end
+
                         invokelatest(widget.onchange, widget.args...)
                     elseif widget.kind == WidgetKind_FileUploader
                         new_value = nothing

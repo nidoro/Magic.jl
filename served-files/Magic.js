@@ -784,7 +784,7 @@ function createAppElement(parent, props, fragmentId) {
                         elem.setAttribute("checked", "");
                     }
                 } else {
-                    if (props.value.includes(elem.value)) {
+                    if (props.value.includes(op)) {
                         elem.setAttribute("checked", "");
                     } else {
                         elem.removeAttribute("checked");
@@ -795,12 +795,20 @@ function createAppElement(parent, props, fragmentId) {
             }
         } else {
             newElements = cbxGroup.checkboxes;
+
+            let stringValues = [];
+            if (props.multiple) {
+                for (let val of props.value) {
+                    stringValues.push(`${val}`);
+                }
+            }
+
             for (const elem of newElements) {
                 elem.setAttribute("dd-reconnecting", "");
                 elem.setAttribute("dd-silent", "");
 
                 if (props.multiple) {
-                    if (props.value.includes(elem.value)) {
+                    if (stringValues.includes(elem.value)) {
                         elem.setAttribute("checked", "");
                     } else {
                         elem.removeAttribute("checked", "");
