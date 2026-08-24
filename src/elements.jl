@@ -646,6 +646,15 @@ function create_selectbox(
         throw(InvalidArgument(@named(onchange), "`onchange` should accept the same number of arguments passed in `args` ($(length(args)))."))
     end
 
+    # options validation
+    if isempty(options)
+        throw(InvalidArgument(@named(options), "`options` can't be empty"))
+    end
+
+    if !all(x -> x isa Union{String, Number}, options)
+        throw(InvalidArgument(@named(options), "`options` contains elements that are not String or Number"))
+    end
+
     # Default value validation
     default_value = maybe_get_default_value(user_id)
     if !isnothing(default_value) && !ismissing(default_value)
@@ -947,12 +956,65 @@ function create_checkboxes(
     parent::Dict,
     user_id::Any,
     label::String,
-    options::Vector,
-    initial_value::Union{Vector, Nothing},
+    options::Union{Vector, Tuple},
+    initial_value::Union{Vector, Tuple, Nothing},
     multiple::Bool,
     onchange::Function,
-    args::Vector
-)::Union{Bool, Vector}
+    args::Vector,
+    caller_loc::String="",
+)::Union{Bool, Vector, Tuple}
+
+    # Input validation
+    #--------------------
+
+    # onchange validation
+    if !function_accepts_arg_count(onchange, length(args))
+        throw(InvalidArgument(@named(onchange), "`onchange` should accept the same number of arguments passed in `args` ($(length(args)))."))
+    end
+
+    # options validation
+    if isempty(options)
+        throw(InvalidArgument(@named(options), "`options` can't be empty"))
+    end
+
+    if !all(x -> x isa Union{String, Number}, options)
+        throw(InvalidArgument(@named(options), "`options` contains elements that are not String or Number"))
+    end
+
+    # Default value validation
+    default_value = maybe_get_default_value(user_id)
+    if !isnothing(default_value) && !ismissing(default_value)
+        if !multiple
+            if !(default_value isa Bool)
+                throw(InvalidArgument(@named(default_value), "$(caller_loc):\nYou tried to assign a default value to this checkbox that is not a Bool."))
+            end
+        else
+            if default_value isa Union{Vector, Tuple}
+                for v in default_value
+                    if !(v in options)
+                        throw(InvalidArgument(@named(default_value), "$(caller_loc):\nYou tried to assign a default value to this checkboxes that contains entries that are not in the provided `options`."))
+                    end
+                end
+            else
+                throw(InvalidArgument(@named(default_value), "$(caller_loc):\nYou tried to assign a default value to this checkboxes that is not a Vector or Tuple."))
+            end
+        end
+    end
+
+    # Initial value validation
+    if !isnothing(initial_value)
+        for v in initial_value
+            if !(v in options)
+                if multiple
+                    throw(InvalidArgument(@named(initial_value), "$(caller_loc):\nYou tried to assign an initial value to this checkboxes that contains entries that are not in the provided `options`."))
+                else
+                    # UNREACHABLE: this should never happen because this is an internal function,
+                    # so we are the ones setting an invalid parameter to initial_value.
+                    throw(InvalidArgument(@named(initial_value), "$(caller_loc):\nWe tried to assign an initial value to this checkbox that is not a valid option. This is a Magic.jl bug, please report."))
+                end
+            end
+        end
+    end
 
     props = Dict(
         "type" => "checkboxes",
@@ -963,9 +1025,8 @@ function create_checkboxes(
         "user_id" => user_id,
     )
 
-    if props["initial_value"] === nothing
-        default_value = maybe_get_default_value(user_id)
-        if default_value !== nothing
+    if isnothing(props["initial_value"])
+        if !isnothing(default_value) && !ismissing(default_value)
             if multiple
                 props["initial_value"] = default_value
             else
@@ -1021,7 +1082,7 @@ function checkbox(
     label         ::String;
     id            ::Any       = nothing,
     initial_value ::Union{Bool, Nothing}=nothing,
-    onchange      ::Function  = (args...; kwargs...)->(),
+    onchange      ::Function  = ()->(),
     args          ::Vector    = Vector()
 )::Bool
 ```
@@ -1042,7 +1103,7 @@ function checkbox(
     label::String;
     id::Any=nothing,
     initial_value::Union{Bool, Nothing}=nothing,
-    onchange::Function=(args...; kwargs...)->(),
+    onchange::Function=()->(),
     args::Vector=Vector()
 )::Bool
 
@@ -1051,11 +1112,11 @@ function checkbox(
 
     init_value = nothing
 
-    if initial_value !== nothing
-        init_value = initial_value ? [label] : []
+    if !isnothing(initial_value)
+        init_value = initial_value ? Union{String, Number}[label] : Union{String, Number}[]
     end
 
-    return create_checkboxes(widgets, top_container(), id, label, [label], init_value, false, onchange, args)
+    return create_checkboxes(widgets, top_container(), id, label, Union{String, Number}[label], init_value, false, onchange, args, caller_location())
 end
 
 """
@@ -1071,7 +1132,7 @@ function checkboxes(
     options         ::Vector;
     id              ::Any       =nothing,
     initial_value   ::Union{Vector, Nothing}=nothing,
-    onchange        ::Function  =(args...; kwargs...)->(),
+    onchange        ::Function  =()->(),
     args            ::Vector    =Vector()
 )::Vector
 ```
@@ -1091,12 +1152,12 @@ A `Vector` indicating which options in `options` are checked.
 """
 function checkboxes(
     label::String,
-    options::Vector;
+    options::Union{Vector, Tuple};
     id::Any=nothing,
-    initial_value::Union{Vector, Nothing}=nothing,
-    onchange::Function=(args...; kwargs...)->(),
+    initial_value::Union{Vector, Tuple, Nothing}=nothing,
+    onchange::Function=()->(),
     args::Vector=Vector()
-)::Vector
+)::Union{Vector, Tuple}
 
     task = task_local_storage("app_task")
     widgets = task.session.widgets
@@ -2184,6 +2245,29 @@ function set_value(user_id::String, value::Any)::Nothing
                         widget.value = value
                     else
                         throw(Magic.InvalidArgument(@named(value), "You tried to assign to a multiselect selectbox a value is not a Vector or Tuple."))
+                    end
+                end
+            else
+                widget.value = value
+            end
+        elseif widget.kind == WidgetKind_Checkboxes
+            if !isnothing(value)
+                if !widget.props["multiple"]
+                    if value isa Bool
+                        widget.value = value
+                    else
+                        throw(Magic.InvalidArgument(@named(value), "You tried to assign to a checkbox a value is not a Bool."))
+                    end
+                else
+                    if value isa Union{Vector, Tuple}
+                        for v in value
+                            if !(v in widget.props["options"])
+                                throw(Magic.InvalidArgument(@named(value), "You tried to assign to a checkboxes one or more values that are not one of the options of the checkboxes: `$(v)`."))
+                            end
+                        end
+                        widget.value = value
+                    else
+                        throw(Magic.InvalidArgument(@named(value), "You tried to assign to a checkboxes a value is not a Vector or Tuple."))
                     end
                 end
             else
