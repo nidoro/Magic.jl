@@ -16,7 +16,7 @@ using ReTest
 using Magic
 
 const PORT = 0
-const SUPPRESS_OUTPUT = true
+const SUPPRESS_OUTPUT = false
 
 macro maybe_suppress(ex)
     quote
@@ -547,6 +547,67 @@ end
         function ()
             radio("Radio", [1, 2, 3, "abc", 3.14], id="rad")
             set_value("rad", "invalid")
+        end,
+    ]
+
+    @maybe_suppress begin
+        for test in tests
+            @test_throws Magic.InvalidArgument start_app(test, port=PORT, dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true)
+        end
+    end
+end
+@testset "text_input(...) input validation and initialization" begin
+    @maybe_suppress @info """
+    ------------------------------------------------------------------
+    Test: text_input(...) input validation and initialization
+    ------------------------------------------------------------------------
+    """
+
+    # Tests that don't throw exceptions
+    #--------------------------------------
+    tests = [
+        # Test that the value assigned at initialization is the returned value
+        function ()
+            val = text_input("Text Input", initial_value="initial value")
+            Magic.g.test_successfull = val == "initial value"
+        end,
+
+        # Test that default_value will be used if initial_value is not provided
+        function ()
+            set_default_value("txt", "default value")
+            val = text_input("Text Input", id="txt")
+            Magic.g.test_successfull = val == "default value"
+        end,
+
+        # Test that set_value will work when given valid arguments
+        function ()
+            text_input("Text Input", id="txt")
+            set_value("txt", "set value")
+            val = get_value("txt")
+            Magic.g.test_successfull = val == "set value"
+        end,
+    ]
+
+#     @maybe_suppress begin
+#         for test in tests
+#             @test start_app(test, port=PORT, dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true) == nothing
+#             @test Magic.g.test_successfull
+#         end
+#     end
+
+    # Tests that throw InvalidArgument
+    #-----------------------------------
+    tests = [
+        # Test that it will fail when given a default_value that is not a String or Number
+        function ()
+            set_default_value("txt", Dict())
+            text_input("Text Input", id="txt")
+        end,
+
+        # Test that set_value will fail when trying to assign a value that is not a String or Nothing
+        function ()
+            text_input("Text Input", id="txt")
+            set_value("txt", [])
         end,
     ]
 

@@ -199,18 +199,27 @@ function create_text_input(
     css=Dict
 )::Union{String, Nothing}
 
+    # Input validation
+    #-------------------
+    default_value = maybe_get_default_value(user_id)
+    if !isnothing(default_value) && !ismissing(default_value)
+        if !(default_value isa AbstractString)
+            throw(InvalidArgument(@named(default_value), "You tried to assign to a text_input a default value that is not an AbstractString."))
+        end
+    end
+
     props = Dict(
         "type" => "text_input",
         "user_id" => user_id,
         "label" => label,
-        "default_value" => maybe_get_default_value(user_id),
+        "default_value" => default_value,
         "initial_value" => initial_value,
         "placeholder" => placeholder,
         "css" => css,
     )
 
     if props["placeholder"] == nothing
-        props["placeholder"] = coalesce(props["default_value"], "")
+        props["placeholder"] = coalesce(default_value, "")
     end
 
     props["local_id"] = bytes2hex(sha256(JSON.json(props)))
@@ -237,7 +246,7 @@ function create_text_input(
     props["value"] = widget.value
     widget.props = props
 
-    return coalesce(widget.value, props["default_value"])
+    return coalesce(widget.value, default_value)
 end
 
 """
@@ -2308,6 +2317,16 @@ function set_value(user_id::String, value::Any)::Nothing
                 end
             else
                 widget.value = widget.props["options"][1]
+            end
+        elseif widget.kind == WidgetKind_TextInput
+            if !isnothing(value)
+                if value isa AbstractString
+                    widget.value = value
+                else
+                    throw(Magic.InvalidArgument(@named(value), "You tried to assign to a text_input a value is not an AbstractString."))
+                end
+            else
+                widget.value = nothing
             end
         else
             widget.value = value
