@@ -140,9 +140,13 @@ function caller_location()::String
     return "$(frame.file):$(frame.line)"
 end
 
+function ismithing(value::Any)::Bool
+    return ismissing(value) || isnothing(value)
+end
+
 function coalesce(args...)
     for arg in args
-        if arg !== nothing && arg !== missing
+        if !ismithing(arg)
             return arg
         end
     end

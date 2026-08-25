@@ -556,6 +556,7 @@ end
         end
     end
 end
+
 @testset "text_input(...) input validation and initialization" begin
     @maybe_suppress @info """
     ------------------------------------------------------------------
@@ -588,12 +589,12 @@ end
         end,
     ]
 
-#     @maybe_suppress begin
-#         for test in tests
-#             @test start_app(test, port=PORT, dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true) == nothing
-#             @test Magic.g.test_successfull
-#         end
-#     end
+    @maybe_suppress begin
+        for test in tests
+            @test start_app(test, port=PORT, dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true) == nothing
+            @test Magic.g.test_successfull
+        end
+    end
 
     # Tests that throw InvalidArgument
     #-----------------------------------
@@ -608,6 +609,68 @@ end
         function ()
             text_input("Text Input", id="txt")
             set_value("txt", [])
+        end,
+    ]
+
+    @maybe_suppress begin
+        for test in tests
+            @test_throws Magic.InvalidArgument start_app(test, port=PORT, dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true)
+        end
+    end
+end
+
+@testset "number_input(...) input validation and initialization" begin
+    @maybe_suppress @info """
+    ------------------------------------------------------------------
+    Test: number_input(...) input validation and initialization
+    ------------------------------------------------------------------------
+    """
+
+    # Tests that don't throw exceptions
+    #--------------------------------------
+    tests = [
+        # Test that the value assigned at initialization is the returned value
+        function ()
+            val = number_input("Number Input", initial_value=3.14)
+            Magic.g.test_successfull = val == 3.14
+        end,
+
+        # Test that default_value will be used if initial_value is not provided
+        function ()
+            set_default_value("num", 3.14)
+            val = number_input("Number Input", id="num")
+            Magic.g.test_successfull = val == 3.14
+        end,
+
+        # Test that set_value will work when given valid arguments
+        function ()
+            number_input("Number Input", id="num")
+            set_value("num", 3.14)
+            val = get_value("num")
+            Magic.g.test_successfull = val == 3.14
+        end,
+    ]
+
+    @maybe_suppress begin
+        for test in tests
+            @test start_app(test, port=PORT, dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true) == nothing
+            @test Magic.g.test_successfull
+        end
+    end
+
+    # Tests that throw InvalidArgument
+    #-----------------------------------
+    tests = [
+        # Test that it will fail when given a default_value that is not a String or Number
+        function ()
+            set_default_value("num", Dict())
+            number_input("Number Input", id="num")
+        end,
+
+        # Test that set_value will fail when trying to assign a value that is not a String or Nothing
+        function ()
+            number_input("Number Input", id="num")
+            set_value("num", [])
         end,
     ]
 

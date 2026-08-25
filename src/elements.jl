@@ -319,7 +319,7 @@ function create_number_input(
     label::String,
     initial_value::Union{Real, Nothing},
     placeholder::Union{String, Nothing},
-    num_type::Type{<:Real},
+    num_type::Union{Type{<:Real}, Nothing},
     precision::Int,
     min::Union{Real, Nothing},
     max::Union{Real, Nothing},
@@ -329,11 +329,34 @@ function create_number_input(
     css=Dict
 )::Union{Real, Nothing}
 
+    # Input validation
+    #--------------------
+    default_value = maybe_get_default_value(user_id)
+    if !ismithing(default_value)
+        if !(default_value isa Real)
+            throw(InvalidArgument(@named(default_value), "You tried to assign to a number_input a default value that is not a Real."))
+        end
+    end
+
+    # Infer num_type and enforce it
+    #----------------------------------
+    if isnothing(num_type)
+        if     !ismithing(initial_value) num_type = typeof(initial_value)
+        elseif !ismithing(default_value) num_type = typeof(default_value)
+        else                             num_type = Float64 end
+    end
+
+    if !ismithing(initial_value) initial_value = convert(num_type, initial_value) end
+    if !ismithing(default_value) default_value = convert(num_type, default_value) end
+    if !ismithing(min)           min           = convert(num_type, min) end
+    if !ismithing(max)           max           = convert(num_type, max) end
+    step                                       = convert(num_type, step)
+
     props = Dict(
         "type" => "number_input",
         "user_id" => user_id,
         "label" => label,
-        "default_value" => maybe_get_default_value(user_id),
+        "default_value" => default_value,
         "initial_value" => initial_value,
         "placeholder" => placeholder,
         "num_type" => num_type,
@@ -346,8 +369,8 @@ function create_number_input(
         "css" => css,
     )
 
-    if props["placeholder"] == nothing
-        props["placeholder"] = coalesce(props["default_value"], "")
+    if isnothing(props["placeholder"])
+        props["placeholder"] = coalesce(default_value, "")
     end
 
     props["local_id"] = bytes2hex(sha256(JSON.json(props)))
@@ -367,14 +390,14 @@ function create_number_input(
         widget.id = props["id"]
         widget.fragment_id = top_fragment().id
         widget.user_id = props["user_id"]
-        widget.value = props["initial_value"]
+        widget.value = !isnothing(initial_value) ? convert(num_type, initial_value) : nothing
         widgets[props["id"]] = widget
     end
 
     props["value"] = widget.value
     widget.props = props
 
-    return coalesce(widget.value, props["default_value"])
+    return coalesce(widget.value, default_value)
 end
 
 """
@@ -428,7 +451,7 @@ function number_input(
     label::String;
     initial_value::Union{Real, Nothing}=nothing,
     placeholder::Union{String, Nothing}=nothing,
-    num_type::Type{<:Real}=Float64,
+    num_type::Union{Type{<:Real}, Nothing}=nothing,
     precision::Integer=1,
     min::Union{Real, Nothing}=nothing,
     max::Union{Real, Nothing}=nothing,
@@ -440,13 +463,6 @@ function number_input(
     id::Any=nothing,
     css::Dict=Dict()
 )::Union{Real, Nothing}
-
-    if num_type <: Integer && !(typeof(step) <: Integer)
-        throw(ArgumentError(
-            "Incompatible types of `num_type` ($(num_type)) and `step` ($(typeof(step)) $(step)).\n" *
-            "Please provide an Integer `step` for Integer `num_type`."
-        ))
-    end
 
     task = task_local_storage("app_task")
     parent = top_container()
@@ -2324,6 +2340,16 @@ function set_value(user_id::String, value::Any)::Nothing
                     widget.value = value
                 else
                     throw(Magic.InvalidArgument(@named(value), "You tried to assign to a text_input a value is not an AbstractString."))
+                end
+            else
+                widget.value = nothing
+            end
+        elseif widget.kind == WidgetKind_NumberInput
+            if !isnothing(value)
+                if value isa Real
+                    widget.value = convert(widget.props["num_type"], value)
+                else
+                    throw(Magic.InvalidArgument(@named(value), "You tried to assign to a number_input a value is not an Real."))
                 end
             else
                 widget.value = nothing
