@@ -674,7 +674,10 @@ function createAppElement(parent, props, fragmentId) {
 
             elem.setAttribute("dd-min", props.min);
             elem.setAttribute("dd-max", props.max);
-            elem.setAttribute("dd-step", props.step);
+
+            if (props.step != null) {
+                elem.setAttribute("dd-step", props.step);
+            }
 
             elem.setAttribute("data-mg-id", props.id);
 

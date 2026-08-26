@@ -490,21 +490,59 @@ function create_slider(
     user_id::Any,
     label::String,
     initial_value::Union{Real, Nothing},
-    num_type::Type{<:Real},
+    num_type::Union{Type{<:Real}, Nothing},
     precision::Int,
     min::Real,
     max::Real,
-    step::Real,
+    step::Union{Real, Nothing},
     decimal_separator::String,
     thousands_separator::String,
     css=Dict
 )::Real
 
+    # Input validation
+    #--------------------
+    default_value = maybe_get_default_value(user_id)
+    if !ismithing(default_value)
+        if !(default_value isa Real)
+            throw(InvalidArgument(@named(default_value), "You tried to assign to a slider a default value that is not a Real."))
+        end
+    end
+
+    # Infer num_type and enforce it
+    #----------------------------------
+    if isnothing(num_type)
+        if     !ismithing(initial_value) num_type = typeof(initial_value)
+        elseif !ismithing(default_value) num_type = typeof(default_value)
+        else                             num_type = Float64 end
+    end
+
+    if !ismithing(initial_value) initial_value = convert(num_type, initial_value) end
+    if !ismithing(default_value) default_value = convert(num_type, default_value) end
+    if !ismithing(step)          step          = convert(num_type, step) end
+    min                                        = convert(num_type, min)
+    max                                        = convert(num_type, max)
+
+    # Range validation
+    if min >= max
+        min_max = (min, max)
+        throw(InvalidArgument(@named(min_max), "Invalid slider interval. `min` should be lesser than `max`."))
+    end
+
+    # Value clamping
+    if !ismithing(initial_value) initial_value = clamp(initial_value, min, max) end
+    if !ismithing(default_value) default_value = clamp(default_value, min, max) end
+
+    # Ensure step for integer type
+    if num_type <: Integer
+        if ismithing(step) step = one(num_type) end
+    end
+
     props = Dict(
         "type" => "slider",
         "user_id" => user_id,
         "label" => label,
-        "default_value" => maybe_get_default_value(user_id),
+        "default_value" => default_value,
         "initial_value" => initial_value,
         "num_type" => num_type,
         "precision" => num_type <: Integer ? 0 : precision,
@@ -516,8 +554,8 @@ function create_slider(
         "css" => css,
     )
 
-    if props["initial_value"] === nothing
-        props["initial_value"] = coalesce(props["default_value"], props["min"])
+    if isnothing(props["initial_value"])
+        props["initial_value"] = coalesce(default_value, props["min"])
     end
 
     props["local_id"] = bytes2hex(sha256(JSON.json(props)))
@@ -595,34 +633,19 @@ The current value of the slider as a `Real` number; or `nothing`.
 """
 function slider(
     label::String;
-    initial_value::Union{T, Nothing}=nothing,
-    min::T=0.0,
-    max::T=1.0,
-    step::Union{T, Nothing}=nothing,
+    initial_value::Union{Real, Nothing}=nothing,
+    min::Real=0.0,
+    max::Real=1.0,
+    step::Union{Real, Nothing}=nothing,
     precision::Integer=2,
+    num_type::Union{Type{<:Real}, Nothing}=nothing,
     decimal_separator::String=".",
     thousands_separator::String=",",
     show_label::Bool=true,
     fill_width::Bool=false,
     id::Any=nothing,
     css::Dict=Dict()
-)::Real where {T <: Real}
-
-    if initial_value !== nothing
-        if !(min <= initial_value <= max)
-            throw(ArgumentError(
-                "`initial_value` ($(initial_value)) is not between `min` ($(min)) and `max` ($(max))"
-            ))
-        end
-    end
-
-    if step === nothing
-        if T <: Integer
-            step = 1
-        else
-            step = 0.01
-        end
-    end
+)::Real
 
     task = task_local_storage("app_task")
     parent = top_container()
@@ -643,7 +666,7 @@ function slider(
         merge!(css, container_css)
     end
 
-    return create_slider(widgets, parent, id, label, initial_value, T, precision, min, max, step, decimal_separator, thousands_separator, css)
+    return create_slider(widgets, parent, id, label, initial_value, num_type, precision, min, max, step, decimal_separator, thousands_separator, css)
 end
 
 # Selectbox
@@ -2353,6 +2376,16 @@ function set_value(user_id::String, value::Any)::Nothing
                 end
             else
                 widget.value = nothing
+            end
+        elseif widget.kind == WidgetKind_Slider
+            if !isnothing(value)
+                if value isa Real
+                    widget.value = convert(widget.props["num_type"], clamp(value, widget.props["min"], widget.props["max"]))
+                else
+                    throw(Magic.InvalidArgument(@named(value), "You tried to assign to a slider a value is not an Real."))
+                end
+            else
+                widget.value = widget.props["min"]
             end
         else
             widget.value = value

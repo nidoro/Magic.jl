@@ -626,3 +626,120 @@ end
         end
     end
 end
+
+@testset "slider(...) input validation and initialization" begin
+    @maybe_suppress @info """
+    ------------------------------------------------------------------
+    Test: slider(...) input validation and initialization
+    ------------------------------------------------------------------------
+    """
+
+    # Tests that don't throw exceptions
+    #--------------------------------------
+    tests = [
+        # Test that the value assigned at initialization is the returned value
+        function ()
+            val = slider("Slider", initial_value=0.67)
+            Magic.g.test_successfull = val == 0.67
+        end,
+
+        # Test that default_value will be used if initial_value is not provided
+        function ()
+            set_default_value("sld", 0.67)
+            val = slider("Slider", id="sld")
+            Magic.g.test_successfull = val == 0.67
+        end,
+
+        # Test that set_value will work when given valid arguments
+        function ()
+            slider("Slider", id="sld")
+            set_value("sld", 0.67)
+            val = get_value("sld")
+            Magic.g.test_successfull = val == 0.67
+        end,
+
+        # Test type inference when initial_value is provided
+        function ()
+            val = slider("Slider", initial_value=Float32(0.67))
+            Magic.g.test_successfull = val isa Float32
+        end,
+
+        # Test type inference when default_value is provided
+        function ()
+            set_default_value("sld", Float32(0.67))
+            val = slider("Slider", id="sld")
+            Magic.g.test_successfull = val isa Float32
+        end,
+
+        # Test that the infered type is enforced on set_value
+        function ()
+            slider("Slider", initial_value=Float32(0.67), id="sld")
+            set_value("sld", Int(1))
+            val = get_value("sld")
+            Magic.g.test_successfull = val isa Float32 && val == one(Float32)
+        end,
+
+        # Test that set_value with nothing sets to the slider min
+        function ()
+            slider("Slider", min=12, max=24, initial_value=15, id="sld")
+            set_value("sld", nothing)
+            val = get_value("sld")
+            Magic.g.test_successfull = val == 12
+        end,
+
+        # Test that set_value will clamp if given a value outside the slider range
+        function ()
+            slider("Slider", min=12, max=24, initial_value=15, id="sld")
+            set_value("sld", 100)
+            val = get_value("sld")
+            Magic.g.test_successfull = val == 24
+        end,
+
+        function ()
+            slider("Slider", min=12, max=24, initial_value=15, id="sld")
+            set_value("sld", 1)
+            val = get_value("sld")
+            Magic.g.test_successfull = val == 12
+        end,
+    ]
+
+#     @maybe_suppress begin
+#         for test in tests
+#             @test start_app(test, port=PORT, dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true) == nothing
+#             @test Magic.g.test_successfull
+#         end
+#     end
+
+    # Tests that throw InvalidArgument
+    #-----------------------------------
+    tests = [
+        # Test that it will fail when given a default_value that is not a Number
+        function ()
+            set_default_value("sld", Dict())
+            slider("Slider", id="sld")
+        end,
+
+        # Test that set_value will fail when trying to assign a value that is not a Number or Nothing
+        function ()
+            slider("Slider", id="sld")
+            set_value("sld", [])
+        end,
+
+        # Test that set_value will fail when trying to assign a value that is not a Number or Nothing
+        function ()
+            slider("Slider", id="sld")
+            set_value("sld", [])
+        end,
+
+        # Test that set_value will fail when given a range with min >= max
+        function ()
+            slider("Slider", min=20, max=10, id="sld")
+        end,
+    ]
+
+    @maybe_suppress begin
+        for test in tests
+            @test_throws Magic.InvalidArgument start_app(test, port=PORT, dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true)
+        end
+    end
+end

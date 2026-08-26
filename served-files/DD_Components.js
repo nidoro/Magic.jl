@@ -3941,7 +3941,6 @@ class DD_Slider extends HTMLElement {
 
         if (!this.hasAttribute("dd-min")) this.setAttribute("dd-min", 0.0);
         if (!this.hasAttribute("dd-max")) this.setAttribute("dd-max", 1.0);
-        if (!this.hasAttribute("dd-step")) this.setAttribute("dd-step", 0.01);
 
         if (!this.hasAttribute("dd-decimal-separator")) {
             this.setAttribute("dd-decimal-separator", ".");
@@ -4002,7 +4001,11 @@ class DD_Slider extends HTMLElement {
     }
 
     getStep() {
-        return parseFloat(this.getAttribute("dd-step"));
+        if (this.hasAttribute("dd-step")) {
+            return parseFloat(this.getAttribute("dd-step"));
+        } else {
+            return null;
+        }
     }
 
     getAmplitude() {
@@ -4019,17 +4022,20 @@ class DD_Slider extends HTMLElement {
             const x = clientX - rect.x;
             const xRel = x / rect.width;
             const value = this.getMin() + xRel * this.getAmplitude();
+            const step = this.getStep();
 
-            const remainder = value % this.getStep();
-            const a = value - remainder;
-            const b = a + this.getStep();
+            if (step !== null) {
+                const remainder = value % step;
+                const a = value - remainder;
+                const b = a + step;
 
-            //console.log(value, a, b);
-
-            if (value - a < b - value) {
-                return a;
+                if (value - a < b - value) {
+                    return a;
+                } else {
+                    return b;
+                }
             } else {
-                return b;
+                return value;
             }
         }
     }

@@ -628,22 +628,14 @@ function rerun(client_id::Cint, payload::Dict)::Task
                         invokelatest(widget.onchange, widget.args...)
                     elseif widget.kind == WidgetKind_NumberInput
                         new_value = front_event["new_value"]
-                        if new_value != nothing
-                            if widget.props["num_type"] <: Integer
-                                new_value = round(widget.props["num_type"], new_value)
-                            else
-                                new_value = convert(widget.props["num_type"], new_value)
-                            end
+                        if !isnothing(new_value)
+                            new_value = convert(widget.props["num_type"], round(new_value, digits=widget.props["precision"]))
                         end
                         widget.value = new_value
                         invokelatest(widget.onchange, widget.args...)
                     elseif widget.kind == WidgetKind_Slider
                         new_value = front_event["new_value"]
-                        if widget.props["num_type"] <: Integer
-                            new_value = round(widget.props["num_type"], new_value)
-                        else
-                            new_value = convert(widget.props["num_type"], new_value)
-                        end
+                        new_value = convert(widget.props["num_type"], round(new_value, digits=widget.props["precision"]))
                         widget.value = new_value
                         invokelatest(widget.onchange, widget.args...)
                     elseif widget.kind == WidgetKind_DataFrame
