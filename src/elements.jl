@@ -352,6 +352,29 @@ function create_number_input(
     if !ismithing(max)           max           = convert(num_type, max) end
     step                                       = convert(num_type, step)
 
+    # Range validation
+    if !ismithing(min) && !ismithing(max)
+        if min >= max
+            min_max = (min, max)
+            throw(InvalidArgument(@named(min_max), "Invalid number_input interval. `min` should be lesser than `max`."))
+        end
+    end
+
+    if !ismithing(min)
+        initial_value = Base.max(min, initial_value)
+        default_value = Base.max(min, default_value)
+    end
+
+    if !ismithing(max)
+        initial_value = Base.min(max, initial_value)
+        default_value = Base.min(max, default_value)
+    end
+
+    # Ensure step for integer type
+    if num_type <: Integer
+        if ismithing(step) step = one(num_type) end
+    end
+
     props = Dict(
         "type" => "number_input",
         "user_id" => user_id,
@@ -2371,6 +2394,8 @@ function set_value(user_id::String, value::Any)::Nothing
             if !isnothing(value)
                 if value isa Real
                     widget.value = convert(widget.props["num_type"], value)
+                    if !ismithing(widget.props["min"]) widget.value = convert(widget.props["num_type"], max(widget.value, widget.props["min"])) end
+                    if !ismithing(widget.props["max"]) widget.value = convert(widget.props["num_type"], min(widget.value, widget.props["max"])) end
                 else
                     throw(Magic.InvalidArgument(@named(value), "You tried to assign to a number_input a value is not an Real."))
                 end

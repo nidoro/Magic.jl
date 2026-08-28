@@ -595,6 +595,21 @@ end
             val = get_value("num")
             Magic.g.test_successfull = val == 3.14
         end,
+
+        # Test that set_value will clamp if given a value outside the number_input range
+        function ()
+            number_input("Number Input", min=12, max=24, initial_value=15, id="num")
+            set_value("num", 100)
+            val = get_value("num")
+            Magic.g.test_successfull = val == 24
+        end,
+
+        function ()
+            number_input("Number Input", min=12, max=24, initial_value=15, id="num")
+            set_value("num", 1)
+            val = get_value("num")
+            Magic.g.test_successfull = val == 12
+        end,
     ]
 
     @maybe_suppress begin
@@ -617,6 +632,11 @@ end
         function ()
             number_input("Number Input", id="num")
             set_value("num", [])
+        end,
+
+        # Test that it will fail when given a range with min >= max
+        function ()
+            number_input("Number Input", min=20, max=10)
         end,
     ]
 
@@ -703,12 +723,12 @@ end
         end,
     ]
 
-#     @maybe_suppress begin
-#         for test in tests
-#             @test start_app(test, port=PORT, dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true) == nothing
-#             @test Magic.g.test_successfull
-#         end
-#     end
+    @maybe_suppress begin
+        for test in tests
+            @test start_app(test, port=PORT, dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true) == nothing
+            @test Magic.g.test_successfull
+        end
+    end
 
     # Tests that throw InvalidArgument
     #-----------------------------------
@@ -731,9 +751,9 @@ end
             set_value("sld", [])
         end,
 
-        # Test that set_value will fail when given a range with min >= max
+        # Test that it will fail when given a range with min >= max
         function ()
-            slider("Slider", min=20, max=10, id="sld")
+            slider("Slider", min=20, max=10)
         end,
     ]
 
