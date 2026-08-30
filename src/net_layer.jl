@@ -81,3 +81,13 @@ function clear_uri_mapping()::Nothing
     ccall((:MG_ClearURIMapping, g.MAGIC_SO), Cvoid, ())
     return nothing
 end
+
+function get_mime_type(file_path::AbstractString)::String
+    result = ccall(
+        (:MG_GetMimeType, g.MAGIC_SO),
+        Cstring,
+        (Cstring,),
+        file_path
+    )
+    return unsafe_string(result)
+end

@@ -888,5 +888,9 @@ MG_API bool MG_IsHTTPSEnabled() {
     return !SU_IsEmpty(vhost->sslPublicKeyPath);
 }
 
+MG_API const char* MG_GetMimeType(const char* filePath) {
+    return HS_GetMimeType(filePath);
+}
+
 } // extern "C"
 

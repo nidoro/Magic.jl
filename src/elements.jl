@@ -1761,6 +1761,23 @@ function file_uploader(
     return create_file_uploader(widgets, parent, id, label, types, multiple, max_file_size, max_files, onchange, args, css)
 end
 
+function make_uploaded_file(file_path::String)::UploadedFile
+    if !isfile(file_path) throw(InvalidArgument(@named(file_path), "`file_path` must be a valid existing file.")) end
+
+    file_path = realpath(file_path)
+
+    result = UploadedFile()
+    result.id = "file_" * get_random_string(32-length("file_")-1)
+    result.name = basename(file_path)
+    result.extension = splitext(result.name)[2]
+    result.path = file_path
+    result.type = get_mime_type(file_path)
+    info = stat(file_path)
+    result.size = info.size
+    result.last_modified = floor(Int, info.mtime)
+    return result
+end
+
 # HTML
 #----------------
 function create_html(parent::Dict, tag::String, inner_html::String, attributes::Dict, css::Dict)
