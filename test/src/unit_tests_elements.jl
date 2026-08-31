@@ -763,3 +763,56 @@ end
         end
     end
 end
+
+@testset "file_uploader(...) input validation" begin
+    @maybe_suppress @info """
+    ------------------------------------------------------------------
+    Test: file_uploader(...) input validation
+    ------------------------------------------------------------------------
+    """
+    # Tests that throw InvalidArgument
+    #-----------------------------------
+    tests = [
+        # Test that it will fail when given a negative max_file_size
+        function ()
+            file_uploader("File Uploader", max_file_size=-1)
+        end,
+        # Test that it will fail when given a max_file_size of zero
+        function ()
+            file_uploader("File Uploader", max_file_size=0)
+        end,
+        # Test that it will fail when given a negative max_files
+        function ()
+            file_uploader("File Uploader", max_files=-1, multiple=true)
+        end,
+        # Test that it will fail when given a max_files of zero
+        function ()
+            file_uploader("File Uploader", max_files=0, multiple=true)
+        end,
+        # Test that it will fail when given an empty string in types
+        function ()
+            file_uploader("File Uploader", types=[""])
+        end,
+        # Test that it will fail when given a malformed extension in types
+        function ()
+            file_uploader("File Uploader", types=["png"])  # missing leading dot
+        end,
+        # Test that it will fail when given a malformed mimetype in types
+        function ()
+            file_uploader("File Uploader", types=["image/"])
+        end,
+        # Test that it will fail when given a mimetype missing a subtype and slash
+        function ()
+            file_uploader("File Uploader", types=["image"])
+        end,
+        # Test that it will fail when one valid entry is mixed with one invalid entry
+        function ()
+            file_uploader("File Uploader", types=[".png", "NOT_VALID"])
+        end,
+    ]
+    @maybe_suppress begin
+        for test in tests
+            @test_throws Magic.InvalidArgument start_app(test, port=PORT, dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true)
+        end
+    end
+end
