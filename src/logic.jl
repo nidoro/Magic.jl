@@ -605,6 +605,7 @@ function rerun(client_id::Cint, payload::Dict)::Task
                         end
 
                         widget.value = new_value
+                        widget.props["error"] = front_event["error"]
 
                         invokelatest(widget.onchange, widget.args...)
                     elseif widget.kind == WidgetKind_Selectbox

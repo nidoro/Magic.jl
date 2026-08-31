@@ -133,8 +133,12 @@ async function uplChange(elem, oldValue, newValue) {
         maxFiles = parseInt(elem.getAttribute("dd-max-files"));
     }
 
+    let error = null;
+    let errorHTML = "";
+
     if (newValue.length > maxFiles) {
-        elem.innerHTML = `
+        error = "TooManyFiles";
+        errorHTML =  `
             <dd-button class="mg-clear-button mg-icon-container" onclick="btnClearFileUploader(event)">
                 <mg-icon mg-icon="material/cancel"></mg-icon>
             </dd-button>
@@ -149,15 +153,15 @@ async function uplChange(elem, oldValue, newValue) {
     } else {
         for (const file of newValue) {
             if (!file.supported) {
-                let errorMessage = "";
                 if (file.unsupportedReason == "TooBig") {
                     errorMessage = `${file.name} size (${(file.size/MiB).toFixed(0)} MiB) exceedes the maximum file size of ${(g.uploadMaxSize/MiB).toFixed(0)} MiB`;
-                } else {
+                } else if (file.unsupportedReason == "InvalidType") {
                     const accept = elem.getAttribute("dd-accept");
-                    errorMessage = `${file.name} type (${(file.type || 'application/octet-stream')}) is not one of these: ${accept.split(",").join(", ")}`;
+                    errorMessage = `${file.name} type (${(file.type || 'application/octet-stream')}) is not one of the supported types: ${accept.split(",").join(", ")}`;
                 }
 
-                elem.innerHTML = `
+                error = file.unsupportedReason;
+                errorHTML = `
                     <dd-button class="mg-clear-button mg-icon-container" onclick="btnClearFileUploader(event)">
                         <mg-icon mg-icon="material/cancel"></mg-icon>
                     </dd-button>
@@ -215,29 +219,14 @@ async function uplChange(elem, oldValue, newValue) {
         }
     }
 
-    if (mgFiles.length) {
-        let fileNamesCSV = mgFiles[0].name;
+    let fileIds = mgFiles.map(mgFile => mgFile.id);
+    let fileIdsCSV = fileIds.join(",");
+    elem.setAttribute("data-mg-files", fileIdsCSV);
 
-        for (let i = 1; i < mgFiles.length; ++i) {
-            if (i >= 4-1) {
-                const remaining = mgFiles.length - i;
-                fileNamesCSV += ` and ${remaining} more`;
-                break;
-            }
-            fileNamesCSV += ", " + mgFiles[i].name;
-        }
-
-        elem.innerHTML = `
-            <dd-button class="mg-clear-button mg-icon-container" onclick="btnClearFileUploader(event)">
-                <mg-icon mg-icon="material/cancel"></mg-icon>
-            </dd-button>
-            <div class="mg-inner-label">
-                <p>
-                    Selected files (${mgFiles.length}): <br/>
-                    ${fileNamesCSV}
-                </p>
-            </div>
-        `;
+    if (errorHTML) {
+        elem.innerHTML = errorHTML;
+    } else {
+        updateFileUploaderInnerHTML(elem, mgFiles);
     }
 
     elem.removeAttribute("disabled");
@@ -247,6 +236,7 @@ async function uplChange(elem, oldValue, newValue) {
         widget_id: elem.getAttribute("data-mg-id"),
         fragment_id: elem.getAttribute("data-mg-fragment-id"),
         new_value: mgFiles,
+        error: error,
     }]);
 }
 
@@ -501,6 +491,39 @@ function getTabulatorColumn(table, columnName) {
         return columns[index];
     }
     return null;
+}
+
+function getMagicFileIds(fileUploader) {
+    return fileUploader.dataset.mgFiles.split(",");
+}
+
+function updateFileUploaderInnerHTML(elem, mgFiles) {
+    if (mgFiles.length) {
+        let fileNamesCSV = mgFiles[0].name;
+
+        for (let i = 1; i < mgFiles.length; ++i) {
+            if (i >= 4-1) {
+                const remaining = mgFiles.length - i;
+                fileNamesCSV += ` and ${remaining} more`;
+                break;
+            }
+            fileNamesCSV += ", " + mgFiles[i].name;
+        }
+
+        elem.innerHTML = `
+            <dd-button class="mg-clear-button mg-icon-container" onclick="btnClearFileUploader(event)">
+                <mg-icon mg-icon="material/cancel"></mg-icon>
+            </dd-button>
+            <div class="mg-inner-label">
+                <p>
+                    Selected files (${mgFiles.length}): <br/>
+                    ${fileNamesCSV}
+                </p>
+            </div>
+        `;
+    } else {
+        elem.innerHTML = FILE_UPLOADER_DEFAULT_INNER_HTML;
+    }
 }
 
 function createAppElement(parent, props, fragmentId) {
@@ -1050,7 +1073,6 @@ function createAppElement(parent, props, fragmentId) {
 
             applyCSS(elem, props.css);
 
-            elem.innerHTML = FILE_UPLOADER_DEFAULT_INNER_HTML;
             elem.defaultInnerHTML = FILE_UPLOADER_DEFAULT_INNER_HTML;
         } else {
             elem.setAttribute("dd-reconnecting", "");
@@ -1059,6 +1081,24 @@ function createAppElement(parent, props, fragmentId) {
                     elem.focus();
                 });
             }
+        }
+
+        let mgFiles = [];
+
+        if (props.value) {
+            if (Array.isArray(props.value)) {
+                mgFiles = props.value;
+            } else {
+                mgFiles = [props.value];
+            }
+        }
+
+        let fileIds = mgFiles.map(mgFile => mgFile.id);
+        let fileIdsCSV = fileIds.join(",");
+        elem.setAttribute("data-mg-files", fileIdsCSV);
+
+        if (!props.error) {
+            updateFileUploaderInnerHTML(elem, mgFiles);
         }
 
         newElements.push(elem);
