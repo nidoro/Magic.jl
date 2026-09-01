@@ -816,3 +816,60 @@ end
         end
     end
 end
+
+@testset "download_button(...) input validation" begin
+    @maybe_suppress @info """
+    ------------------------------------------------------------------
+    Test: download_button(...) input validation
+    ------------------------------------------------------------------------
+    """
+
+    # Tests that throw InvalidArgument
+    #-----------------------------------
+    tests = [
+        # Test that it will fail when given an empty file_path
+        function ()
+            download_button("Download", "")
+        end,
+        # Test that it will fail when given a file_path that doesn't exist
+        function ()
+            download_button("Download", "/nonexistent/path/to/file.txt")
+        end,
+        # Test that it will fail when given a file_path that points to a directory
+        function ()
+            download_button("Download", tempdir())
+        end,
+        # Test that it will fail when given an invalid file_name
+        function ()
+            valid_file = make_serveable_copy("../examples/.Magic/served-files/images/liberty.jpg")
+            download_button("Download", valid_file; file_name="")
+        end,
+        function ()
+            valid_file = make_serveable_copy("../examples/.Magic/served-files/images/liberty.jpg")
+            download_button("Download", valid_file; file_name=".")
+        end,
+        # Test that it will fail when given an invalid style
+        function ()
+            valid_file = make_serveable_copy("../examples/.Magic/served-files/images/liberty.jpg")
+            download_button("Download", valid_file; style="not_a_valid_style")
+        end,
+        function ()
+            valid_file = make_serveable_copy("../examples/.Magic/served-files/images/liberty.jpg")
+            download_button("Download", valid_file; style="")
+        end,
+        function ()
+            valid_file = make_serveable_copy("../examples/.Magic/served-files/images/liberty.jpg")
+            download_button("Download", valid_file; icon="download")
+        end,
+        # Test that it will fail when given an onclick callback that accepts a different number of arguments from length(args)
+        function ()
+            valid_file = make_serveable_copy("../examples/.Magic/served-files/images/liberty.jpg")
+            download_button("Download", valid_file; onclick=()->(), args=(1,2,3))
+        end,
+    ]
+    @maybe_suppress begin
+        for test in tests
+            @test_throws Magic.InvalidArgument start_app(test, port=PORT, dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true)
+        end
+    end
+end
