@@ -928,20 +928,39 @@ function create_color_picker(
     css=Dict
 )::String
 
+    # Input validation
+    #----------------------
+    default_value = maybe_get_default_value(user_id)
+    if !ismithing(default_value)
+        if default_value isa String
+            normalized = normalize_html_color(default_value)
+            if isnothing(normalized)
+                throw(InvalidArgument(@named(default_value), "Not a valid hexadecimal color."))
+            end
+            default_value = normalized
+        else
+            throw(InvalidArgument(@named(default_value), "You tried to provide to a color_picker a default_value that is not a String."))
+        end
+    end
+
+    if !isnothing(initial_value)
+        normalized = normalize_html_color(initial_value)
+        if isnothing(normalized)
+            throw(InvalidArgument(@named(initial_value), "Not a valid hexadecimal color."))
+        end
+        initial_value = normalized
+    else
+        initial_value = coalesce(default_value, "#000000")
+    end
+
     props = Dict(
         "type" => "color_picker",
         "user_id" => user_id,
-        "default_value" => maybe_get_default_value(user_id),
+        "default_value" => default_value,
         "initial_value" => initial_value,
         "label" => label,
         "css" => css,
     )
-
-    # NOTE: Color picker can't have "no" value, so initial value must be
-    # set to something.
-    if props["initial_value"] === nothing
-        props["initial_value"] = coalesce(props["default_value"], "#999999")
-    end
 
     props["local_id"] = bytes2hex(sha256(JSON.json(props)))
     props["container_id"] = parent["id"]
@@ -2395,7 +2414,7 @@ function get_default_value(user_id::String)::Any
 end
 
 @doc DOC_WIDGET_VALUE set_value
-function set_value(user_id::String, value::Any)::Nothing
+function set_value(user_id::String, value::Any)::Any
     task = task_local_storage("app_task")
     widget = get_widget_by_user_id(task.session.widgets, user_id)
     if !ismithing(widget)
@@ -2527,6 +2546,20 @@ function set_value(user_id::String, value::Any)::Nothing
             end
 
             widget.props["error"] = nothing
+        elseif widget.kind == WidgetKind_ColorPicker
+            if !isnothing(value)
+                if value isa String
+                    normalized = normalize_html_color(value)
+                    if isnothing(normalized)
+                        throw(InvalidArgument(@named(value), "Not a valid hexadecimal color."))
+                    end
+                    widget.value = normalized
+                else
+                    throw(InvalidArgument(@named(value), "You tried to assign to a color_picker a value that is not a String."))
+                end
+            else
+                widget.value = coalesce(widget.props["default_value"], "#000000")
+            end
         else
             widget.value = value
         end
@@ -2546,7 +2579,7 @@ function set_value(user_id::String, value::Any)::Nothing
         widget.props["value"] = widget.value
     end
 
-    return nothing
+    return widget.value
 end
 
 function get_widget_value(session::Session, user_id::String)::Any

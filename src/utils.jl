@@ -209,3 +209,22 @@ function is_valid_filename(name::AbstractString)::Bool
 
     return true
 end
+
+function normalize_html_color(s::AbstractString)::Union{String,Nothing}
+    s = lowercase(strip(s))
+
+    # Full 6-digit hex, with or without leading #
+    m = match(r"^#?([0-9a-f]{6})$", s)
+    if m !== nothing
+        return "#" * m.captures[1]
+    end
+
+    # Short 3-digit hex, expand each digit
+    m = match(r"^#?([0-9a-f])([0-9a-f])([0-9a-f])$", s)
+    if m !== nothing
+        r, g, b = m.captures
+        return "#" * r*r * g*g * b*b
+    end
+
+    return nothing  # invalid / unsupported (e.g. named colors, rgb(), etc.)
+end

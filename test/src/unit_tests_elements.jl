@@ -886,3 +886,84 @@ end
         @test_throws Magic.InvalidArgument start_app(test_style, port=PORT, dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true)
     end
 end
+
+@testset "color_picker(...) input validation and initialization" begin
+    @maybe_suppress @info """
+    ------------------------------------------------------------------
+    Test: color_picker(...) input validation and initialization
+    ------------------------------------------------------------------------
+    """
+
+    # Tests that don't throw exceptions
+    #--------------------------------------
+    tests = [
+        # Test that the value assigned at initialization is the returned value
+        function ()
+            val = color_picker("Color Picker", initial_value="abc")
+            Magic.g.test_successfull = val == "#aabbcc"
+        end,
+
+        # Test that default_value will be used if initial_value is not provided
+        function ()
+            set_default_value("clr", "#aBc")
+            val = color_picker("Color Picker", id="clr")
+            Magic.g.test_successfull = val == "#aabbcc"
+        end,
+
+        # Test that set_value will work when given valid arguments
+        function ()
+            color_picker("Color Picker", id="clr")
+            val = set_value("clr", "ABC")
+            Magic.g.test_successfull = val == "#aabbcc"
+        end,
+
+        # Test that set_value will fallback to the default value if nothing is given
+        function ()
+            set_default_value("clr", "abc")
+            color_picker("Color Picker", initial_value="cba", id="clr")
+            val = set_value("clr", nothing)
+            Magic.g.test_successfull = val == "#aabbcc"
+        end,
+    ]
+
+    @maybe_suppress begin
+        for test in tests
+            @test start_app(test, port=PORT, dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true) == nothing
+            @test Magic.g.test_successfull
+        end
+    end
+
+    # Tests that throw InvalidArgument
+    #-----------------------------------
+    tests = [
+        # Test that it will fail when given a default_value that is not a String
+        function ()
+            set_default_value("clr", Dict())
+            color_picker("Color Picker", id="clr")
+        end,
+
+        # Test that it will fail when given a default_value that is not a valid hex color
+        function ()
+            set_default_value("clr", "aboba")
+            color_picker("Color Picker", id="clr")
+        end,
+
+        # Test that set_value will fail when trying to assign a value that is not a String
+        function ()
+            color_picker("Color Picker", id="clr")
+            set_value("clr", [])
+        end,
+
+        # Test that set_value will fail when trying to assign a value that is not a valid hex color
+        function ()
+            color_picker("Color Picker", id="clr")
+            set_value("clr", "")
+        end,
+    ]
+
+    @maybe_suppress begin
+        for test in tests
+            @test_throws Magic.InvalidArgument start_app(test, port=PORT, dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true)
+        end
+    end
+end

@@ -783,9 +783,7 @@ function createAppElement(parent, props, fragmentId) {
             elem.setAttribute("data-mg-container-id", props.container_id);
             elem.setAttribute("data-mg-local-id", props.local_id);
             elem.setAttribute("data-mg-id", props.id);
-
-            let value = props.value ? props.value : "#999999";
-            elem.setAttribute("value", value);
+            elem.setAttribute("value", props.value); // color_picker must always be initialized with a value
 
             applyCSS(elem, props.css)
         } else {
