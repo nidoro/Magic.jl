@@ -873,3 +873,16 @@ end
         end
     end
 end
+
+@testset "link(...) input validation" begin
+    @maybe_suppress @info """
+    ------------------------------------------------------------------
+    Test: link(...) input validation
+    ------------------------------------------------------------------------
+    """
+    function test_style()   link("Link", "https://google.com", style="INVALID_STYLE") end
+
+    @maybe_suppress begin
+        @test_throws Magic.InvalidArgument start_app(test_style, port=PORT, dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true)
+    end
+end

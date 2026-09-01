@@ -1924,6 +1924,10 @@ function link(
 Nothing.
 """
 function link(label::String, url::String; style::String="secondary", fill_width=false, new_tab::Bool=false, css::Dict=Dict())::Nothing
+    # Input validation
+    #---------------------
+    assert_string_in_list(@named(style), ("primary", "secondary", "naked"))
+
     icon = ""
     if new_tab
         icon = "<mg-icon mg-icon='material/open_in_new'></mg-icon>"
