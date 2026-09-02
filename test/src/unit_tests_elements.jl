@@ -967,3 +967,34 @@ end
         end
     end
 end
+
+@testset "image(...) input validation and initialization" begin
+    @maybe_suppress @info """
+    ------------------------------------------------------------------
+    Test: image(...) input validation and initialization
+    ------------------------------------------------------------------------
+    """
+
+    # Tests that don't throw exceptions
+    #--------------------------------------
+    tests = [
+        # Test that when given an image inside '.Magic/served-files', it will serve exactly that image.
+        function ()
+            val = image("$(get_dot_magic_path())/served-files/images/liberty.jpg")
+            Magic.g.test_successfull = val == "/images/liberty.jpg"
+        end,
+        # Test that when given an image outside '.Magic/served-files', a serveable copy is created.
+        function ()
+            val = image("../examples/.Magic/served-files/images/liberty.jpg")
+            path = "$(get_dot_magic_path())/served-files$(val)"
+            Magic.g.test_successfull = isfile(path)
+        end,
+    ]
+
+    @maybe_suppress begin
+        for test in tests
+            @test start_app(test, port=PORT, dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true) == nothing
+            @test Magic.g.test_successfull
+        end
+    end
+end

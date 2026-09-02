@@ -1184,14 +1184,18 @@ function getImages(props) {
 
 async function preloadImages(root) {
     const images = getImages(root);
-
     const tasks = images.map(image => {
         image.img = new Image();
         image.img.src = image.src;
-        return image.img.decode().then(() => image.img);
+        return image.img.decode()
+            .then(() => image.img)
+            .catch(err => {
+                console.warn(`Failed to preload image: ${image.src}`, err);
+                return null; // mark as failed
+            });
     });
-
-    return Promise.all(tasks);
+    const results = await Promise.all(tasks);
+    return results.filter(img => img !== null);
 }
 
 async function displayRerunResponse(msg) {
