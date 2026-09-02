@@ -54,6 +54,7 @@ using DataFrames
 using Random
 using Artifacts
 using TOML
+using Printf
 
 # Layout Elements
 #-------------------

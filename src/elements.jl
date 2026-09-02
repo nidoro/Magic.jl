@@ -2083,18 +2083,18 @@ Display a text.
 ### Function Signature
 
 ```julia
-function text(text::Any)::Nothing
+function text(anything::Any)::Nothing
 ```
 
  Argument    | Description
 ------------------ | -----------
- `text`     | The content to be displayed. If the value is a `String`, it is rendered as-is. Otherwise, its string representation is obtained using `repr()`.
+ `text`     | The content to be displayed. If the value is a `AbstractString`, it is rendered as-is. Otherwise, its string representation is obtained using `repr()`.
 
 ### Return Value
 
 Nothing.
 """
-text(text::Any) = html("p", typeof(text) == String ? text : repr(text))
+text(anything::Any) = html("p", anything isa AbstractString ? anything : repr(anything))
 
 # Code
 #------------
@@ -2202,6 +2202,32 @@ end
 
 # Metric
 #-------------
+function create_metric(label::String, value::String, delta::String="", higher_is_better::Bool=true)::Nothing
+    deltaHTML = ""
+    color, background = "#0b8a07", "#a6f9a6"
+
+    if length(delta) > 0
+        if startswith(delta, "-") || !higher_is_better
+            color, background = "#bf0b0b", "#fbacac"
+        end
+
+        icon = startswith(delta, "-") ? "material/arrow_downward" : "material/arrow_upward"
+
+        iconHTML = "<mg-icon mg-icon='$icon' style='font-size: 1.1em; color: $color; background: $background'></mg-icon>"
+        deltaHTML = "$iconHTML $delta"
+    end
+
+    @push column(gap="0")
+        html("label", label, css=Dict("font-size" => "0.85rem"))
+        html("span", value, css=Dict("font-size" => "1.8rem"))
+        if length(deltaHTML) > 0
+            html("span", deltaHTML, css=Dict("font-size" => "0.85rem", "color" => color, "background" => background, "border-radius" => "100vw", "padding" => ".2em .4em", "display" => "flex", "align-items" => "center"))
+        end
+    @pop
+
+    return nothing
+end
+
 """
 # metric
 
@@ -2229,26 +2255,64 @@ function metric(
 
 Nothing.
 """
-function metric(label::String, value::String, delta::String="", higher_is_better::Bool=true)::Nothing
-    deltaHTML = ""
-    color, background = "#0b8a07", "#a6f9a6"
+function metric(
+    label::String,
+    value::Real,
+    unit::String="";
+    delta::Union{Real, Nothing}=nothing,
+    delta_unit::Union{String, Nothing}=nothing,
+    higher_is_better::Bool=true,
+    precision::Union{Int, Nothing}=nothing,
+    delta_precision::Union{Int, Nothing}=nothing,
+    thousands_separator::String="",
+    decimal_separator::String=".",
+)::Nothing
 
-    if length(delta) > 0
-        if startswith(delta, "-") || !higher_is_better
-            color, background = "#bf0b0b", "#fbacac"
+    if isnothing(delta_unit)
+        delta_unit = unit
+    end
+
+    if isnothing(delta_precision)
+        delta_precision = precision
+    end
+
+    delta_html = nothing
+    color, background = "#555555", "#dddddd"
+
+    if !isnothing(delta)
+        if higher_is_better
+            if delta > 0
+                color, background = "#0b8a07", "#a6f9a6"
+            elseif delta < 0
+                color, background = "#bf0b0b", "#fbacac"
+            end
+        else
+            if delta > 0
+                color, background = "#bf0b0b", "#fbacac"
+            elseif delta < 0
+                color, background = "#0b8a07", "#a6f9a6"
+            end
         end
 
-        icon = startswith(delta, "-") ? "material/arrow_downward" : "material/arrow_upward"
+        icon = "material/trending_flat"
 
-        iconHTML = "<mg-icon mg-icon='$icon' style='font-size: 1.1em; color: $color; background: $background'></mg-icon>"
-        deltaHTML = "$iconHTML $delta"
+        if delta > 0
+            icon = "material/arrow_upward"
+        elseif delta < 0
+            icon = "material/arrow_downward"
+        end
+
+        icon_html = "<mg-icon mg-icon='$icon' style='font-size: 1.1em; color: $color; background: $background'></mg-icon>"
+        delta_html = icon_html * " " * stringify(delta, precision=delta_precision, decimal_separator=decimal_separator, thousands_separator=thousands_separator) * delta_unit
     end
+
+    value_html = stringify(value, precision=precision, decimal_separator=decimal_separator, thousands_separator=thousands_separator) * unit
 
     @push column(gap="0")
         html("label", label, css=Dict("font-size" => "0.85rem"))
-        html("span", value, css=Dict("font-size" => "1.8rem"))
-        if length(deltaHTML) > 0
-            html("span", deltaHTML, css=Dict("font-size" => "0.85rem", "color" => color, "background" => background, "border-radius" => "100vw", "padding" => ".2em .4em", "display" => "flex", "align-items" => "center"))
+        html("span", value_html, css=Dict("font-size" => "1.8rem"))
+        if !isnothing(delta)
+            html("span", delta_html, css=Dict("font-size" => "0.85rem", "color" => color, "background" => background, "border-radius" => "100vw", "padding" => ".2em .4em", "display" => "flex", "align-items" => "center"))
         end
     @pop
 

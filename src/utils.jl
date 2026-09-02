@@ -228,3 +228,29 @@ function normalize_html_color(s::AbstractString)::Union{String,Nothing}
 
     return nothing  # invalid / unsupported (e.g. named colors, rgb(), etc.)
 end
+
+function stringify(number::Real; precision::Union{Int,Nothing}=nothing, decimal_separator::String=".", thousands_separator::String=",")::String
+    value = isnothing(precision) ? string(number) : @sprintf("%.*f", precision, number)
+
+    neg = startswith(value, "-")
+    value = lstrip(value, '-')
+
+    parts = split(value, ".")
+    intpart = parts[1]
+
+    left = ""
+    for (i, c) in enumerate(Iterators.reverse(intpart))
+        if i > 1 && (i - 1) % 3 == 0
+            left = thousands_separator * left
+        end
+        left = c * left
+    end
+
+    result = neg ? "-" * left : left
+    if length(parts) > 1
+        result *= decimal_separator * parts[2]
+    end
+    return result
+end
+
+
