@@ -3,12 +3,8 @@
 
 Start the application server.
 
-Call this function from the REPL to start the web app. Example:
-
-```julia
-> using Magic
-> start_app("my-app.jl")
-```
+Once called, this function blocks the current process and keeps the server
+running until it is stopped with `Ctrl+C`.
 
 ### Function Signature
 
@@ -38,8 +34,15 @@ function start_app(
 
 Returns `nothing`.
 
-Once called, this function blocks the current process and keeps the server
-running until it is stopped with `Ctrl+C`.
+### Example
+
+Call this function from the REPL to start the web app:
+
+```julia
+> using Magic
+> start_app("my-app.jl")
+```
+
 """
 function start_app(
     script_or_func::Union{String, Function}="app.jl";
@@ -48,6 +51,7 @@ function start_app(
     upload_max_size::Int=25*MiB,
     upload_max_files::Int=10,
     dot_magic_dir::Union{String, Nothing}=nothing,
+    open_browser::Bool=true,
     docs_path::Union{String, Nothing}=nothing,
     init_and_quit::Bool=false,
     callback::Union{Function, Nothing}=nothing,
@@ -199,6 +203,10 @@ function start_app(
                 end
             end
         end
+    end
+
+    if open_browser && !dev_mode
+        open_in_default_browser(get_server_origin())
     end
 
     # App-layer loop.
@@ -771,7 +779,7 @@ function execute_dry_runs()::Bool
         "request_id" => 0,
         "events" => [],
         "location" => Dict(
-            "href" => "https://$(g.host_name):$(g.port)",
+            "href" => get_server_origin(),
             "pathname" => "",
             "host" => "$(g.host_name):$(g.port)",
             "hostname" => g.host_name,
@@ -798,7 +806,7 @@ function execute_dry_runs()::Bool
             handle_new_client(Cint(0), "0")
             @info "Dry Run: First pass over '$(g.script_name)' as if loading page '$(page.uris[1])'.\n$(AC_Green("@page_startup")) code blocks will run now."
 
-            dry_run_payload["location"]["href"] = "https://$(g.host_name):$(g.port)" * page.uris[1]
+            dry_run_payload["location"]["href"] = get_server_origin() * page.uris[1]
             dry_run_payload["location"]["pathname"] = page.uris[1]
 
             wait_rerun(rerun(Cint(0), dry_run_payload))
@@ -1848,8 +1856,12 @@ function set_callback(callback::Function)::Nothing
     return nothing
 end
 
+function get_server_host()::String
+    return "$(g.host_name):$(g.port)"
+end
+
 function get_server_origin()::String
-    return "http$(is_https_enabled() ? "s" : "")://$(g.host_name):$(g.port)"
+    return "http$(is_https_enabled() ? "s" : "")://$(get_server_host())"
 end
 
 # Misc
