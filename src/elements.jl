@@ -37,8 +37,10 @@ function create_button(
         end
     end
 
-    if !is_valid_filename(download_name)
-        throw(InvalidArgument(@named(download_name), "That is not a valid file name."))
+    if !isnothing(download_name)
+        if !is_valid_filename(download_name)
+            throw(InvalidArgument(@named(download_name), "That is not a valid file name."))
+        end
     end
 
     props = Dict{String, Any}(
@@ -358,9 +360,13 @@ function create_number_input(
     # Infer num_type and enforce it
     #----------------------------------
     if isnothing(num_type)
-        if     !ismithing(initial_value) num_type = typeof(initial_value)
-        elseif !ismithing(default_value) num_type = typeof(default_value)
-        else                             num_type = Float64 end
+        if     initial_value isa AbstractFloat num_type = typeof(initial_value)
+        elseif default_value isa AbstractFloat num_type = typeof(default_value)
+        elseif min isa AbstractFloat           num_type = typeof(min)
+        elseif max isa AbstractFloat           num_type = typeof(max)
+        elseif !ismithing(initial_value)       num_type = typeof(initial_value)
+        elseif !ismithing(default_value)       num_type = typeof(default_value)
+        else                                   num_type = Float64 end
     end
 
     if !ismithing(initial_value) initial_value = convert(num_type, initial_value) end
@@ -378,13 +384,13 @@ function create_number_input(
     end
 
     if !ismithing(min)
-        initial_value = Base.max(min, initial_value)
-        default_value = Base.max(min, default_value)
+        if !ismithing(initial_value) initial_value = Base.max(min, initial_value) end
+        if !ismithing(default_value) default_value = Base.max(min, default_value) end
     end
 
     if !ismithing(max)
-        initial_value = Base.min(max, initial_value)
-        default_value = Base.min(max, default_value)
+        if !ismithing(initial_value) initial_value = Base.min(max, initial_value) end
+        if !ismithing(default_value) default_value = Base.min(max, default_value) end
     end
 
     # Ensure step for integer type
@@ -2207,26 +2213,31 @@ end
 
 # Metric
 #-------------
-function create_metric(label::String, value::String, delta::String="", higher_is_better::Bool=true)::Nothing
-    deltaHTML = ""
-    color, background = "#0b8a07", "#a6f9a6"
-
-    if length(delta) > 0
-        if startswith(delta, "-") || !higher_is_better
-            color, background = "#bf0b0b", "#fbacac"
-        end
-
-        icon = startswith(delta, "-") ? "material/arrow_downward" : "material/arrow_upward"
-
-        iconHTML = "<mg-icon mg-icon='$icon' style='font-size: 1.1em; color: $color; background: $background'></mg-icon>"
-        deltaHTML = "$iconHTML $delta"
-    end
+function create_metric(
+    label::String,
+    value_html::String,
+    delta_html::Union{String, Nothing},
+    delta_color::Union{String, Nothing},
+    delta_background::Union{String, Nothing}
+)::Nothing
 
     @push column(gap="0")
         html("label", label, css=Dict("font-size" => "0.85rem"))
-        html("span", value, css=Dict("font-size" => "1.8rem"))
-        if length(deltaHTML) > 0
-            html("span", deltaHTML, css=Dict("font-size" => "0.85rem", "color" => color, "background" => background, "border-radius" => "100vw", "padding" => ".2em .4em", "display" => "flex", "align-items" => "center"))
+        html("span", value_html, css=Dict("font-size" => "1.8rem"))
+        if !isnothing(delta_html)
+            html(
+                "span",
+                delta_html,
+                css=Dict(
+                    "font-size" => "0.85rem",
+                    "color" => delta_color,
+                    "background" => delta_background,
+                    "border-radius" => "100vw",
+                    "padding" => ".2em .4em",
+                    "display" => "flex",
+                    "align-items" => "center"
+                )
+            )
         end
     @pop
 
@@ -2313,16 +2324,10 @@ function metric(
 
     value_html = stringify(value, precision=precision, decimal_separator=decimal_separator, thousands_separator=thousands_separator) * unit
 
-    @push column(gap="0")
-        html("label", label, css=Dict("font-size" => "0.85rem"))
-        html("span", value_html, css=Dict("font-size" => "1.8rem"))
-        if !isnothing(delta)
-            html("span", delta_html, css=Dict("font-size" => "0.85rem", "color" => color, "background" => background, "border-radius" => "100vw", "padding" => ".2em .4em", "display" => "flex", "align-items" => "center"))
-        end
-    @pop
-
-    return nothing
+    return create_metric(label, value_html, delta_html, color, background)
 end
+
+metric(label::String, value::String)::Nothing = create_metric(label, value, nothing, nothing, nothing)
 
 # Misc
 #---------
