@@ -205,10 +205,6 @@ function start_app(
         end
     end
 
-    if open_browser && !dev_mode
-        open_in_default_browser(get_server_origin())
-    end
-
     # App-layer loop.
     # It handles events that are pushed to the `internal_events` channel. These
     # can be either net-layer events (e.g. client connection) or app-layer
@@ -220,6 +216,7 @@ function start_app(
 
             if ev.ev_type == InternalEventType_Network
                 if ev.data.ev_type == NetEventType_ServerReady
+                    g.net_layer_ready = true
                     g.port = get_server_port()
 
                     println()
@@ -229,6 +226,8 @@ function start_app(
 
                     if init_and_quit
                         stop_app()
+                    elseif open_browser && !dev_mode
+                        open_in_default_browser(get_server_origin())
                     end
                 elseif ev.data.ev_type == NetEventType_NewClient
                     session_id = buffer_to_string(ev.data.session_id)
@@ -777,7 +776,7 @@ function execute_dry_runs()::Bool
         "location" => Dict(
             "href" => get_server_origin(),
             "pathname" => "",
-            "host" => "$(g.host_name):$(g.port)",
+            "host" => get_server_host(),
             "hostname" => g.host_name,
             "search" => ""
         )
