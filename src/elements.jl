@@ -1989,6 +1989,8 @@ space(; width::String="1px", height::String="1px") = html("div", "", css=Dict("w
 #-----------------------------
 function maybe_prepend_icon(text::String, icon::String, icon_color::String)::String
     if length(icon) > 0
+        assert_valid_material_icon(@named(icon))
+
         style = ""
         if length(icon_color) > 0
             style = "color: $icon_color"
@@ -2072,8 +2074,11 @@ function icon(
 
 Nothing.
 """
-icon(icon::String; color::String="inherit", size::String="inherit", weight::String="inherit") =
+function icon(icon::String; color::String="inherit", size::String="inherit", weight::String="inherit")::Nothing
+    assert_valid_material_icon(@named(icon))
     html("mg-icon", "", attributes=Dict("mg-icon" => icon), css=Dict("color" => color, "font-size" => size, "font-weight" => "bold"))
+    return nothing
+end
 
 """
 # text
@@ -2181,8 +2186,8 @@ function code(
     task = task_local_storage("app_task")
     widgets = task.session.widgets
 
-    if initial_value_file != nothing
-        initial_value = read(initial_value_file, String)
+    if !isnothing(initial_value_file)
+        initial_value = assert_valid_utf8_file(@named(initial_value_file))
     end
 
     if !haskey(css, "flex-grow") && !haskey(css, "width")
