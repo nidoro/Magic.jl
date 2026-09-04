@@ -10,11 +10,11 @@ Display a checkbox widget.
 
 ```julia
 function checkbox(
-    label         ::String;
-    id            ::Any       = nothing,
-    initial_value ::Union{Bool, Nothing}=nothing,
-    onchange      ::Function  = (args...; kwargs...)->(),
-    args          ::Vector    = Vector()
+    label        ::String;
+    id           ::Any                  =nothing,
+    initial_value::Union{Bool, Nothing} =nothing,
+    onchange     ::Function             =()->(),
+    args         ::Vector               =Vector()
 )::Bool
 ```
 
@@ -29,3 +29,7 @@ function checkbox(
 ### Return Value
 
 The current value of the checkbox (`true` if checked, `false` otherwise).
+
+### Example
+
+See [To-do list](https://magic.coisasdodavi.net/todo).

@@ -165,7 +165,7 @@ Each page can have its own static configuration and persistent data. See
 and [Page persistent data](/docs/build/docs/api-reference/application-logic/page-persistent-data)
 to learn more.
 
-## `.Magic` (dot magic) directory
+## The `.Magic` directory
 
 When starting an app, `Magic.jl` will automatically create a `.Magic`
 directory, if one is not found or provided, to store various files needed for

@@ -89,11 +89,11 @@ Display a button widget.
 
 ```julia
 function button(
-    label   ::String    ="";
-    style   ::String    ="secondary",
-    icon    ::String    ="",
-    onclick ::Function  =()->(),
-    args::Union{Vector, Tuple}=Vector()
+    label   ::String                ="";
+    style   ::String                ="secondary",
+    icon    ::String                ="",
+    onclick ::Function              =()->(),
+    args    ::Union{Vector, Tuple}  =Vector()
 )::Bool
 ```
 
@@ -110,11 +110,11 @@ function button(
 `true` if the button was clicked, `false` otherwise.
 """
 function button(
-    label::String="";
-    style::String="secondary",
-    icon::String="",
-    onclick::Function=()->(),
-    args::Union{Vector, Tuple}=Vector()
+    label   ::String                ="";
+    style   ::String                ="secondary",
+    icon    ::String                ="",
+    onclick ::Function              =()->(),
+    args    ::Union{Vector, Tuple}  =Vector()
 )::Bool
 
     task = task_local_storage("app_task")
@@ -125,11 +125,15 @@ end
 # Download Button
 #-----------------
 """
+---
+sidebar_position: 33
+---
+
 # download_button
 
 Creates a download button widget. It behaves similarly to
 [`button()`](/docs/build/docs/api-reference/interface-elements/button-func),
-with the additional effect of starting a download.
+but with the additional effect of starting a download.
 
 ### Function Signature
 
@@ -137,19 +141,19 @@ with the additional effect of starting a download.
 function download_button(
     label       ::String,
     file_path   ::String;
-    file_name   ::Union{String, Nothing}=nothing,
-    style       ::String="secondary",
-    icon        ::String="material/download",
-    onclick     ::Function=(args...; kwargs...)->(),
-    args        ::Vector=Vector()
+    file_name   ::Union{String, Nothing}    =nothing,
+    style       ::String                    ="secondary",
+    icon        ::String                    ="material/download",
+    onclick     ::Function                  =()->(),
+    args        ::Vector                    =Vector()
 )::Bool
 ```
 
  Argument     | Description
 ------------------ | -----------
  `label`   | A `String` to be displayed inside the button. It can contain HTML.
- `file_path`    | A `String` specifying the file to be downloaded. The file must live inside `.Magic/served-files/` somewhere.
- `file_name`    | A `String` specifying the name with which the file should be saved in the user side.
+ `file_path`    | A `String` specifying the file to be downloaded. The file must live inside `.Magic/served-files/` somewhere. See [The `.Magic` directory](https://magic.coisasdodavi.net/docs/build/docs/getting-started/basic-concepts#the-magic-directory) to learn more.
+ `file_name`    | A `String` specifying the name with which the file should be saved in the client side.
  `style`   | A `String`. Should be either `primary`, `secondary`, or `naked`. Default: `secondary`.
  `icon`    | A `String` in the format `material/icon_name`. Example: `material/thumb_up`.<br/><br/>Check out https://fonts.google.com/icons?icon.set=Material+Icons to learn the icon names.
  `onclick` | A callback `Function`. This function will be called when the button is clicked, before the app script is rerun.
@@ -161,8 +165,8 @@ function download_button(
 
 ### Generating downloadable files
 
-The provided `file_path` does not necessarily need to point to an existing file;
-it can point to a path inside `.Magic/served-files` where the file will be
+The provided `file_path` may or may not point to an existing file.
+It can point to a path inside `.Magic/served-files` where the file will be
 generated when the download button is clicked. Example:
 
 ```julia
@@ -189,13 +193,13 @@ See [Image Filters Demo](https://magic.coisasdodavi.net/image-filters) for a
 `download_button` usage example.
 """
 function download_button(
-    label::String,
-    file_path::String;
-    file_name::Union{String, Nothing}=nothing,
-    style::String="secondary",
-    icon::String="material/download",
-    onclick::Function=()->(),
-    args::Union{Vector, Tuple}=Vector()
+    label       ::String,
+    file_path   ::String;
+    file_name   ::Union{String, Nothing}    =nothing,
+    style       ::String                    ="secondary",
+    icon        ::String                    ="material/download",
+    onclick     ::Function                  =()->(),
+    args        ::Vector                    =Vector()
 )::Bool
 
     task = task_local_storage("app_task")
@@ -277,13 +281,13 @@ Display a text input widget.
 
 ```julia
 function text_input(
-    label          ::String;
-    id             ::Any      = nothing,
-    show_label     ::Bool     = true,
-    fill_width     ::Bool     = false,
-    initial_value  ::Union{String, Nothing}=nothing,
-    placeholder    ::Union{String, Nothing}=nothing,
-    css            ::Dict     = Dict()
+    label           ::String;
+    id              ::Any                       =nothing,
+    show_label      ::Bool                      =true,
+    fill_width      ::Bool                      =false,
+    initial_value   ::Union{String, Nothing}    =nothing,
+    placeholder     ::Union{String, Nothing}    =nothing,
+    css             ::Dict                      =Dict()
 )::Union{String, Nothing}
 ```
 
@@ -299,16 +303,20 @@ function text_input(
 
 ### Return Value
 
-The current value of the text input as a `String` or `nothing`.
+The `String` value of the text input, if any. Otherwise, `nothing` is returned.
+
+### Example
+
+See [To-do list](https://magic.coisasdodavi.net/todo).
 """
 function text_input(
-    label::String;
-    id::Any=nothing,
-    show_label::Bool=true,
-    fill_width::Bool=false,
-    initial_value::Union{String, Nothing}=nothing,
-    placeholder::Union{String, Nothing}=nothing,
-    css::Dict=Dict()
+    label           ::String;
+    id              ::Any                       =nothing,
+    show_label      ::Bool                      =true,
+    fill_width      ::Bool                      =false,
+    initial_value   ::Union{String, Nothing}    =nothing,
+    placeholder     ::Union{String, Nothing}    =nothing,
+    css             ::Dict                      =Dict()
 )::Union{String, Nothing}
 
     task = task_local_storage("app_task")
@@ -456,34 +464,34 @@ Display a number input widget.
 ```julia
 function number_input(
     label               ::String;
-    initial_value       ::Union{Real, Nothing}=nothing,
-    placeholder         ::Union{String, Nothing}=nothing,
-    num_type            ::Type{<:Real}=Float64,
-    precision           ::Integer=1,
-    min                 ::Union{Real, Nothing}=nothing,
-    max                 ::Union{Real, Nothing}=nothing,
-    step                ::Real=1.0,
-    decimal_separator   ::String=".",
-    thousands_separator ::String=",",
-    show_label          ::Bool=true,
-    fill_width          ::Bool=false,
-    id                  ::Any=nothing,
-    css                 ::Dict=Dict()
+    initial_value       ::Union{Real, Nothing}          =nothing,
+    placeholder         ::Union{String, Nothing}        =nothing,
+    num_type            ::Union{Type{<:Real}, Nothing}  =nothing,
+    precision           ::Integer                       =1,
+    min                 ::Union{Real, Nothing}          =nothing,
+    max                 ::Union{Real, Nothing}          =nothing,
+    step                ::Real                          =1.0,
+    decimal_separator   ::String                        =".",
+    thousands_separator ::String                        ="",
+    show_label          ::Bool                          =true,
+    fill_width          ::Bool                          =false,
+    id                  ::Any                           =nothing,
+    css                 ::Dict                          =Dict()
 )::Union{Real, Nothing}
 ```
 
  Argument           | Description
 ------------------ | -----------
  `label`            | A `String` to be displayed as the label for the text input. It can contain HTML.
- `initial_value`    | Either a `Real` specifying the initial value of the input, or `nothing` (default). If `nothing` is provided (default), the initial value will be the default value previously set with `set_default_value()` if any; otherwise, the widget will be initialized with value `nothing`.
+ `initial_value`    | Either a `Real` specifying the initial value of the input, or `nothing` (default). If `nothing`, the initial value will be the default value previously set with `set_default_value()` if any; otherwise, the widget will be initialized with value `nothing`.
  `placeholder`      | A `String` shown as placeholder when the widget's value is `nothing`. Default: `nothing`.
- `num_type`       | A subtype of `Real` indicating how the widget value should be interpreted and returned. Default: `Float64`.
+ `num_type`       | A subtype of `Real` indicating the concrete type to which the widget parameters should be converted. If `nothing`, the concrete type is infered from the parameters of the widget, prioritizing `AbstractFloat` subtypes over `Integer`.
  `precision`       | An `Integer` specifying how many decimal places should be displayed by the widget. If `num_type` is an `Integer`, this parameter is ignored.
- `min`       | A `Real` specifying the minimum value allowed in the widget, or `nothing` (default) indicating there is no minimum value.
- `max`       | A `Real` specifying the maximum value allowed in the widget, or `nothing` (default) indicating there is no maximum value.
+ `min`       | A `Real` specifying the minimum value allowed in the widget, or `nothing` (default) indicating that there is no minimum value.
+ `max`       | A `Real` specifying the maximum value allowed in the widget, or `nothing` (default) indicating that there is no maximum value.
  `step`       | A `Real` specifying the size of the increment/decrement applied when clicking the `-` and `+` buttons in the widget.
  `decimal_separator`       | A `String` specifying the character that should be used as decimal separator. Default: `"."`.
- `thousands_separator`       | A `String` specifying the character that should be used as decimal separator; Default: `"."`.
+ `thousands_separator`       | A `String` specifying the character that should be used as decimal separator. Default: `""`.
  `show_label`       | A `Bool` indicating whether the label should be displayed. Default: `true`.
  `fill_width`       | A `Bool` indicating whether the text input should expand to fill the available horizontal space. Default: `false`.
  `id`              | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like `get_value()` and `set_value()`.
@@ -491,23 +499,28 @@ function number_input(
 
 ### Return Value
 
-The current value of the number input interpreted as `num_type`; or `nothing`.
+The current value of the number input converted to the provided or infered
+`num_type`; or `nothing` if no value has been assigned to the widget.
+
+### Example
+
+See [Probability Viewer](https://magic.coisasdodavi.net/probability-density).
 """
 function number_input(
-    label::String;
-    initial_value::Union{Real, Nothing}=nothing,
-    placeholder::Union{String, Nothing}=nothing,
-    num_type::Union{Type{<:Real}, Nothing}=nothing,
-    precision::Integer=1,
-    min::Union{Real, Nothing}=nothing,
-    max::Union{Real, Nothing}=nothing,
-    step::Real=1.0,
-    decimal_separator::String=".",
-    thousands_separator::String=",",
-    show_label::Bool=true,
-    fill_width::Bool=false,
-    id::Any=nothing,
-    css::Dict=Dict()
+    label               ::String;
+    initial_value       ::Union{Real, Nothing}          =nothing,
+    placeholder         ::Union{String, Nothing}        =nothing,
+    num_type            ::Union{Type{<:Real}, Nothing}  =nothing,
+    precision           ::Integer                       =1,
+    min                 ::Union{Real, Nothing}          =nothing,
+    max                 ::Union{Real, Nothing}          =nothing,
+    step                ::Real                          =1.0,
+    decimal_separator   ::String                        =".",
+    thousands_separator ::String                        ="",
+    show_label          ::Bool                          =true,
+    fill_width          ::Bool                          =false,
+    id                  ::Any                           =nothing,
+    css                 ::Dict                          =Dict()
 )::Union{Real, Nothing}
 
     task = task_local_storage("app_task")
@@ -728,8 +741,7 @@ function create_selectbox(
     placeholder::Union{String, Nothing},
     onchange::Function,
     args::Union{Vector, Tuple},
-    css=Dict,
-    caller_loc::String="",
+    css=Dict
 )::Union{String, Number, Vector, Tuple, Nothing}
 
     # Input validation
@@ -755,20 +767,20 @@ function create_selectbox(
         if !multiple
             if default_value isa Union{String, Number}
                 if !(default_value in options)
-                    throw(InvalidArgument(@named(default_value), "$(caller_loc):\nYou tried to assign a default value to this selectbox that is not in the provided `options`."))
+                    throw(InvalidArgument(@named(default_value), "You tried to assign a default value to this selectbox that is not in the provided `options`."))
                 end
             else
-                throw(InvalidArgument(@named(default_value), "$(caller_loc):\nYou tried to assign a default value to this selectbox that is not a String or Number."))
+                throw(InvalidArgument(@named(default_value), "You tried to assign a default value to this selectbox that is not a String or Number."))
             end
         else
             if default_value isa Union{Vector, Tuple}
                 for v in default_value
                     if !(v in options)
-                        throw(InvalidArgument(@named(default_value), "$(caller_loc):\nYou tried to assign a default value to this multiselect selectbox that contains entries that are not in the provided `options`."))
+                        throw(InvalidArgument(@named(default_value), "You tried to assign a default value to this multiselect selectbox that contains entries that are not in the provided `options`."))
                     end
                 end
             else
-                throw(InvalidArgument(@named(default_value), "$(caller_loc):\nYou tried to assign a default value to this multiselect selectbox that is not a Vector or Tuple."))
+                throw(InvalidArgument(@named(default_value), "You tried to assign a default value to this multiselect selectbox that is not a Vector or Tuple."))
             end
         end
     end
@@ -778,20 +790,20 @@ function create_selectbox(
         if !multiple
             if initial_value isa Union{String, Number}
                 if !(initial_value in options)
-                    throw(InvalidArgument(@named(initial_value), "$(caller_loc):\nYou tried to assign an initial value to this selectbox that is not in the provided `options`."))
+                    throw(InvalidArgument(@named(initial_value), "You tried to assign an initial value to this selectbox that is not in the provided `options`."))
                 end
             else
-                throw(InvalidArgument(@named(initial_value), "$(caller_loc):\nYou tried to assign an initial value to this selectbox that is not a String or Number."))
+                throw(InvalidArgument(@named(initial_value), "You tried to assign an initial value to this selectbox that is not a String or Number."))
             end
         else
             if initial_value isa Union{Vector, Tuple}
                 for v in initial_value
                     if !(v in options)
-                        throw(InvalidArgument(@named(initial_value), "$(caller_loc):\nYou tried to assign an initial value to this multiselect selectbox that contains entries that are not in the provided `options`."))
+                        throw(InvalidArgument(@named(initial_value), "You tried to assign an initial value to this multiselect selectbox that contains entries that are not in the provided `options`."))
                     end
                 end
             else
-                throw(InvalidArgument(@named(initial_value), "$(caller_loc):\nYou tried to assign an initial value to this multiselect selectbox that is not a Vector or Tuple."))
+                throw(InvalidArgument(@named(initial_value), "You tried to assign an initial value to this multiselect selectbox that is not a Vector or Tuple."))
             end
         end
     end
@@ -859,26 +871,26 @@ Display a select box (dropdown) widget.
 
 ```julia
 function selectbox(
-    label           ::String,
-    options         ::Union{Vector, Tuple};
-    initial_value   ::Union{String, Number, Vector, Tuple, Nothing}=nothing,
-    id              ::Any                   =nothing,
-    multiple        ::Bool                  =false,
-    show_label      ::Bool                  =true,
-    placeholder     ::Union{String, Nothing}=nothing,
-    fill_width      ::Bool                  =false,
-    onchange        ::Function              =()->(),
-    args            ::Union{Vector, Tuple}  =Vector(),
-    css             ::Dict                  =Dict()
-)::Union{String, Vector, Nothing}
+    label        ::String,
+    options      ::Union{Vector, Tuple};
+    initial_value::Union{String, Number, Vector, Tuple, Nothing}=nothing,
+    id           ::Any                    =nothing,
+    multiple     ::Bool                   =false,
+    show_label   ::Bool                   =true,
+    placeholder  ::Union{String, Nothing} =nothing,
+    fill_width   ::Bool                   =false,
+    onchange     ::Function               =()->(),
+    args         ::Union{Vector, Tuple}   =Vector(),
+    css          ::Dict                   =Dict()
+)::Union{String, Number, Vector, Tuple, Nothing}
 ```
 
  Argument        | Description
 ------------------ | -----------
  `label`        | A `String` to be displayed as the label for the select box. It can contain HTML.
- `options`      | A `Vector` or `Tuple` of selectable options. Each element represents one option and will be displayed using its string representation.
- `initial_value`| The value(s) that should be initially selected. If `multiple` is `false` (default), this should be a `String` or `Number` in `options`. If `multiple` is `true`, the value should be a `Vector` of `String`s or `Number`s in `options`.
- `id`           | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like `get_value()` and `set_value()`.
+ `options`      | A `Vector` or `Tuple` of selectable options. Each selectable option should be either a `String` or a `Real`, and will be displayed using its `String` representation.
+ `initial_value`| The value(s) that should be initially selected. If `multiple` is `false` (default), this should be a `String` or `Number` in `options`. Otherwise, the value should be a `Vector` or `Tuple` of `String`s or `Number`s in `options`.
+ `id`           | An optional `String` identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like `get_value()` and `set_value()`.
  `multiple`     | A `Bool` indicating whether multiple options can be selected. Default: `false`.
  `show_label`   | A `Bool` indicating whether the label should be displayed. Default: `true`.
  `placeholder`  | A `String` shown as placeholder text when the selectbox is empty.
@@ -888,20 +900,25 @@ function selectbox(
 
 ### Return Value
 
-The currently selected value. If `multiple` is `false`, this is a `String`/`Number` value from `options` or `nothing`. If `multiple` is `true`, this is either a `Vector`/`Tuple` of selected values or `nothing`.
+The currently selected value(s). If `multiple` is `false`, this is either a `String`/`Real` value in `options` or `nothing`. If `multiple` is `true`, this is either a `Vector`/`Tuple` of selected values or `nothing`.
+
+### Example
+
+See [Avatar Creator](https://magic.coisasdodavi.net/avatar) and
+[Probability Viewer](https://magic.coisasdodavi.net/probability-density).
 """
 function selectbox(
-    label::String,
-    options::Union{Vector, Tuple};
+    label        ::String,
+    options      ::Union{Vector, Tuple};
     initial_value::Union{String, Number, Vector, Tuple, Nothing}=nothing,
-    id::Any=nothing,
-    multiple::Bool=false,
-    show_label::Bool=true,
-    placeholder::Union{String, Nothing}=nothing,
-    fill_width::Bool=false,
-    onchange::Function=()->(),
-    args::Union{Vector, Tuple}=Vector(),
-    css::Dict=Dict()
+    id           ::Any                    =nothing,
+    multiple     ::Bool                   =false,
+    show_label   ::Bool                   =true,
+    placeholder  ::Union{String, Nothing} =nothing,
+    fill_width   ::Bool                   =false,
+    onchange     ::Function               =()->(),
+    args         ::Union{Vector, Tuple}   =Vector(),
+    css          ::Dict                   =Dict()
 )::Union{String, Number, Vector, Tuple, Nothing}
 
     task = task_local_storage("app_task")
@@ -919,7 +936,7 @@ function selectbox(
         merge!(css, container_css)
     end
 
-    return create_selectbox(widgets, parent, id, label, options, initial_value, multiple, placeholder, onchange, args, css, caller_location())
+    return create_selectbox(widgets, parent, id, label, options, initial_value, multiple, placeholder, onchange, args, css)
 end
 
 # Color Picker
@@ -1073,8 +1090,7 @@ function create_checkboxes(
     initial_value::Union{Vector, Tuple, Nothing},
     multiple::Bool,
     onchange::Function,
-    args::Vector,
-    caller_loc::String="",
+    args::Vector
 )::Union{Bool, Vector, Tuple}
 
     # Input validation
@@ -1099,17 +1115,17 @@ function create_checkboxes(
     if !isnothing(default_value) && !ismissing(default_value)
         if !multiple
             if !(default_value isa Bool)
-                throw(InvalidArgument(@named(default_value), "$(caller_loc):\nYou tried to assign a default value to this checkbox that is not a Bool."))
+                throw(InvalidArgument(@named(default_value), "You tried to assign a default value to this checkbox that is not a Bool."))
             end
         else
             if default_value isa Union{Vector, Tuple}
                 for v in default_value
                     if !(v in options)
-                        throw(InvalidArgument(@named(default_value), "$(caller_loc):\nYou tried to assign a default value to this checkboxes that contains entries that are not in the provided `options`."))
+                        throw(InvalidArgument(@named(default_value), "You tried to assign a default value to this checkboxes that contains entries that are not in the provided `options`."))
                     end
                 end
             else
-                throw(InvalidArgument(@named(default_value), "$(caller_loc):\nYou tried to assign a default value to this checkboxes that is not a Vector or Tuple."))
+                throw(InvalidArgument(@named(default_value), "You tried to assign a default value to this checkboxes that is not a Vector or Tuple."))
             end
         end
     end
@@ -1119,11 +1135,11 @@ function create_checkboxes(
         for v in initial_value
             if !(v in options)
                 if multiple
-                    throw(InvalidArgument(@named(initial_value), "$(caller_loc):\nYou tried to assign an initial value to this checkboxes that contains entries that are not in the provided `options`."))
+                    throw(InvalidArgument(@named(initial_value), "You tried to assign an initial value to this checkboxes that contains entries that are not in the provided `options`."))
                 else
                     # UNREACHABLE: this should never happen because this is an internal function,
                     # so we are the ones setting an invalid parameter to initial_value.
-                    throw(InvalidArgument(@named(initial_value), "$(caller_loc):\nWe tried to assign an initial value to this checkbox that is not a valid option. This is a Magic.jl bug, please report."))
+                    throw(InvalidArgument(@named(initial_value), "We tried to assign an initial value to this checkbox that is not a valid option. This is a Magic.jl bug, please report."))
                 end
             end
         end
@@ -1192,11 +1208,11 @@ Display a checkbox widget.
 
 ```julia
 function checkbox(
-    label         ::String;
-    id            ::Any       = nothing,
-    initial_value ::Union{Bool, Nothing}=nothing,
-    onchange      ::Function  = ()->(),
-    args          ::Vector    = Vector()
+    label        ::String;
+    id           ::Any                  =nothing,
+    initial_value::Union{Bool, Nothing} =nothing,
+    onchange     ::Function             =()->(),
+    args         ::Vector               =Vector()
 )::Bool
 ```
 
@@ -1211,13 +1227,17 @@ function checkbox(
 ### Return Value
 
 The current value of the checkbox (`true` if checked, `false` otherwise).
+
+### Example
+
+See [To-do list](https://magic.coisasdodavi.net/todo).
 """
 function checkbox(
-    label::String;
-    id::Any=nothing,
-    initial_value::Union{Bool, Nothing}=nothing,
-    onchange::Function=()->(),
-    args::Vector=Vector()
+    label        ::String;
+    id           ::Any                  =nothing,
+    initial_value::Union{Bool, Nothing} =nothing,
+    onchange     ::Function             =()->(),
+    args         ::Vector               =Vector()
 )::Bool
 
     task = task_local_storage("app_task")
@@ -1229,7 +1249,7 @@ function checkbox(
         init_value = initial_value ? Union{String, Number}[label] : Union{String, Number}[]
     end
 
-    return create_checkboxes(widgets, top_container(), id, label, Union{String, Number}[label], init_value, false, onchange, args, caller_location())
+    return create_checkboxes(widgets, top_container(), id, label, Union{String, Number}[label], init_value, false, onchange, args)
 end
 
 """
@@ -1241,35 +1261,39 @@ Display a checkbox group widget.
 
 ```julia
 function checkboxes(
-    label           ::String,
-    options         ::Vector;
-    id              ::Any       =nothing,
-    initial_value   ::Union{Vector, Nothing}=nothing,
-    onchange        ::Function  =()->(),
-    args            ::Vector    =Vector()
-)::Vector
+    label        ::String,
+    options      ::Union{Vector, Tuple};
+    id           ::Any                              =nothing,
+    initial_value::Union{Vector, Tuple, Nothing}    =nothing,
+    onchange     ::Function                         =()->(),
+    args         ::Vector                           =Vector()
+)::Union{Vector, Tuple}
 ```
 
  Argument          | Description
 ------------------ | -----------
  `label`           | A `String` to be displayed next to the checkbox. It can contain HTML.
- `options`         | A `Vector` specifying the selectable options. One checkbox for each option will be created.
+ `options`         | A `Vector` or `Tuple` of selectable options. Each selectable option should be either a `String` or a `Real`, and will be displayed using its `String` representation.
  `id`              | An optional identifier for the checkbox. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like `get_value()` and `set_value()`.
- `initial_value`   | A either a `Vector` indicating which options in `options` are initially checked, or `nothing`. If `nothing` is provided, the default value set with `set_default_value()` will be used, if any; otherwise, the initial value will be an empty `Vector` `[]`.
+ `initial_value`   | Either a `Vector`/`Tuple` indicating which options in `options` should be initially checked, or `nothing`. If `nothing`, the default value set with `set_default_value()` will be used, if any; otherwise, the initial value will be an empty `Vector`.
  `onchange`        | A callback `Function`. This function is called when the checkbox value changes, before the app script is rerun.
  `args`            | A `Vector` of arguments that will be passed to the `onchange` callback function.
 
 ### Return Value
 
-A `Vector` indicating which options in `options` are checked.
+A `Vector`/`Tuple` indicating which options in `options` are checked.
+
+### Example
+
+See [Seattle Weather](https://magic.coisasdodavi.net/seattle-weather).
 """
 function checkboxes(
-    label::String,
-    options::Union{Vector, Tuple};
-    id::Any=nothing,
-    initial_value::Union{Vector, Tuple, Nothing}=nothing,
-    onchange::Function=()->(),
-    args::Vector=Vector()
+    label        ::String,
+    options      ::Union{Vector, Tuple};
+    id           ::Any                              =nothing,
+    initial_value::Union{Vector, Tuple, Nothing}    =nothing,
+    onchange     ::Function                         =()->(),
+    args         ::Vector                           =Vector()
 )::Union{Vector, Tuple}
 
     task = task_local_storage("app_task")
@@ -1285,33 +1309,32 @@ function create_radio(
     user_id::Any,
     label::String,
     options::Union{AbstractVector, Tuple},
-    initial_value::Union{String, Number, Nothing},
-    caller_loc::String="",
-)::Union{String, Number, Nothing}
+    initial_value::Union{String, Number, Nothing}
+)::Union{String, Number}
 
     # Input validation
     #----------------------
     if isempty(options)
-        throw(InvalidArgument(@named(options), "$(caller_loc):\n`options` can't be empty."))
+        throw(InvalidArgument(@named(options), "`options` can't be empty."))
     end
 
     if !all(entry -> entry isa Union{String, Number}, options)
-        throw(InvalidArgument(@named(options), "$(caller_loc):\n`options` contains elements that are not String or Number."))
+        throw(InvalidArgument(@named(options), "`options` contains elements that are not String or Number."))
     end
 
     default_value = maybe_get_default_value(user_id)
     if !isnothing(default_value) && !ismissing(default_value)
         if !(default_value isa Union{String, Number})
-            throw(InvalidArgument(@named(default_value), "$(caller_loc):\nYou tried to assign a default value to this radio that is not a String or Number."))
+            throw(InvalidArgument(@named(default_value), "You tried to assign a default value to this radio that is not a String or Number."))
         end
         if !(default_value in options)
-            throw(InvalidArgument(@named(default_value), "$(caller_loc):\nYou tried to assign a default value to this radio that is not one of the possible radio values provided in `options`."))
+            throw(InvalidArgument(@named(default_value), "You tried to assign a default value to this radio that is not one of the possible radio values provided in `options`."))
         end
     end
 
     if !isnothing(initial_value)
         if !(initial_value in options)
-            throw(InvalidArgument(@named(initial_value), "$(caller_loc):\nYou tried to assign an initial value to this radio that is not one of the possible radio values provided in `options`."))
+            throw(InvalidArgument(@named(initial_value), "You tried to assign an initial value to this radio that is not one of the possible radio values provided in `options`."))
         end
     end
 
@@ -1363,34 +1386,34 @@ Display a radio button group widget.
 
 ```julia
 function radio(
-    label          ::String,
-    options        ::Vector;
-    id             ::Any = nothing,
-    initial_value  ::Union{String, Nothing}=nothing
-)::Union{String, Nothing}
+    label           ::String,
+    options         ::Union{AbstractVector, Tuple};
+    id              ::Any                               =nothing,
+    initial_value   ::Union{String, Number, Nothing}    =nothing
+)::Union{String, Number}
 ```
 
  Argument           | Description
 ------------------  | -----------
  `label`            | A `String` to be displayed as the label for the radio button group. It can contain HTML.
- `options`          | A `Vector` of selectable values. Each element represents one radio option and will be displayed using its string representation.
+ `options`          | An `AbstractVector` or `Tuple` of selectable values. Each element represents one radio option and will be displayed using its string representation.
  `id`              | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like `get_value()` and `set_value()`.
- `initial_value`    | The value that should be initially selected. If provided, it should match one of the values in `options`. If `nothing`, the default value set with `set_default_value()` will be selected if one was provided. Otherwise, first option in `options` will be selected.
+ `initial_value`    | The value that should be initially selected. If provided, it should match one of the values in `options`. If `nothing` (default), the default value set with `set_default_value()` will be selected if one was provided. Otherwise, first option in `options` will be selected.
 
 ### Return Value
 
-The currently selected value from `options`, or `nothing` if no option is selected.
+The currently selected value from `options`.
 """
 function radio(
-    label::String,
-    options::Union{AbstractVector, Tuple};
-    id::Any=nothing,
-    initial_value::Union{String, Number, Nothing}=nothing
-)::Union{String, Number, Nothing}
+    label           ::String,
+    options         ::Union{AbstractVector, Tuple};
+    id              ::Any                               =nothing,
+    initial_value   ::Union{String, Number, Nothing}    =nothing
+)::Union{String, Number}
 
     task = task_local_storage("app_task")
     widgets = task.session.widgets
-    return create_radio(widgets, top_container(), id, label, options, initial_value, caller_location())
+    return create_radio(widgets, top_container(), id, label, options, initial_value)
 end
 
 # Image

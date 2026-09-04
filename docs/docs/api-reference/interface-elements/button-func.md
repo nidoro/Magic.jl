@@ -10,11 +10,11 @@ Display a button widget.
 
 ```julia
 function button(
-    label   ::String    ="";
-    style   ::String    ="secondary",
-    icon    ::String    ="",
-    onclick ::Function  =()->(),
-    args::Union{Vector, Tuple}=Vector()
+    label   ::String                ="";
+    style   ::String                ="secondary",
+    icon    ::String                ="",
+    onclick ::Function              =()->(),
+    args    ::Union{Vector, Tuple}  =Vector()
 )::Bool
 ```
 

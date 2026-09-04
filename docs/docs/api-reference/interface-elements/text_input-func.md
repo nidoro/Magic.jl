@@ -10,13 +10,13 @@ Display a text input widget.
 
 ```julia
 function text_input(
-    label          ::String;
-    id             ::Any      = nothing,
-    show_label     ::Bool     = true,
-    fill_width     ::Bool     = false,
-    initial_value  ::Union{String, Nothing}=nothing,
-    placeholder    ::Union{String, Nothing}=nothing,
-    css            ::Dict     = Dict()
+    label           ::String;
+    id              ::Any                       =nothing,
+    show_label      ::Bool                      =true,
+    fill_width      ::Bool                      =false,
+    initial_value   ::Union{String, Nothing}    =nothing,
+    placeholder     ::Union{String, Nothing}    =nothing,
+    css             ::Dict                      =Dict()
 )::Union{String, Nothing}
 ```
 
@@ -32,4 +32,8 @@ function text_input(
 
 ### Return Value
 
-The current value of the text input as a `String` or `nothing`.
+The `String` value of the text input, if any. Otherwise, `nothing` is returned.
+
+### Example
+
+See [To-do list](https://magic.coisasdodavi.net/todo).
