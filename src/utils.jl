@@ -266,3 +266,25 @@ function assert_valid_utf8_file(arg::Tuple)::String
         throw(InvalidArgument(arg, "Not a path to a file."))
     end
 end
+
+function assert_valid_css_or_attr_dict(arg::Tuple)::Nothing
+    d = arg[2]
+
+    for (k, v) in d
+        k isa Union{AbstractString, Symbol} || throw(InvalidArgument(arg, "Key $(repr(k)) is not a String (got $(typeof(k)))"))
+        v isa Union{AbstractString, Real}   || throw(InvalidArgument(arg, "Value $(repr(v)) for key $(repr(k)) is not a String or Real (got $(typeof(v)))"))
+    end
+    return nothing
+end
+
+function normalize_css_or_attr_dict(d::AbstractDict)::Dict{String, Union{String,Real}}
+    result = Dict{String, Union{String,Real}}()
+    for (k, v) in d
+        key = k isa Symbol ? String(k) :
+              k isa AbstractString ? String(k) :
+              throw(ArgumentError("Key $(repr(k)) must be a String or Symbol (got $(typeof(k)))"))
+        v isa Union{AbstractString,Real} || throw(ArgumentError("Value $(repr(v)) for key $(repr(key)) must be a String or Real (got $(typeof(v)))"))
+        result[key] = v
+    end
+    return result
+end

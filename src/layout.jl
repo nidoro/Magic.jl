@@ -106,12 +106,19 @@ end
 ```
 """
 function container(
-    inner_func::Function=()->();
-    css::Dict=Dict(),
-    attributes::Dict=Dict()
+    inner_func  ::Function      =()->();
+    css         ::AbstractDict  =Dict(),
+    attributes  ::AbstractDict  =Dict()
 )::ContainerInterface
 
-    combined_css = Dict(
+    # Input validation
+    #--------------------
+    assert_valid_css_or_attr_dict(@named(css))
+    assert_valid_css_or_attr_dict(@named(attributes))
+
+    css_norm = normalize_css_or_attr_dict(css)
+
+    combined_css = Dict{String, Union{String, Real}}(
         "display" => "flex",
         "flex-direction" => "column",
         "align-items" => "flex-start",
@@ -119,7 +126,7 @@ function container(
         "gap" => ".8rem",
     )
 
-    merge!(combined_css, css)
+    merge!(combined_css, css_norm)
     i_container = create_container(top_container(), combined_css, attributes)
 
     push_container(i_container)
@@ -271,7 +278,7 @@ function get_css_value(element::Dict, property::String)
     end
 end
 
-function set_css_if_not_set(css::Dict, key::String, value::String)::Nothing
+function set_css_if_not_set(css::Dict, key::String, value::Union{String, Number})::Nothing
     if !haskey(css, key)
         css[key] = value
     end
@@ -380,23 +387,30 @@ end
 ```
 """
 function column(
-    inner_func::Function=()->();
-    fill_width::Bool=false,
-    fill_height::Bool=false,
-    align_items::String="flex-start",
-    justify_content::String="flex-start",
-    gap::String=".8rem",
-    max_width::String="100%",
-    max_height::String="initial",
-    show_border::Bool=false,
-    border::String="1px solid #d6d6d6",
-    padding::String="none",
-    margin::String="none",
-    css::Dict=Dict(),
-    attributes::Dict=Dict()
+    inner_func      ::Function      =()->();
+    fill_width      ::Bool          =false,
+    fill_height     ::Bool          =false,
+    align_items     ::String        ="flex-start",
+    justify_content ::String        ="flex-start",
+    gap             ::String        =".8rem",
+    max_width       ::String        ="100%",
+    max_height      ::String        ="initial",
+    show_border     ::Bool          =false,
+    border          ::String        ="1px solid #d6d6d6",
+    padding         ::String        ="none",
+    margin          ::String        ="none",
+    css             ::AbstractDict  =Dict(),
+    attributes      ::AbstractDict  =Dict()
 )::ContainerInterface
 
-    combined_css = Dict(
+    # Validate input
+    #-------------------
+    assert_valid_css_or_attr_dict(@named(css))
+    assert_valid_css_or_attr_dict(@named(attributes))
+
+    css_norm = normalize_css_or_attr_dict(css)
+
+    combined_css = Dict{String, Union{String, Number}}(
         "gap" => gap,
         "align-items" => align_items,
         "justify-content" => justify_content,
@@ -409,8 +423,8 @@ function column(
     )
 
     set_css_to_achieve_layout(combined_css, top_container(), fill_width, fill_height)
-    set_css_if_not_set(css, "max-height", max_height)
-    merge!(combined_css, css)
+    set_css_if_not_set(css_norm, "max-height", max_height)
+    merge!(combined_css, css_norm)
 
     return container(inner_func, css=combined_css, attributes=attributes)
 end
