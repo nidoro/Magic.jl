@@ -998,3 +998,57 @@ end
         end
     end
 end
+
+@testset "h1(...), icon(...) input validation and initialization" begin
+    @maybe_suppress @info """
+    ------------------------------------------------------------------
+    Test: h1(...), icon(...) input validation and initialization
+    ------------------------------------------------------------------------
+    """
+
+    # Tests that throw exceptions
+    #--------------------------------------
+    tests = [
+        # Test that it will fail if given an invalid icon
+        function ()
+            h1("H1", icon="INVALID_ICON")
+        end,
+        # Test that it will fail if given an invalid icon
+        function ()
+            icon("INVALID_ICON")
+        end,
+    ]
+
+    @maybe_suppress begin
+        for test in tests
+            @test_throws Magic.InvalidArgument start_app(test, port=PORT, dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true)
+        end
+    end
+end
+
+@testset "code(...) input validation and initialization" begin
+    @maybe_suppress @info """
+    ------------------------------------------------------------------
+    Test: code(...) input validation and initialization
+    ------------------------------------------------------------------------
+    """
+
+    # Tests that throw exceptions
+    #--------------------------------------
+    tests = [
+        # Test that it will fail if given a path to something that is not a file
+        function ()
+            code(initial_value_file=".")
+        end,
+        # Test that it will fail if given a non-utf8 file
+        function ()
+            code(initial_value_file="../examples/.Magic/served-files/images/liberty.jpg")
+        end,
+    ]
+
+    @maybe_suppress begin
+        for test in tests
+            @test_throws Magic.InvalidArgument start_app(test, port=PORT, dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true)
+        end
+    end
+end
