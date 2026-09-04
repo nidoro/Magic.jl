@@ -33,6 +33,7 @@ macro maybe_suppress(ex)
 end
 
 include("unit_tests_logic.jl")
+include("unit_tests_layout.jl")
 include("unit_tests_elements.jl")
 include("e2e_tests_examples.jl")
 

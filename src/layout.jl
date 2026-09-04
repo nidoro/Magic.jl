@@ -699,19 +699,25 @@ end
 > created in the top-level of your app is placed inside `main_area()`.
 """
 function set_page_layout(
-    style::String="basic";
-    max_width::String="600px",
+    style                       ::String                    ="basic";
+    max_width                   ::String                    ="600px",
 
-    left_sidebar_initial_state::Union{Nothing, String}=nothing,
-    left_sidebar_initial_width::String="300px",
-    left_sidebar_position::String="slide-out",
-    left_sidebar_toggle_labels::Tuple{Union{String, Nothing}, Union{String, Nothing}}=(nothing, nothing),
+    left_sidebar_initial_state  ::Union{Nothing, String}    =nothing,
+    left_sidebar_initial_width  ::String                    ="300px",
+    left_sidebar_position       ::String                    ="slide-out",
+    left_sidebar_toggle_labels  ::Tuple{Union{String, Nothing}, Union{String, Nothing}}=(nothing, nothing),
 
-    right_sidebar_initial_state::Union{Nothing, String}=nothing,
-    right_sidebar_initial_width::String="300px",
-    right_sidebar_position::String="slide-out",
-    right_sidebar_toggle_labels::Tuple{Union{String, Nothing}, Union{String, Nothing}}=(nothing, nothing),
+    right_sidebar_initial_state ::Union{Nothing, String}    =nothing,
+    right_sidebar_initial_width ::String                    ="300px",
+    right_sidebar_position      ::String                    ="slide-out",
+    right_sidebar_toggle_labels ::Tuple{Union{String, Nothing}, Union{String, Nothing}}=(nothing, nothing),
 )::Containers
+
+    # Input validation
+    #---------------------
+    assert_string_in_list(@named(style), ("basic", "centered", "wide"))::Nothing
+    assert_string_in_list(@named(left_sidebar_position), ("slide-out", "overlay"))::Nothing
+    assert_string_in_list(@named(right_sidebar_position), ("slide-out", "overlay"))::Nothing
 
     # Initialize sidebars
     #------------------------
