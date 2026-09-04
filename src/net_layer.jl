@@ -50,7 +50,11 @@ function is_tls_enabled()::Bool
 end
 
 function is_https_enabled()::Bool
-    return ccall((:MG_IsHTTPSEnabled, g.MAGIC_SO), Cint, ())
+    if g.net_layer_ready
+        return ccall((:MG_IsHTTPSEnabled, g.MAGIC_SO), Cint, ())
+    else
+        return false
+    end
 end
 
 function lock_client(client_id::Cint)::Nothing

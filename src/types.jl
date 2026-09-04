@@ -278,6 +278,7 @@ end
     upload_max_size     ::Int                       = 25*MiB
     upload_max_files    ::Int                       = 10
 
+    net_layer_ready     ::Bool                      = false
     test_successfull    ::Bool                      = false
     rethrow_rerun_exceptions::Bool                  = false
 
