@@ -78,8 +78,8 @@ gen_serveable_path, make_serveable_copy, move_to_serveable_dir,
 fragment, @fragment, get_url_path, is_on_page, get_current_page, add_page,
 add_css_rule, add_font, begin_page_config, end_page_config, set_title,
 set_description, UploadedFile, get_dot_magic_dir, get_dot_magic_path,
-inject_html, get_url_search, get_query_params, get_server_origin, stop_app,
-make_uploaded_file
+inject_html, get_url_search, get_query_params, get_server_host,
+get_server_origin, stop_app, make_uploaded_file
 
 # Includes
 #------------
