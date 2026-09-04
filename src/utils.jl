@@ -95,7 +95,7 @@ end
 
 function assert_valid_material_icon(args::Tuple)::Nothing
     if !startswith(args[2], "material/")
-        throw(InvalidArgument(args, "`icon` must have the format \"material/icon_name\". Example: \"material/person\""))
+        throw(InvalidArgument(args, "`icon` must have the format \"material/icon_name\". Example: \"material/thumb_up\""))
     end
 
     icon_name = replace(args[2], "material/" => "")
@@ -253,4 +253,16 @@ function stringify(number::Real; precision::Union{Int,Nothing}=nothing, decimal_
     return result
 end
 
-
+function assert_valid_utf8_file(arg::Tuple)::String
+    path = arg[2]
+    if isfile(path)
+        content = read(path)
+        if isvalid(String, content)
+            return String(content)
+        else
+            throw(InvalidArgument(arg, "Not a valid UTF8 file."))
+        end
+    else
+        throw(InvalidArgument(arg, "Not a path to a file."))
+    end
+end
