@@ -4,20 +4,21 @@ sidebar_position: 65
 
 # code
 
-Display a code block.
+Display a read-only code block.
 
 ### Function Signature
 
 ```julia
 function code(
-    initial_value      ::String   = "";
-    initial_value_file ::Union{String, Nothing} = nothing,
-    fill_width         ::Bool     = true,
-    max_width          ::String   = "100%",
-    max_height         ::String   = "initial",
-    padding            ::String   = "0",
-    strip_whitespace   ::Bool     = true,
-    css                ::Dict     = Dict("overflow-y" => "auto")
+    initial_value       ::String                  ="";
+    initial_value_file  ::Union{String, Nothing}  =nothing,
+    fill_width          ::Bool                    =true,
+    max_width           ::String                  ="100%",
+    max_height          ::String                  ="initial",
+    padding             ::String                  ="0",
+    strip_whitespace    ::Bool                    =true,
+    show_line_numbers   ::Bool                    =false,
+    css                 ::Dict                    =Dict("overflow-y" => "auto")
 )::String
 ```
 
@@ -30,6 +31,7 @@ function code(
  `max_height`           | A `String` specifying the maximum height of the code block using a CSS value. If the content exceeds this height, it becomes scrollable.
  `padding`              | A `String` specifying the padding applied inside the code block using a CSS value.
  `strip_whitespace`     | A `Bool` indicating whether leading and trailing whitespace should be removed from the initial code content. Default: `true`.
+ `show_line_numbers`    | A `Bool` indicating whether line numbers should be shown or not. Default: `false`.
  `css`                  | A `Dict` of additional CSS properties applied to the code block.
 
 ### Return Value

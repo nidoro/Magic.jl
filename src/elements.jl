@@ -571,9 +571,13 @@ function create_slider(
     # Infer num_type and enforce it
     #----------------------------------
     if isnothing(num_type)
-        if     !ismithing(initial_value) num_type = typeof(initial_value)
-        elseif !ismithing(default_value) num_type = typeof(default_value)
-        else                             num_type = Float64 end
+        if     initial_value isa AbstractFloat num_type = typeof(initial_value)
+        elseif default_value isa AbstractFloat num_type = typeof(default_value)
+        elseif min isa AbstractFloat           num_type = typeof(min)
+        elseif max isa AbstractFloat           num_type = typeof(max)
+        elseif !ismithing(initial_value)       num_type = typeof(initial_value)
+        elseif !ismithing(default_value)       num_type = typeof(default_value)
+        else                                   num_type = Float64 end
     end
 
     if !ismithing(initial_value) initial_value = convert(num_type, initial_value) end
@@ -649,36 +653,35 @@ end
 
 Display a slider widget.
 
-> **NOTE:** Make sure that parameters `min`, `max`, `step` and `initial_value`
-> all have the same Real subtype.
-
 ### Function Signature
 
 ```julia
 function slider(
     label               ::String;
-    initial_value       ::Union{T, Nothing}=nothing,
-    min                 ::T=zero(T),
-    max                 ::T=one(T),
-    step                ::Union{T, Nothing}=nothing,
-    precision           ::Integer=2,
-    decimal_separator   ::String=".",
-    thousands_separator ::String=",",
-    show_label          ::Bool=true,
-    fill_width          ::Bool=false,
-    id                  ::Any=nothing,
-    css                 ::Dict=Dict()
-)::Union{Real, Nothing} where {T <: Real}
+    initial_value       ::Union{Real, Nothing}          =nothing,
+    min                 ::Real                          =0.0,
+    max                 ::Real                          =1.0,
+    step                ::Union{Real, Nothing}          =nothing,
+    precision           ::Integer                       =2,
+    num_type            ::Union{Type{<:Real}, Nothing}  =nothing,
+    decimal_separator   ::String                        =".",
+    thousands_separator ::String                        ="",
+    show_label          ::Bool                          =true,
+    fill_width          ::Bool                          =false,
+    id                  ::Any                           =nothing,
+    css                 ::Dict                          =Dict()
+)::Real
 ```
 
  Argument           | Description
 ------------------ | -----------
  `label`            | A `String` to be displayed as the label for the slider. It can contain HTML.
- `initial_value`    | Either a value of type `T` specifying the initial value of the slider, or `nothing` (default). If `nothing` is provided (default), the initial value will be the default value previously set with `set_default_value()` if any; otherwise, the widget will be initialized with `min`.
- `min`              | A value of type `T` specifying the minimum value of the slider range. Default: `zero(T)`.
- `max`              | A value of type `T` specifying the maximum value of the slider range. Default: `one(T)`.
- `step`             | Either a value of type `T` specifying the increment size for the slider, or `nothing` (default) to automatically determine the step size, in which case it will be set to `1` if `T` is an `Integer` subtype or `0.01` otherwise.
+ `initial_value`    | Either a `Real` specifying the initial value of the slider, or `nothing` (default). If `nothing`, the initial value will be the default value previously set with `set_default_value()` if any; otherwise, the widget will be initialized with the provided `min`.
+ `min`              | A `Real` specifying the minimum value of the slider range. Default: `0.0`.
+ `max`              | A `Real` specifying the maximum value of the slider range. Default: `1.0`.
+ `step`       | A `Real` specifying the size of the increment/decrement when moving the slider, or `nothing` indicating that no fixed step is set, unless `num_type` turns out to be an `Integer`, in which case the step will be automatically set to `1`.
  `precision`        | An `Integer` specifying how many decimal places should be displayed for the slider value. Default: `2`.
+ `num_type`       | A subtype of `Real` indicating the concrete type to which the widget parameters should be converted. If `nothing`, the concrete type is infered from the parameters of the widget, prioritizing `AbstractFloat` subtypes over `Integer`.
  `decimal_separator`   | A `String` specifying the character that should be used as decimal separator. Default: `"."`.
  `thousands_separator` | A `String` specifying the character that should be used as thousands separator. Default: `","`.
  `show_label`       | A `Bool` indicating whether the label should be displayed. Default: `true`.
@@ -688,22 +691,26 @@ function slider(
 
 ### Return Value
 
-The current value of the slider as a `Real` number; or `nothing`.
+The current `Real` value of the slider.
+
+### Example
+
+See [Sliding Curves](https://magic.coisasdodavi.net/curves).
 """
 function slider(
-    label::String;
-    initial_value::Union{Real, Nothing}=nothing,
-    min::Real=0.0,
-    max::Real=1.0,
-    step::Union{Real, Nothing}=nothing,
-    precision::Integer=2,
-    num_type::Union{Type{<:Real}, Nothing}=nothing,
-    decimal_separator::String=".",
-    thousands_separator::String=",",
-    show_label::Bool=true,
-    fill_width::Bool=false,
-    id::Any=nothing,
-    css::Dict=Dict()
+    label               ::String;
+    initial_value       ::Union{Real, Nothing}          =nothing,
+    min                 ::Real                          =0.0,
+    max                 ::Real                          =1.0,
+    step                ::Union{Real, Nothing}          =nothing,
+    precision           ::Integer                       =2,
+    num_type            ::Union{Type{<:Real}, Nothing}  =nothing,
+    decimal_separator   ::String                        =".",
+    thousands_separator ::String                        ="",
+    show_label          ::Bool                          =true,
+    fill_width          ::Bool                          =false,
+    id                  ::Any                           =nothing,
+    css                 ::Dict                          =Dict()
 )::Real
 
     task = task_local_storage("app_task")
@@ -1023,19 +1030,19 @@ Display a color picker input widget.
 ```julia
 function color_picker(
     label           ::String;
-    initial_value   ::Union{String, Nothing}=nothing,
-    id              ::Any      =nothing,
-    show_label      ::Bool     =true,
-    fill_width      ::Bool     =false,
-    onchange        ::Function =(args...; kwargs...)->(),
-    css             ::Dict     =Dict()
+    initial_value   ::Union{String, Nothing}    =nothing,
+    id              ::Any                       =nothing,
+    show_label      ::Bool                      =true,
+    fill_width      ::Bool                      =false,
+    onchange        ::Function                  =()->(),
+    css             ::Dict                      =Dict()
 )::String
 ```
 
  Argument        | Description
 ---------------- |-------------
  `label`       | A `String` used as the label for the color picker.
- `initial_value`    | Either a `String` specifying the initial hexadecimal color value of the input, or `nothing` (default). If `nothing` is provided, the initial value will be the default value previously set with `set_default_value()` if any; otherwise, the widget will be initialized with a grey color.
+ `initial_value`    | Either a `String` specifying the initial hexadecimal color value of the input, or `nothing` (default). If `nothing` is provided, the initial value will be the default value previously set with `set_default_value()`, if any. Otherwise, the widget will be initialized with black ("#000000").
  `id`          | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like `get_value()` and `set_value()`.
  `show_label`   | A `Bool` indicating whether the label should be displayed. Default: `true`.
  `fill_width`   | A `Bool` indicating whether the select box should expand to fill the available horizontal space. Default: `false`.
@@ -1046,15 +1053,19 @@ function color_picker(
 
 Returns the currently selected color value as a `String` in a hexadecimal format
 such as `"#ff0000"`.
+
+### Examples
+
+See [Avatar Creator](https://magic.coisasdodavi.net/avatar).
 """
 function color_picker(
-    label::String;
-    initial_value::Union{String, Nothing}=nothing,
-    id::Any=nothing,
-    show_label::Bool=true,
-    fill_width::Bool=false,
-    onchange::Function=(args...; kwargs...)->(),
-    css::Dict=Dict()
+    label           ::String;
+    initial_value   ::Union{String, Nothing}    =nothing,
+    id              ::Any                       =nothing,
+    show_label      ::Bool                      =true,
+    fill_width      ::Bool                      =false,
+    onchange        ::Function                  =()->(),
+    css             ::Dict                      =Dict()
 )::String
 
     task = task_local_storage("app_task")
@@ -1470,17 +1481,17 @@ Display an image.
 ```julia
 function image(
     src_or_path ::String;
-    fill_width  ::Bool                   = false,
-    max_width   ::String                 = "100%",
-    width       ::Union{Number, Nothing} = nothing,
-    height      ::Union{Number, Nothing} = nothing,
-    css         ::Dict                   = Dict("height" => "auto")
+    fill_width  ::Bool                      =false,
+    max_width   ::String                    ="100%",
+    width       ::Union{Number, Nothing}    =nothing,
+    height      ::Union{Number, Nothing}    =nothing,
+    css         ::Dict                      =Dict("height" => "auto")
 )::String
 ```
 
  Argument          | Description
 ------------------ | -----------
- `src_or_path`    | A `String` representing either an image URL or a local file path to the image source.<br/><br/>Only images inside `.Magic/served-files` and subdirectories can be served. If it is a static image that does not change across sessions, a good practice is to place it inside `.Magic/served-files/static/images`. If it is a generated image, e.g. a plot that changes across app reruns, a good practice is to place it inside `.Magic/served-files/cache`.<br/><br/>For the common situation of regenerating and serving a new image on each rerun, there is a helper function `gen_serveable_path(ext)` that generates a file path with a random name and with the given extension `ext` inside `.Magic/served-files/cache`. This function returns the path that you should use to save your image and then pass to `image()` to place it in the app.
+ `src_or_path`    | A `String` representing either a URL or a local file path to the image source.<br/><br/>Only images inside `.Magic/served-files` and subdirectories can be served. If it is a static image that does not change across sessions, a good practice is to place it inside `.Magic/served-files/static/images`. If it is a generated image, e.g. a plot that changes across app reruns, a good practice is to place it inside `.Magic/served-files/cache`.<br/><br/>For the common situation of regenerating and serving a new image on each rerun, there is a helper function `gen_serveable_path(ext)` that generates a file path with a random name and with the given extension `ext` inside `.Magic/served-files/cache`. This function returns the path that you should use to save your image and then pass to `image()` to place it in the app.
  `fill_width`     | A `Bool` indicating whether the image should expand to fill the available horizontal space. Default: `false`.
  `max_width`      | A `String` specifying the maximum width of the image using a CSS value (for example, `"100%"` or `"600px"`). Default: `"100%"`.
  `width`          | An optional numeric width to be used as the `width` attribute of the `img` tag.
@@ -1490,14 +1501,18 @@ function image(
 ### Return Value
 
 A `String` containing the rendered HTML for the image.
+
+### Examples
+
+See [Image Filters](https://magic.coisasdodavi.net/image-filters).
 """
 function image(
-    src_or_path::String;
-    fill_width::Bool=false,
-    max_width::String="100%",
-    width::Union{Number, Nothing}=nothing,
-    height::Union{Number, Nothing}=nothing,
-    css::Dict=Dict("height" => "auto")
+    src_or_path ::String;
+    fill_width  ::Bool                      =false,
+    max_width   ::String                    ="100%",
+    width       ::Union{Number, Nothing}    =nothing,
+    height      ::Union{Number, Nothing}    =nothing,
+    css         ::Dict                      =Dict("height" => "auto")
 )::String
 
     task = task_local_storage("app_task")
@@ -1770,16 +1785,16 @@ Creates a file input widget.
 ```julia
 function file_uploader(
     label           ::String;
-    types           ::Vector{String}=Vector{String}(),
-    multiple        ::Bool=false,
-    max_file_size   ::Union{Int, Nothing}=nothing,
-    max_files       ::Union{Int, Nothing}=nothing,
-    fill_width      ::Bool=false,
-    show_label      ::Bool=true,
-    id              ::Union{String, Nothing}=nothing,
-    onchange        ::Function=()->(),
-    args            ::Vector=Vector(),
-    css             ::Dict=Dict()
+    types           ::Vector{String}            =Vector{String}(),
+    multiple        ::Bool                      =false,
+    max_file_size   ::Union{Int, Nothing}       =nothing,
+    max_files       ::Union{Int, Nothing}       =nothing,
+    fill_width      ::Bool                      =false,
+    show_label      ::Bool                      =true,
+    id              ::Union{String, Nothing}    =nothing,
+    onchange        ::Function                  =()->(),
+    args            ::Vector                    =Vector(),
+    css             ::Dict                      =Dict(),
 )::Union{Vector{UploadedFile}, UploadedFile, Nothing}
 ```
 
@@ -1788,8 +1803,8 @@ function file_uploader(
  `label`        | A `String` to be displayed as the label for the file uploader. It can contain HTML.
  `types`        | A `Vector{String}` containing a list of acceptable file extensions and/or mimetypes. Example: `[".png", ".jpg", "application/pdf"]`. Tip: use `*` wildcard to accept all mimetypes begining with a prefix, e.g. `"image/*"`.
  `multiple`     | A `Bool` indicating wether to accept multiple files or not. Default `false`.
- `max_file_size`| An optional `Int` specifying the maximum file size accepted by the widget. If `nothing` (default), the limit set by `start_app()` is used.
- `max_files`    | An optional `Int` specifying the maximum number of file accepted by the widget. If `nothing` (default), the limit set by `start_app()` is used.
+ `max_file_size`| An optional `Int` specifying the maximum file size accepted by the widget. If `nothing` (default), the limit set to the default value provided as argument of `start_app()`.
+ `max_files`    | An optional `Int` specifying the maximum number of file accepted by the widget. If `nothing` (default), the limit set to the default value provided as argument of `start_app()`.
  `fill_width`   | A `Bool` indicating whether the widget should expand to fill the available horizontal space. Default: `false`.
  `show_label`   | A `Bool` indicating whether the label should be displayed. Default: `true`.
  `id`              | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like `get_value()` and `set_value()`.
@@ -1810,7 +1825,7 @@ mutable struct UploadedFile
     id              ::String # unique id of the file generated by the app
     name            ::String # name of the file
     extension       ::String # file extension
-    path            ::String # file path inside `.Magic/uploaded-files`
+    path            ::String # file path on the server side
     type            ::String # mimetype, e.g. "image/png"
     size            ::Int    # file size
     last_modified   ::Int    # last modification date timestamp
@@ -1823,17 +1838,17 @@ See [Image Filters Demo](https://magic.coisasdodavi.net/image-filters) for a
 `file_uploader()` example.
 """
 function file_uploader(
-    label::String;
-    types::Vector{String}=Vector{String}(),
-    multiple::Bool=false,
-    max_file_size::Union{Int, Nothing}=nothing,
-    max_files::Union{Int, Nothing}=nothing,
-    fill_width::Bool=false,
-    show_label::Bool=true,
-    id::Union{String, Nothing}=nothing,
-    onchange::Function=()->(),
-    args::Vector=Vector(),
-    css::Dict=Dict(),
+    label           ::String;
+    types           ::Vector{String}            =Vector{String}(),
+    multiple        ::Bool                      =false,
+    max_file_size   ::Union{Int, Nothing}       =nothing,
+    max_files       ::Union{Int, Nothing}       =nothing,
+    fill_width      ::Bool                      =false,
+    show_label      ::Bool                      =true,
+    id              ::Union{String, Nothing}    =nothing,
+    onchange        ::Function                  =()->(),
+    args            ::Vector                    =Vector(),
+    css             ::Dict                      =Dict(),
 )::Union{Vector{UploadedFile}, UploadedFile, Nothing}
 
     max_file_size = isnothing(max_file_size) ? g.upload_max_size : max_file_size
@@ -2168,20 +2183,21 @@ end
 """
 # code
 
-Display a code block.
+Display a read-only code block.
 
 ### Function Signature
 
 ```julia
 function code(
-    initial_value      ::String   = "";
-    initial_value_file ::Union{String, Nothing} = nothing,
-    fill_width         ::Bool     = true,
-    max_width          ::String   = "100%",
-    max_height         ::String   = "initial",
-    padding            ::String   = "0",
-    strip_whitespace   ::Bool     = true,
-    css                ::Dict     = Dict("overflow-y" => "auto")
+    initial_value       ::String                  ="";
+    initial_value_file  ::Union{String, Nothing}  =nothing,
+    fill_width          ::Bool                    =true,
+    max_width           ::String                  ="100%",
+    max_height          ::String                  ="initial",
+    padding             ::String                  ="0",
+    strip_whitespace    ::Bool                    =true,
+    show_line_numbers   ::Bool                    =false,
+    css                 ::Dict                    =Dict("overflow-y" => "auto")
 )::String
 ```
 
@@ -2194,6 +2210,7 @@ function code(
  `max_height`           | A `String` specifying the maximum height of the code block using a CSS value. If the content exceeds this height, it becomes scrollable.
  `padding`              | A `String` specifying the padding applied inside the code block using a CSS value.
  `strip_whitespace`     | A `Bool` indicating whether leading and trailing whitespace should be removed from the initial code content. Default: `true`.
+ `show_line_numbers`    | A `Bool` indicating whether line numbers should be shown or not. Default: `false`.
  `css`                  | A `Dict` of additional CSS properties applied to the code block.
 
 ### Return Value
@@ -2201,15 +2218,15 @@ function code(
 A `String` containing the current code content.
 """
 function code(
-    initial_value::String="";
-    initial_value_file::Union{String, Nothing}=nothing,
-    fill_width::Bool=true,
-    max_width::String="100%",
-    max_height::String="initial",
-    padding::String="0",
-    strip_whitespace::Bool=true,
-    show_line_numbers::Bool=false,
-    css::Dict=Dict("overflow-y" => "auto")
+    initial_value       ::String                  ="";
+    initial_value_file  ::Union{String, Nothing}  =nothing,
+    fill_width          ::Bool                    =true,
+    max_width           ::String                  ="100%",
+    max_height          ::String                  ="initial",
+    padding             ::String                  ="0",
+    strip_whitespace    ::Bool                    =true,
+    show_line_numbers   ::Bool                    =false,
+    css                 ::Dict                    =Dict("overflow-y" => "auto")
 )::String
 
     task = task_local_storage("app_task")
@@ -2268,6 +2285,10 @@ function create_metric(
 end
 
 """
+---
+sidebar_position: 60
+---
+
 # metric
 
 Display a metric value with an optional delta indicator.
@@ -2276,35 +2297,51 @@ Display a metric value with an optional delta indicator.
 
 ```julia
 function metric(
-    label             ::String,
-    value             ::String,
-    delta             ::String = "",
-    higher_is_better  ::Bool   = true
+    label               ::String,
+    value               ::Real,
+    unit                ::String                    ="";
+    delta               ::Union{Real, Nothing}      =nothing,
+    delta_unit          ::Union{String, Nothing}    =nothing,
+    higher_is_better    ::Bool                      =true,
+    precision           ::Union{Int, Nothing}       =nothing,
+    delta_precision     ::Union{Int, Nothing}       =nothing,
+    decimal_separator   ::String                    =".",
+    thousands_separator ::String                    =""
 )::Nothing
 ```
 
  Argument               | Description
 ---------------------- | -----------
  `label`               | A `String` used as the label for the metric.
- `value`               | A `String` representing the main value of the metric.
- `delta`               | An optional `String` representing the change or difference associated with the metric (for example, `"+5%"` or `"-2"`).
+ `value`               | A `Real` representing the main value of the metric.
+ `unit`               | An optional `String` representing the measurement unit of `value`. Examples: `ºC`, `m/s`.
+ `delta`               | An optional `String` representing the change of the metric value.
+ `delta_unit`               | An optional `String` representing the measurement unit of `delta`. If `nothing` (default), the same value of `unit` is used.
  `higher_is_better`    | A `Bool` indicating whether an increase in the metric value should be considered positive. Default: `true`.
+ `precision`           | An optional `Integer` indicating with how many decimal places `value` should be displayed.
+ `delta_precision`     | An optional `Integer` indicating with how many decimal places `delta` should be displayed. If `nothing` (default), the same value of `precision` is used.
+ `decimal_separator`       | A `String` specifying the character that should be used as decimal separator. Default: `"."`.
+ `thousands_separator`       | A `String` specifying the character that should be used as decimal separator. Default: `""`.
 
 ### Return Value
 
 Nothing.
+
+### Examples
+
+See [Seattle Weather](https://magic.coisasdodavi.net/seattle-weather).
 """
 function metric(
-    label::String,
-    value::Real,
-    unit::String="";
-    delta::Union{Real, Nothing}=nothing,
-    delta_unit::Union{String, Nothing}=nothing,
-    higher_is_better::Bool=true,
-    precision::Union{Int, Nothing}=nothing,
-    delta_precision::Union{Int, Nothing}=nothing,
-    thousands_separator::String="",
-    decimal_separator::String=".",
+    label               ::String,
+    value               ::Real,
+    unit                ::String                    ="";
+    delta               ::Union{Real, Nothing}      =nothing,
+    delta_unit          ::Union{String, Nothing}    =nothing,
+    higher_is_better    ::Bool                      =true,
+    precision           ::Union{Int, Nothing}       =nothing,
+    delta_precision     ::Union{Int, Nothing}       =nothing,
+    decimal_separator   ::String                    =".",
+    thousands_separator ::String                    =""
 )::Nothing
 
     if isnothing(delta_unit)

@@ -11,11 +11,11 @@ Display an image.
 ```julia
 function image(
     src_or_path ::String;
-    fill_width  ::Bool                   = false,
-    max_width   ::String                 = "100%",
-    width       ::Union{Number, Nothing} = nothing,
-    height      ::Union{Number, Nothing} = nothing,
-    css         ::Dict                   = Dict("height" => "auto")
+    fill_width  ::Bool                      =false,
+    max_width   ::String                    ="100%",
+    width       ::Union{Number, Nothing}    =nothing,
+    height      ::Union{Number, Nothing}    =nothing,
+    css         ::Dict                      =Dict("height" => "auto")
 )::String
 ```
 
@@ -31,3 +31,7 @@ function image(
 ### Return Value
 
 A `String` containing the rendered HTML for the image.
+
+### Examples
+
+See [Image Filters](https://magic.coisasdodavi.net/image-filters).
