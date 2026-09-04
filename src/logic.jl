@@ -139,7 +139,7 @@ function start_app(
         Upload max size      : $(Float64(g.upload_max_size)/MiB) MiB
         Upload max files     : $(g.upload_max_files)
         Process working dir  : $(pwd())
-        Directory of '.Magic': $(g.dot_magic_dir)
+        '.Magic' path        : $(get_dot_magic_path())
         """
 
     # Generate directories and files
@@ -418,8 +418,6 @@ function get_dyn_lib_path()::String
             return joinpath(@__DIR__, "../build/linux-x86_64/artifacts-linux-x86_64/libmagic.so")
         elseif Sys.iswindows()
             return joinpath(@__DIR__, "../build/win64/artifacts-win64/libmagic.dll")
-        else
-            @error "Unsupported OS: $(Sys.KERNEL) $(Sys.ARCH)"
         end
     else
         @static if isfile(joinpath(@__DIR__, "../Artifacts.toml"))
@@ -427,12 +425,10 @@ function get_dyn_lib_path()::String
                 return joinpath(artifact"artifacts", "libmagic.so")
             elseif Sys.iswindows()
                 return joinpath(artifact"artifacts", "libmagic.dll")
-            else
-                @error "Unsupported OS: $(Sys.KERNEL) $(Sys.ARCH)"
             end
         end
     end
-    return ""
+    error("Unsupported OS: $(Sys.KERNEL) $(Sys.ARCH)")
 end
 
 function handle_new_client(client_id::Cint, session_id::String)::Nothing
