@@ -306,14 +306,6 @@ end
 # Error stuff
 #----------------
 abstract type MagicError        <: Exception  end
-struct InvalidFile              <: MagicError file_path::String end
-struct InvalidDirectory         <: MagicError dir_path::String end
-struct InvalidHostname          <: MagicError hostname::String end
-struct InvalidPort              <: MagicError port::Int end
-struct InvalidUploadMaxSize     <: MagicError upload_max_size::Int end
-struct InvalidUploadMaxFiles    <: MagicError upload_max_files::Int end
-struct ClientSideError          <: MagicError payload::Dict end
-struct TestFailed               <: MagicError test_id::String; info::String end
 struct InvalidArgument          <: MagicError arg::Tuple; info::String end
 
 # To be used with InvalidArgument
@@ -322,13 +314,6 @@ macro named(expr)
     return :($name, $(esc(expr)))
 end
 
-Base.showerror(io::IO, e::InvalidFile)              = print(io, "File not found or invalid: $(e.file_path)")
-Base.showerror(io::IO, e::InvalidDirectory)         = print(io, "Directory not found or invalid: $(e.dir_path)")
-Base.showerror(io::IO, e::InvalidPort)              = print(io, "Invalid port: $(e.port). Please provide a value between 0 and 65535.")
-Base.showerror(io::IO, e::InvalidUploadMaxSize)     = print(io, "Invalid upload max size: $(e.upload_max_size). Please provide a number greater than or equal to 0.")
-Base.showerror(io::IO, e::InvalidUploadMaxFiles)    = print(io, "Invalid upload max files: $(e.upload_max_files). Please provide a number greater than or equal to 0.")
-Base.showerror(io::IO, e::ClientSideError)          = print(io, "Client side error:\n$(JSON.json(e.payload, 4))")
-Base.showerror(io::IO, e::TestFailed)               = print(io, "Test failed: $(e.test_id)\n$(e.info)")
 Base.showerror(io::IO, e::InvalidArgument)          = print(io, "Invalid value to argument `$(e.arg[1])`: $(e.arg[2])\n$(e.info)")
 
 # Colored log utils. AC stands for "ANSI Color"

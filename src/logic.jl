@@ -63,19 +63,19 @@ function start_app(
     # Input validation
     #----------------------
     if !is_valid_hostname(host_name)
-        throw(InvalidHostname(host_name))
+        throw(InvalidArgument(@named(host_name), "Invalid host name."))
     end
 
     if port < 0 || port > 65535
-        throw(InvalidPort(port))
+        throw(InvalidArgument(@named(port), "Invalid port: $port. Please provide a value between 0 and 65535."))
     end
 
     if upload_max_size < 0
-        throw(InvalidUploadMaxSize(upload_max_size))
+        throw(InvalidArgument(@named(upload_max_size), "Invalid upload max size: $upload_max_size. Please provide a number greater than or equal to 0."))
     end
 
     if upload_max_files < 0
-        throw(InvalidUploadMaxFiles(upload_max_files))
+        throw(InvalidArgument(@named(upload_max_files), "Invalid upload max files: $upload_max_files. Please provide a number greater than or equal to 0."))
     end
 
     global g = Global()
@@ -106,17 +106,17 @@ function start_app(
     g.upload_max_files = upload_max_files
 
     if script_or_func isa String && !isfile(g.script_or_func)
-        throw(InvalidFile(g.script_or_func))
+        throw(InvalidArgument(@named(script_or_func), "File not found or invalid: $script_or_func"))
     end
 
-    if dot_magic_dir === nothing
+    if isnothing(dot_magic_dir)
         g.dot_magic_dir = pwd()
     else
         g.dot_magic_dir = joinpath(pwd(), expanduser(dot_magic_dir))
     end
 
     if !isdir(g.dot_magic_dir)
-        throw(InvalidDirectory(g.dot_magic_dir))
+        throw(InvalidArgument(@named(dot_magic_dir), "Directory not found or invalid: $dot_magic_dir"))
     end
 
     g.dot_magic_dir = realpath(g.dot_magic_dir)
@@ -126,7 +126,7 @@ function start_app(
     else
         docs_path = joinpath(pwd(), docs_path)
         if !isdir(docs_path)
-            throw(InvalidDirectory(docs_path))
+            throw(InvalidArgument(@named(docs_path), "Directory not found or invalid: $docs_path"))
             return nothing
         end
     end
