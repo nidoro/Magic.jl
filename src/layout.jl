@@ -487,29 +487,47 @@ end
 ```
 """
 function row(
-    inner_func::Function=()->();
-    fill_width::Bool=false,
-    fill_height::Bool=false,
-    align_items::String="flex-start",
-    justify_content::String="flex-start",
-    gap::String="0.8rem",
-    margin::String="0",
-    css::Dict=Dict()
+    inner_func      ::Function      =()->();
+    fill_width      ::Bool          =false,
+    fill_height     ::Bool          =false,
+    align_items     ::String        ="flex-start",
+    justify_content ::String        ="flex-start",
+    gap             ::String        ="0.8rem",
+    max_width       ::String        ="100%",
+    max_height      ::String        ="initial",
+    show_border     ::Bool          =false,
+    border          ::String        ="1px solid #d6d6d6",
+    padding         ::String        ="none",
+    margin          ::String        ="none",
+    css             ::AbstractDict  =Dict(),
+    attributes      ::AbstractDict  =Dict()
 )::ContainerInterface
 
-    combined_css = Dict(
+    # Validate input
+    #-------------------
+    assert_valid_css_or_attr_dict(@named(css))
+    assert_valid_css_or_attr_dict(@named(attributes))
+
+    css_norm = normalize_css_or_attr_dict(css)
+
+    combined_css = Dict{String, Union{String, Number}}(
         "flex-direction" => "row",
         "gap" => gap,
         "align-items" => align_items,
         "justify-content" => justify_content,
+        "max-height" => max_height,
+        "border" => show_border ? border : "none",
+        "border-radius" => "0.5rem",
+        "padding" => padding,
         "margin" => margin,
         "min-width" => "0",
     )
 
     set_css_to_achieve_layout(combined_css, top_container(), fill_width, fill_height)
+    set_css_if_not_set(css_norm, "max-width", max_width)
+    merge!(combined_css, css_norm)
 
-    merge!(combined_css, css)
-    return container(inner_func, css=combined_css)
+    return container(inner_func, css=combined_css, attributes=attributes)
 end
 
 """
