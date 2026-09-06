@@ -41,10 +41,10 @@
     end
 end
 
-@testset "column(...), row(...) input validation and initialization" begin
+@testset "container functions input validation and initialization" begin
     @maybe_suppress @info """
     ------------------------------------------------------------------
-    Test: column(...), row(...) input validation and initialization
+    Test: container functions input validation and initialization
     ------------------------------------------------------------------------
     """
 
@@ -58,6 +58,8 @@ end
             column(attributes=Dict(:id => "foo", "tabindex" => 1))
             row(css=Dict(:background => "red", "opacity" => 0.5))
             row(attributes=Dict(:id => "foo", "tabindex" => 1))
+            container(css=Dict(:background => "red", "opacity" => 0.5))
+            container(attributes=Dict(:id => "foo", "tabindex" => 1))
 
             columns((20,80), css=Dict(:background => "red", "opacity" => 0.5))
         end
@@ -85,6 +87,12 @@ end
         end
         function ()
             row(attributes=Dict(:id => Dict()))
+        end
+        function ()
+            container(css=Dict(:background => []))
+        end
+        function ()
+            container(attributes=Dict(:id => Dict()))
         end
         function ()
             columns((20,80), css=Dict(:background => []))
