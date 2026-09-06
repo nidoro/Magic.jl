@@ -58,6 +58,8 @@ end
             column(attributes=Dict(:id => "foo", "tabindex" => 1))
             row(css=Dict(:background => "red", "opacity" => 0.5))
             row(attributes=Dict(:id => "foo", "tabindex" => 1))
+
+            columns((20,80), css=Dict(:background => "red", "opacity" => 0.5))
         end
     ]
 
@@ -83,6 +85,9 @@ end
         end
         function ()
             row(attributes=Dict(:id => Dict()))
+        end
+        function ()
+            columns((20,80), css=Dict(:background => []))
         end
     ]
 

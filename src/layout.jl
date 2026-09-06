@@ -113,12 +113,12 @@ function container(
 
     # Input validation
     #--------------------
-    assert_valid_css_or_attr_dict(@named(css))
-    assert_valid_css_or_attr_dict(@named(attributes))
+    assert_valid_shallow_simple_dict(@named(css))
+    assert_valid_shallow_simple_dict(@named(attributes))
 
-    css_norm = normalize_css_or_attr_dict(css)
+    css_norm = normalize_shallow_simple_dict(css)
 
-    combined_css = Dict{String, Union{String, Real}}(
+    combined_css = ShallowSimpleDict(
         "display" => "flex",
         "flex-direction" => "column",
         "align-items" => "flex-start",
@@ -405,12 +405,12 @@ function column(
 
     # Validate input
     #-------------------
-    assert_valid_css_or_attr_dict(@named(css))
-    assert_valid_css_or_attr_dict(@named(attributes))
+    assert_valid_shallow_simple_dict(@named(css))
+    assert_valid_shallow_simple_dict(@named(attributes))
 
-    css_norm = normalize_css_or_attr_dict(css)
+    css_norm = normalize_shallow_simple_dict(css)
 
-    combined_css = Dict{String, Union{String, Number}}(
+    combined_css = ShallowSimpleDict(
         "gap" => gap,
         "align-items" => align_items,
         "justify-content" => justify_content,
@@ -505,12 +505,12 @@ function row(
 
     # Validate input
     #-------------------
-    assert_valid_css_or_attr_dict(@named(css))
-    assert_valid_css_or_attr_dict(@named(attributes))
+    assert_valid_shallow_simple_dict(@named(css))
+    assert_valid_shallow_simple_dict(@named(attributes))
 
-    css_norm = normalize_css_or_attr_dict(css)
+    css_norm = normalize_shallow_simple_dict(css)
 
-    combined_css = Dict{String, Union{String, Number}}(
+    combined_css = ShallowSimpleDict(
         "flex-direction" => "row",
         "gap" => gap,
         "align-items" => align_items,
@@ -588,30 +588,47 @@ cols[2].button("Center")
 cols[3].button("Right")
 ```
 """
-function columns(amount_or_widths::Union{Int, Vector}; kwargs...)::Containers
+function columns(amount_or_widths::Union{Int, AbstractVector, Tuple}; kwargs...)::Containers
+    # Input validation
+    #-------------------
+    if amount_or_widths isa Union{AbstractVector, Tuple}
+        for w in amount_or_widths
+            if !(w isa Number)
+                throw(InvalidArgument(@named(amount_or_widths), "One or more widths provided is not a Number: $w"))
+            end
+        end
+    end
+
+    provided_css = nothing
+    if haskey(kwargs, :css)
+        provided_css = kwargs[:css]
+        assert_valid_shallow_simple_dict(@named(provided_css))
+        provided_css = normalize_shallow_simple_dict(provided_css)
+    end
+
     columns = Containers()
 
     @push row(fill_width=true)
         if amount_or_widths isa Int
             w = 1.0/amount_or_widths
-            css = Dict("flex" => "$w", "align-self" => "stretch")
-            if haskey(kwargs, :css)
-                merge!(css, kwargs[:css])
+            css = ShallowSimpleDict("flex" => "$w", "align-self" => "stretch")
+            if !isnothing(provided_css)
+                merge!(css, provided_css)
             end
 
             for c in 1:amount_or_widths
-                col = column(css=css; kwargs...)
+                col = column(; kwargs..., css=css)
                 push!(columns.containers, col)
             end
         else
             for w in amount_or_widths
-                css = Dict("flex" => "$w", "align-self" => "stretch", "min-width" => "0")
+                css = ShallowSimpleDict("flex" => "$w", "align-self" => "stretch", "min-width" => "0")
 
-                if haskey(kwargs, :css)
-                    merge!(css, kwargs[:css])
+                if !isnothing(provided_css)
+                    merge!(css, provided_css)
                 end
 
-                col = column(css=css; kwargs...)
+                col = column(; kwargs..., css=css)
                 push!(columns.containers, col)
             end
         end

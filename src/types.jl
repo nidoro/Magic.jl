@@ -68,7 +68,7 @@ const WidgetKind_Slider         = 12
     onchange    ::Function                  = (args...; kwargs...)->()
     args        ::Vector                    = Vector()
 
-    props::Dict = Dict()
+    props       ::Dict                      = Dict()
 end
 
 # Container stuff
@@ -105,12 +105,14 @@ end
     space           ::Function = (args...; kwargs...)->()
 end
 
+const ShallowSimpleDict = Dict{String, Union{String, Real}}
+
 CONTAINER_INTERFACE_FUNCS = [
     :columns, :column, :row, :button, :download_button, :image, :html, :radio, :selectbox,
     :h1, :h2, :h3, :h4, :h5, :h6, :dataframe, :checkbox, :checkboxes,
     :file_uploader, :text_input, :link, :color_picker, :text, :metric, :code,
     :icon, :space
-    ]
+]
 
 @with_kw mutable struct Containers
     containers      ::Vector{Union{ContainerInterface, Nothing}} = Vector{Union{ContainerInterface, Nothing}}()

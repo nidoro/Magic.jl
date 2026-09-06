@@ -267,7 +267,7 @@ function assert_valid_utf8_file(arg::Tuple)::String
     end
 end
 
-function assert_valid_css_or_attr_dict(arg::Tuple)::Nothing
+function assert_valid_shallow_simple_dict(arg::Tuple)::Nothing
     d = arg[2]
 
     for (k, v) in d
@@ -277,7 +277,7 @@ function assert_valid_css_or_attr_dict(arg::Tuple)::Nothing
     return nothing
 end
 
-function normalize_css_or_attr_dict(d::AbstractDict)::Dict{String, Union{String,Real}}
+function normalize_shallow_simple_dict(d::AbstractDict)::Dict{String, Union{String,Real}}
     result = Dict{String, Union{String,Real}}()
     for (k, v) in d
         key = k isa Symbol ? String(k) :
