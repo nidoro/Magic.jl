@@ -23,15 +23,15 @@
         # Test that it will fail when given invalid style
         function ()
             set_page_layout("INVALID_STYLE")
-        end,
+        end
         # Test that it will fail when given invalid left_side_bar_position
         function ()
             set_page_layout("wide", left_sidebar_position="INVALID_POSITION")
-        end,
+        end
         # Test that it will fail when given invalid right_side_bar_position
         function ()
             set_page_layout("wide", right_sidebar_position="INVALID_POSITION")
-        end,
+        end
     ]
 
     @maybe_suppress begin
@@ -52,10 +52,12 @@ end
     #--------------------------------------
     tests = [
         # Test that it will work with css/attribute Dict that has Symbol or
-        # String as key and String or Number as value.
+        # String as keys and String or Number as value.
         function ()
             column(css=Dict(:background => "red", "opacity" => 0.5))
-            column(attributes=Dict(:background => "red", "opacity" => 0.5))
+            column(attributes=Dict(:id => "foo", "tabindex" => 1))
+            row(css=Dict(:background => "red", "opacity" => 0.5))
+            row(attributes=Dict(:id => "foo", "tabindex" => 1))
         end
     ]
 
@@ -74,7 +76,13 @@ end
             column(css=Dict(:background => []))
         end
         function ()
-            column(attributes=Dict(:background => Dict()))
+            column(attributes=Dict(:id => Dict()))
+        end
+        function ()
+            row(css=Dict(:background => []))
+        end
+        function ()
+            row(attributes=Dict(:id => Dict()))
         end
     ]
 
