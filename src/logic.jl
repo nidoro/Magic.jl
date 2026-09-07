@@ -1352,10 +1352,26 @@ function set_page_data(page_data::Any)::Nothing
     return nothing
 end
 
-function add_page(inner_func::Union{Function, Nothing}, uri::Union{String, Vector{String}}; title::String="", description::String="")::PageConfig
+function add_page(
+    inner_func  ::Union{Function, Nothing},
+    uri         ::Union{AbstractString, AbstractVector, Tuple};
+    title       ::AbstractString    ="",
+    description ::AbstractString    =""
+)::PageConfig
+
+    if !is_app_first_pass()
+        throw(PastStartupCall("add_page", "app"))
+    end
+
+    # Input validation
+    #-----------------------
+    if !(uri isa AbstractString)
+        assert_valid_string_list(@named(uri))
+    end
+
     page = PageConfig()
     page.id = get_random_string(6)
-    page.uris = uri isa Vector{String} ? uri : [uri]
+    page.uris = uri isa Union{AbstractVector, Tuple} ? collect(uri) : [uri]
     page.title = title
     page.description = description
 
@@ -1374,7 +1390,7 @@ function add_page(inner_func::Union{Function, Nothing}, uri::Union{String, Vecto
     return page
 end
 
-add_page(uri::Union{String, Vector{String}}; title::String="", description::String="") = add_page(nothing, uri, title=title, description=description)
+add_page(uri::Union{AbstractString, AbstractVector, Tuple}; title::String="", description::String="") = add_page(nothing, uri, title=title, description=description)
 
 function strip_prefix(str::String, prefix::String)::String
     if startswith(str, prefix)

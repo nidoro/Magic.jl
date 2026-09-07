@@ -19,3 +19,15 @@
     # Test function as entry-point
     @maybe_suppress @test start_app(()->(button("Button")), port=PORT, dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true) === nothing
 end
+
+@testset "add_page(...)" begin
+    @maybe_suppress @info """
+    ------------------------------------------------------------------
+    Test: add_page(...)
+    ------------------------------------------------------------------------
+    """
+
+    @maybe_suppress @test_throws Magic.InvalidArgument start_app(()->(add_page(["/foo", Dict()])), dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true)
+
+    @maybe_suppress @test_throws Magic.PastStartupCall start_app(()->(add_page("/foo")), dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true)
+end

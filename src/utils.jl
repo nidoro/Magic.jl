@@ -277,6 +277,20 @@ function assert_valid_shallow_simple_dict(arg::Tuple)::Nothing
     return nothing
 end
 
+function assert_valid_string_list(arg::Tuple)::Nothing
+    value = arg[2]
+    if value isa Union{AbstractVector, Tuple}
+        for entry in value
+            if !(entry isa AbstractString)
+                throw(InvalidArgument(arg, "Item $(repr(entry)) of type $(typeof(entry)) is not an AbstractString."))
+            end
+        end
+    else
+        throw(InvalidArgument(arg, "Expected an AbstractVector or Tuple, but got $(typeof(value))."))
+    end
+    return nothing
+end
+
 function normalize_shallow_simple_dict(d::AbstractDict)::Dict{String, Union{String,Real}}
     result = Dict{String, Union{String,Real}}()
     for (k, v) in d
