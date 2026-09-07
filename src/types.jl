@@ -308,6 +308,7 @@ end
 abstract type MagicError        <: Exception  end
 struct InvalidArgument          <: MagicError arg::Tuple; info::String end
 struct PastStartupCall          <: MagicError func::String; moment::String end
+struct ClientSideError          <: MagicError payload::Dict end
 
 # To be used with InvalidArgument
 macro named(expr)
@@ -317,6 +318,7 @@ end
 
 Base.showerror(io::IO, e::InvalidArgument) = print(io, "Invalid value to argument `$(e.arg[1])`: $(e.arg[2])\n$(e.info)")
 Base.showerror(io::IO, e::PastStartupCall) = print(io, "`$(e.func)` is a function that can only be called at $(e.moment) startup.\nYou most likely want to wrap this call in a `@$(e.moment)_startup` initialization block, or check if `is_$(e.moment)_first_pass()` returns true before calling `$(e.func)`.")
+Base.showerror(io::IO, e::ClientSideError) = print(io, "Client side error:\n$(JSON.json(e.payload, 4))")
 
 # Colored log utils. AC stands for "ANSI Color"
 #------------------------------------------------
