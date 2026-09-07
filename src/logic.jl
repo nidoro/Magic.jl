@@ -522,7 +522,8 @@ function rerun(client_id::Cint, payload::Dict)::Task
         task.client_id = client_id
         task.session = session
         task.payload = payload
-        task.current_page = g.base_page_config
+        page = get_current_page()
+        task.current_page = ismissing(page) ? g.base_page_config : page
 
         # Identify and initialize fragment
         #------------------------------------
@@ -693,7 +694,7 @@ function rerun(client_id::Cint, payload::Dict)::Task
 
             g.first_pass = false
             session.first_pass = false
-            page = get_current_page()
+
             if page !== missing
                 page.first_pass = false
             end
@@ -1381,7 +1382,7 @@ function add_page(
     end
 
     page = PageConfig()
-    page.id = get_random_string(6)
+    page.id = get_random_string(6) # TODO: check for id clash
     page.uris = uris
     page.title = title
     page.description = description
@@ -1530,6 +1531,7 @@ Argument        | Description
 
 @doc DOC_PAGE_STATIC_SETTINGS
 function set_title(page::PageConfig, title::String)::Nothing
+    if !(page.first_pass || is_app_first_pass()) throw(throw(PastStartupCall("set_title", "page"))) end
     page.title = title
     return nothing
 end
