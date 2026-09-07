@@ -11,6 +11,6 @@ whether the app should be opened using the OS default browser or not.
 the provided `initial_value`/`default_value`.
 - Change: most elements API exported functions now throw when given invalid
 arguments.
-- Internal: new tests for `button`, `selectbox`, `checkbox`, `checkboxes`,
-`radio`, `text_input`, `number_input`, `slider`.
-- Internal: new dependency: `Printf`.
+- Bug-fix: `get_current_page()` always returned `g.base_page_config`.
+- Internal: tests implemented for most public API functions.
+- Internal: new dependency `Printf`.
