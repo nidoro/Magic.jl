@@ -302,3 +302,7 @@ function normalize_shallow_simple_dict(d::AbstractDict)::Dict{String, Union{Stri
     end
     return result
 end
+
+function maybe_prepend(str::AbstractString, prefix::String)::String
+    return startswith(str, prefix) ? str : prefix * str
+end

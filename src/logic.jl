@@ -1369,9 +1369,20 @@ function add_page(
         assert_valid_string_list(@named(uri))
     end
 
+    uris = []
+    if uri isa AbstractString
+        uris = [uri]
+    else
+        uris = collect(uri)
+    end
+
+    for (i, uri) in enumerate(uris)
+        uris[i] = maybe_prepend(uri, "/")
+    end
+
     page = PageConfig()
     page.id = get_random_string(6)
-    page.uris = uri isa Union{AbstractVector, Tuple} ? collect(uri) : [uri]
+    page.uris = uris
     page.title = title
     page.description = description
 
@@ -1786,8 +1797,9 @@ If the user accessed the page via `/page-1`, `is_on_page("/")` will return
 `/page-1`.
 """
 function is_on_page(page_path::String)::Bool
+    page_path = maybe_prepend(page_path, "/")
     page = get_current_page()
-    if page !== missing
+    if !ismissing(page)
         return page_path in page.uris
     end
     return false

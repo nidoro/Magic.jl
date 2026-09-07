@@ -27,7 +27,14 @@ end
     ------------------------------------------------------------------------
     """
 
-    @maybe_suppress @test_throws Magic.InvalidArgument start_app(()->(add_page(["/foo", Dict()])), dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true)
+    @maybe_suppress begin
+        # Test that it is ok to pass a uri that does not starts with '/'
+        @test start_app(()->(@app_startup begin add_page("foo") end), dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true) === nothing
 
-    @maybe_suppress @test_throws Magic.PastStartupCall start_app(()->(add_page("/foo")), dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true)
+        # Test that it fails if uris list contains non-Strings
+        @test_throws Magic.InvalidArgument start_app(()->(add_page(["/foo", Dict()])), dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true)
+
+        # Test that it fails if it is called outside @app_startup
+        @test_throws Magic.PastStartupCall start_app(()->(add_page("/foo")), dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true)
+    end
 end
