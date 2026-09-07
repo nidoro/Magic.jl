@@ -154,10 +154,14 @@ end
 end
 
 @page_startup begin
-    inject_html(html="<script>")
-    inject_html(file_path=joinpath(@__DIR__, test_actions_script))
-    inject_html(html="</script>")
+    if !isempty(test_actions_script)
+        inject_html(html="<script>")
+        inject_html(file_path=joinpath(@__DIR__, test_actions_script))
+        inject_html(html="</script>")
+    end
 end
 
-include("../../examples/$(test_page)")
+if !isempty(test_page)
+    include("../../examples/$(test_page)")
+end
 
