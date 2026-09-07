@@ -20,7 +20,7 @@
     @maybe_suppress @test start_app(()->(button("Button")), port=PORT, dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true) === nothing
 end
 
-@testset "add_page(...)" begin
+@testset "add_page(...) and page static settings" begin
     @maybe_suppress @info """
     ------------------------------------------------------------------
     Test: add_page(...)
@@ -28,13 +28,13 @@ end
     """
 
     @maybe_suppress begin
-        # Test that it is ok to pass a uri that does not starts with '/'
+        # Test that it is ok to pass to add_page a uri that does not starts with '/'
         @test start_app(()->(@app_startup begin add_page("foo") end), dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true) === nothing
 
-        # Test that it fails if uris list contains non-Strings
+        # Test that add_page fails if uris list contains non-Strings
         @test_throws Magic.InvalidArgument start_app(()->(add_page(["/foo", Dict()])), dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true)
 
-        # Test that it fails if it is called outside @app_startup
+        # Test that add_page fails if it is called outside @app_startup
         @test_throws Magic.PastStartupCall start_app(()->(add_page("/foo")), dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true)
     end
 end
