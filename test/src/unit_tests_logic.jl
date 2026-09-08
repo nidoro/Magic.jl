@@ -1,4 +1,22 @@
 
+# For single session run tests
+#---------------------------------
+mutable struct AppData
+    chromium_instances::Vector{Base.Process}
+end
+
+function single_session_rerun_callback(reason::Magic.CallbackReason, args...)
+    app_data = get_app_data()
+
+    if     reason == Magic.CallbackReason_ServerReady
+        app_data = AppData([])
+        set_app_data(app_data)
+        spawn_chromium_instance()
+    elseif reason == Magic.CallbackReason_ErrorDuringRerun || reason == Magic.CallbackReason_TaskFinished
+        kill_all_chromium_instances()
+    end
+end
+
 @testset "start_app(...) input validation" begin
     @maybe_suppress @info """
     ------------------------------------------------------------------
@@ -36,5 +54,17 @@ end
 
         # Test that add_page fails if it is called outside @app_startup
         @test_throws Magic.PastStartupCall start_app(()->(add_page("/foo")), dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true)
+
+        @test_throws Magic.PastStartupCall start_app(
+            ()->(set_title("Title")),
+            port=PORT,
+            dev_mode=true,
+            callback=single_session_rerun_callback,
+            rethrow_rerun_exceptions=true,
+            throw_client_side_error=true
+        )
     end
 end
+
+
+

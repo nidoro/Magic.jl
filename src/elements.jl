@@ -125,10 +125,6 @@ end
 # Download Button
 #-----------------
 """
----
-sidebar_position: 33
----
-
 # download_button
 
 Creates a download button widget. It behaves similarly to
@@ -199,7 +195,7 @@ function download_button(
     style       ::String                    ="secondary",
     icon        ::String                    ="material/download",
     onclick     ::Function                  =()->(),
-    args        ::Vector                    =Vector()
+    args        ::Union{Vector, Tuple}      =Vector()
 )::Bool
 
     task = task_local_storage("app_task")

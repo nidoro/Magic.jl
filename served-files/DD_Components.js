@@ -130,7 +130,7 @@ DD_Components.isValidNumberString = function(numberString, decimalSep, thousands
     }
 
     // Check if thousands separator is used
-    const hasThousandsSep = integerPart.includes(thousandsSep);
+    const hasThousandsSep = thousandsSep !== '' && integerPart.includes(thousandsSep);
 
     if (!hasThousandsSep) {
         // No thousands separator - just validate it's all digits (and optional leading +/-)

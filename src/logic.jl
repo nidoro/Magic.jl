@@ -58,6 +58,7 @@ function start_app(
     verbose::Bool=false,
     dev_mode::Bool=false,
     rethrow_rerun_exceptions::Bool=false,
+    throw_client_side_error::Bool=false,
 )::Nothing
 
     # Input validation
@@ -83,6 +84,7 @@ function start_app(
     g.verbose = verbose
     g.callback = callback !== nothing ? callback : (reason, args...) -> ()
     g.rethrow_rerun_exceptions = rethrow_rerun_exceptions
+    g.throw_client_side_error = throw_client_side_error
 
     if g.dev_mode
         @warn "Starting Magic.jl on dev mode"
@@ -298,6 +300,9 @@ function start_app(
                     elseif payload["type"] == "error"
                         @debug "ClientSideError | ClientId=$(session.client_id) | SessionId=$(session.session_id)"
                         Base.invokelatest(g.callback, CallbackReason_ClientSideError, ev.data.client_id, session.session_id, payload)
+                        if g.throw_client_side_error
+                            throw(ClientSideError(payload))
+                        end
                     elseif payload["type"] == "disconnect"
                         @debug "DisconnectRequested | ClientId=$(session.client_id) | SessionId=$(session.session_id) | Reason=$(payload["reason"])"
                         Base.invokelatest(g.callback, CallbackReason_DisconnectRequested, ev.data.client_id, session.session_id, payload)
@@ -320,6 +325,13 @@ function start_app(
 
                     if !session.client_left
                         @debug "TaskFinished | ClientId=$(ev.data.client_id)"
+
+                        if !isnothing(session.rerun_error)
+                            Base.invokelatest(g.callback, CallbackReason_ErrorDuringRerun, ev.data.client_id)
+                            if g.rethrow_rerun_exceptions
+                                throw(session.rerun_error.exception)
+                            end
+                        end
 
                         payload = Dict(
                             "type" => "response_rerun",
@@ -378,8 +390,7 @@ function start_app(
             app_event = create_app_event(AppEventType_FatalError, Cint(0), nothing)
             push_app_event(app_event)
             write(g.ipc_connection, " ")
-
-            rethrow()
+            rethrow(e)
         end
     end
 
@@ -394,7 +405,7 @@ function get_rerun_error(e::Exception)::RerunError
     frames = filtered_stacktrace(bt)
     message = remove_lines_starting_with(sprint(showerror, e), "in expression starting")
     strace = sprint(Base.show_backtrace, frames)
-    return RerunError(message, strace)
+    return RerunError(e, message, strace)
 end
 
 function print_rerun_error(err::RerunError)::Nothing
@@ -719,7 +730,7 @@ function rerun(client_id::Cint, payload::Dict)::Task
         end
 
         if g.rethrow_rerun_exceptions
-            rethrow()
+            rethrow(e)
         end
     end
 

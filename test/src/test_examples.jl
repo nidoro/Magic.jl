@@ -1,5 +1,7 @@
 using Magic
 
+include("e2e_utils.jl")
+
 test_page = ENV["MAGIC_TEST_PAGE"]
 test_actions_script = ENV["MAGIC_TEST_ACTIONS_SCRIPT"]
 test_clients = parse(Int, ENV["MAGIC_TEST_CLIENTS"])
@@ -66,50 +68,12 @@ function test_successfull(client_id::Cint)::Tuple{Bool, String}
     return (false, "Test not found!")
 end
 
-function start_test()::Nothing
-    app_data = get_app_data()
-
-    n = length(app_data.chromium_instances)+1
-    test_url = "$(get_server_origin())/?chromium_instance=$(n)"
-    mkpath("./log")
-
-    command_line = "chromium --headless --disable-gpu --enable-logging=stderr --ignore-certificate-errors $test_url"
-    cmd = Cmd(String.(split(command_line)))
-    proc = run(pipeline(cmd, stdout="./log/chromium_$(n).log", stderr="./log/chromium_$(n).log"), wait=false)
-
-    sleep(0.25)
-    if process_running(proc)
-        push!(app_data.chromium_instances, proc)
-    else
-        throw(Magic.TestFailed(test_url, "Failed to spawn a chromium instance"))
-    end
-
-    return nothing
-end
-
-function kill_chromium_instance(instance::Base.Process)::Nothing
-    if process_running(instance)
-        kill(instance)
-    end
-    return nothing
-end
-
-function kill_all_chromium_instances()::Nothing
-    app_data = get_app_data()
-
-    for instance in app_data.chromium_instances
-        kill_chromium_instance(instance)
-    end
-
-    return nothing
-end
-
 function callback(reason::Magic.CallbackReason, args...)
     app_data = get_app_data()
 
     if     reason == Magic.CallbackReason_ServerReady
         for i in range(1, test_clients)
-            start_test()
+            spawn_chromium_instance()
         end
     elseif reason == Magic.CallbackReason_ClientLeft
         client_id = args[1]
@@ -135,9 +99,6 @@ function callback(reason::Magic.CallbackReason, args...)
                 stop_app()
             end
         end
-    elseif reason == Magic.CallbackReason_ClientSideError
-        client_id, session_id, payload = args
-        throw(Magic.ClientSideError(payload))
     end
 end
 

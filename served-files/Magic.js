@@ -763,7 +763,6 @@ function createAppElement(parent, props, fragmentId) {
                 requestAnimationFrame(() => slcElem.setValue(repr, {silent: true}));
             } else {
                 let repr = [];
-                console.log(props.value);
                 for (let val of props.value) {
                     repr.push(`${val}`);
                 }
@@ -1270,13 +1269,15 @@ async function wsOnMessage(event) {
         g.waitingRerun -= 1;
         g.reruns += 1;
 
-        requestAnimationFrame(() => {
+        let rerun = g.reruns;
+
+        requestAnimationFrame(()=>{
             if (g.reruns == 1) {
                 magic.eventListener({type: "first_run_complete"});
             }
 
-            magic.eventListener({type: "rerun_complete"});
-        });
+            magic.eventListener({type: "rerun_complete", rerun});
+        })
     } else if (msg.type == "please_refresh") {
         location.reload();
     } else if (msg.type == "response_hello") {

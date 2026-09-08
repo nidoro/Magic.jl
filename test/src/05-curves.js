@@ -55,13 +55,17 @@ function eventListener(event) {
     const params = new URLSearchParams(window.location.search);
 
     if (event.type == "rerun_complete") {
-        if (nextAction < actions.length) {
-            requestAnimationFrame(() => {
-                actions[nextAction]();
-                nextAction += 1;
-            });
-        } else if (!magic.waitingRerun() && params.has('chromium_instance')) {
-            magic.disconnect("test_done");
+        if (!magic.waitingRerun()) {
+            if (nextAction < actions.length) {
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        actions[nextAction]();
+                        nextAction += 1;
+                    });
+                });
+            } else if (params.has('chromium_instance')) {
+                magic.disconnect("test_done");
+            }
         }
     }
 }
