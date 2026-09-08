@@ -16,7 +16,7 @@ using ReTest
 using Magic
 
 const PORT = 0
-const SUPPRESS_OUTPUT = false
+const SUPPRESS_OUTPUT = true
 
 macro maybe_suppress(ex)
     quote
