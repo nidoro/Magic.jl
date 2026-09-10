@@ -1530,7 +1530,7 @@ function image(
 
     if isfile(src_or_path)
         src_or_path = realpath(src_or_path)
-        if !startswith(src_or_path, "$(g.dot_magic_dir)/.Magic/served-files")
+        if !is_serveable_path(src_or_path)
             src_or_path = make_serveable_copy(src_or_path)
         end
     end

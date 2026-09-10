@@ -400,10 +400,18 @@ function start_app(
     return nothing
 end
 
+function unwrap_loaderror(e::Exception)::Exception
+    while e isa LoadError
+        e = e.error
+    end
+    return e
+end
+
 function get_rerun_error(e::Exception)::RerunError
+    err = unwrap_loaderror(e)
     bt = catch_backtrace()
     frames = filtered_stacktrace(bt)
-    message = remove_lines_starting_with(sprint(showerror, e), "in expression starting")
+    message = remove_lines_starting_with(sprint(showerror, err), "in expression starting")
     strace = sprint(Base.show_backtrace, frames)
     return RerunError(e, message, strace)
 end
@@ -1542,7 +1550,7 @@ Argument        | Description
 
 @doc DOC_PAGE_STATIC_SETTINGS
 function set_title(page::PageConfig, title::String)::Nothing
-    if !(page.first_pass || is_app_first_pass()) throw(throw(PastStartupCall("set_title", "page"))) end
+    if !(page.first_pass || is_app_first_pass()) throw(PastStartupCall("set_title", "page")) end
     page.title = title
     return nothing
 end
@@ -1555,6 +1563,7 @@ end
 
 @doc DOC_PAGE_STATIC_SETTINGS
 function set_description(page::PageConfig, description::String)::Nothing
+    if !(page.first_pass || is_app_first_pass()) throw(PastStartupCall("set_description", "page")) end
     page.description = description
     return nothing
 end
@@ -1567,8 +1576,15 @@ end
 
 @doc DOC_PAGE_STATIC_SETTINGS
 function add_font(page::PageConfig, font_name::String, src_or_path::String)::Nothing
+    if isempty(font_name) throw(InvalidArgument(@named(font_name), "`font_name` can't be an empty String.")) end
+
+    if !(page.first_pass || is_app_first_pass()) throw(PastStartupCall("add_font", "page")) end
+
     if isfile(src_or_path)
         src_or_path = realpath(src_or_path)
+        if !is_serveable_path(src_or_path)
+            src_or_path = make_serveable_copy(src_or_path, lifetime="app")
+        end
     end
 
     add_css_rule(page, """
@@ -1589,6 +1605,7 @@ end
 
 @doc DOC_PAGE_STATIC_SETTINGS
 function add_css_rule(page::PageConfig, style::String)::Nothing
+    if !(page.first_pass || is_app_first_pass()) throw(PastStartupCall("add_css_rule", "page")) end
     page.style *= style
     return nothing
 end
@@ -1601,6 +1618,8 @@ end
 
 @doc DOC_PAGE_STATIC_SETTINGS
 function inject_html(page::PageConfig; html::String="", file_path::Union{String, Nothing}=nothing, location::String="body_bottom")::Nothing
+    if !(page.first_pass || is_app_first_pass()) throw(PastStartupCall("inject_html", "page")) end
+
     if file_path !== nothing
         html *= read(file_path, String)
     end
@@ -2003,6 +2022,10 @@ function gen_serveable_path(extension::String=""; lifetime::String="session")::S
     end
 
     return "$(dir_path)/$(file_name)"
+end
+
+function is_serveable_path(path::AbstractString)::Bool
+    return startswith(path, "$(g.dot_magic_dir)/.Magic/served-files")
 end
 
 """

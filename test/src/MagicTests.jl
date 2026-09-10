@@ -16,7 +16,9 @@ using ReTest
 using Magic
 
 const PORT = 0
-const SUPPRESS_OUTPUT = true
+const SUPPRESS_OUTPUT = false
+
+ENV["JULIA_TEST_FAILFAST"] = 1
 
 macro maybe_suppress(ex)
     quote

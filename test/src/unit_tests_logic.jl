@@ -55,6 +55,7 @@ end
         # Test that add_page fails if it is called outside @app_startup
         @test_throws Magic.PastStartupCall start_app(()->(add_page("/foo")), dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true)
 
+        # Test that set_title fails if it is called outside @page_startup
         @test_throws Magic.PastStartupCall start_app(
             ()->(set_title("Title")),
             port=PORT,
@@ -63,6 +64,39 @@ end
             rethrow_rerun_exceptions=true,
             throw_client_side_error=true
         )
+
+        # Test that set_description fails if it is called outside @page_startup
+        @test_throws Magic.PastStartupCall start_app(
+            ()->(set_description("Description")),
+            port=PORT,
+            dev_mode=true,
+            callback=single_session_rerun_callback,
+            rethrow_rerun_exceptions=true,
+            throw_client_side_error=true
+        )
+
+        # Test that add_font fails if it is called outside @page_startup
+        @test_throws Magic.PastStartupCall start_app(
+            ()->(add_font("Pacifico", "../examples/.Magic/served-files/fonts/Pacifico-Regular.ttf")),
+            port=PORT,
+            dev_mode=true,
+            callback=single_session_rerun_callback,
+            rethrow_rerun_exceptions=true,
+            throw_client_side_error=true
+        )
+
+        # Test that add_css_rule fails if it is called outside @page_startup
+        @test_throws Magic.PastStartupCall start_app(
+            ()->(add_css_rule("")),
+            port=PORT,
+            dev_mode=true,
+            callback=single_session_rerun_callback,
+            rethrow_rerun_exceptions=true,
+            throw_client_side_error=true
+        )
+
+        # TODO: Test that add_font fails with empty string name
+        # TODO: inject_html
     end
 end
 
