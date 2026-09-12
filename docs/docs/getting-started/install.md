@@ -30,7 +30,8 @@ pkg> add Magic
 
 ## Implementing `Hello World`
 
-`Magic.jl` web apps are julia scripts that run from top to bottom.
+`Magic.jl` web apps are Julia scripts that run from top to bottom on every
+interaction.
 
 See below a simple `Hello World` script using `Magic.jl` saved with the name
 `app.jl`:
@@ -70,8 +71,8 @@ loop will begin and the REPL will be blocked until the server is stopped with
 > **✨ NOTE:** You don't necessarily have to stop and restart the server after
 > making changes to your web app. The wep app script is reloaded (via `include`)
 > on every page refresh/interaction. One exception is if you make changes to
-> [`@app_startup`](/docs/build/docs/api-reference/application-logic/app_startup-macro)
-> or [`@page_startup`](/docs/build/docs/api-reference/application-logic/page_startup-macro)
+> [`@app_startup`](/docs/build/docs/api-reference/application-logic/@app_startup-func)
+> or [`@page_startup`](/docs/build/docs/api-reference/application-logic/@page_startup-func)
 > code blocks, because these blocks are only executed once, at the app startup.
 
 In summary, this is the basic web app development workflow:
@@ -105,7 +106,7 @@ Run `julia -m Magic --help` to learn more.
 Starting the web app from the terminal is not recommended if you are developing
 the web app, because during development, you may need to restart the server to
 make your changes take effect. But restarting the server from the terminal can
-take more time than from restarting it from the REPL because both the julia
+take more time than from restarting it from the REPL because both the Julia
 runtime and your package dependencies will have to be reloaded. Nevertheless,
 this method works fine for running your app in production or running other
 people's app that you don't intend to change.

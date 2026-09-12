@@ -98,7 +98,7 @@ function button(
 ```
 
  Argument  | Description
----------- |-------------
+:---------- |:-------------
  `label`   | A `String` to be displayed inside the button. It can contain HTML.
  `style`   | A `String` specifying the predefined style to be applied to the button. Possible values: `primary`, `secondary` (default), or `naked`.
  `icon`    | A `String` in the format `material/icon_name`. Example: `material/thumb_up`.<br/><br/>Check out https://fonts.google.com/icons?icon.set=Material+Icons to learn the icon names.
@@ -146,9 +146,9 @@ function download_button(
 ```
 
  Argument     | Description
------------------- | -----------
+:------------------ |:-----------
  `label`   | A `String` to be displayed inside the button. It can contain HTML.
- `file_path`    | A `String` specifying the file to be downloaded. The file must live inside `.Magic/served-files/` somewhere. See [The `.Magic` directory](https://magic.coisasdodavi.net/docs/build/docs/getting-started/basic-concepts#the-magic-directory) to learn more.
+ `file_path`    | A `String` specifying the file to be downloaded. The file must live inside `.Magic/served-files/` somewhere. See [`.Magic` directory](/docs/build/docs/api-reference/getting-started/basic-concepts#magic-dot-magic-directory) to learn more.
  `file_name`    | A `String` specifying the name with which the file should be saved in the client side.
  `style`   | A `String`. Should be either `primary`, `secondary`, or `naked`. Default: `secondary`.
  `icon`    | A `String` in the format `material/icon_name`. Example: `material/thumb_up`.<br/><br/>Check out https://fonts.google.com/icons?icon.set=Material+Icons to learn the icon names.
@@ -288,7 +288,7 @@ function text_input(
 ```
 
  Argument           | Description
------------------- | -----------
+:------------------ |:-----------
  `label`            | A `String` to be displayed as the label for the text input. It can contain HTML.
  `id`              | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like `get_value()` and `set_value()`.
  `show_label`       | A `Bool` indicating whether the label should be displayed. Default: `true`.
@@ -477,7 +477,7 @@ function number_input(
 ```
 
  Argument           | Description
------------------- | -----------
+:------------------ |:-----------
  `label`            | A `String` to be displayed as the label for the text input. It can contain HTML.
  `initial_value`    | Either a `Real` specifying the initial value of the input, or `nothing` (default). If `nothing`, the initial value will be the default value previously set with `set_default_value()` if any; otherwise, the widget will be initialized with value `nothing`.
  `placeholder`      | A `String` shown as placeholder when the widget's value is `nothing`. Default: `nothing`.
@@ -670,7 +670,7 @@ function slider(
 ```
 
  Argument           | Description
------------------- | -----------
+:------------------ |:-----------
  `label`            | A `String` to be displayed as the label for the slider. It can contain HTML.
  `initial_value`    | Either a `Real` specifying the initial value of the slider, or `nothing` (default). If `nothing`, the initial value will be the default value previously set with `set_default_value()` if any; otherwise, the widget will be initialized with the provided `min`.
  `min`              | A `Real` specifying the minimum value of the slider range. Default: `0.0`.
@@ -889,7 +889,7 @@ function selectbox(
 ```
 
  Argument        | Description
------------------- | -----------
+:------------------ |:-----------
  `label`        | A `String` to be displayed as the label for the select box. It can contain HTML.
  `options`      | A `Vector` or `Tuple` of selectable options. Each selectable option should be either a `String` or a `Real`, and will be displayed using its `String` representation.
  `initial_value`| The value(s) that should be initially selected. If `multiple` is `false` (default), this should be a `String` or `Number` in `options`. Otherwise, the value should be a `Vector` or `Tuple` of `String`s or `Number`s in `options`.
@@ -1036,7 +1036,7 @@ function color_picker(
 ```
 
  Argument        | Description
----------------- |-------------
+:---------------- |:-------------
  `label`       | A `String` used as the label for the color picker.
  `initial_value`    | Either a `String` specifying the initial hexadecimal color value of the input, or `nothing` (default). If `nothing` is provided, the initial value will be the default value previously set with `set_default_value()`, if any. Otherwise, the widget will be initialized with black ("#000000").
  `id`          | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like `get_value()` and `set_value()`.
@@ -1224,7 +1224,7 @@ function checkbox(
 ```
 
  Argument          | Description
------------------- | -----------
+:------------------ |:-----------
  `label`           | A `String` to be displayed next to the checkbox. It can contain HTML.
  `id`              | An optional identifier for the checkbox. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like `get_value()` and `set_value()`.
  `initial_value`   | The checkbox initial value. If `nothing`, the default value set with `set_default_value()` will be used, if any; otherwise, the initial value will be `false`.
@@ -1278,7 +1278,7 @@ function checkboxes(
 ```
 
  Argument          | Description
------------------- | -----------
+:------------------ |:-----------
  `label`           | A `String` to be displayed next to the checkbox. It can contain HTML.
  `options`         | A `Vector` or `Tuple` of selectable options. Each selectable option should be either a `String` or a `Real`, and will be displayed using its `String` representation.
  `id`              | An optional identifier for the checkbox. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like `get_value()` and `set_value()`.
@@ -1401,7 +1401,7 @@ function radio(
 ```
 
  Argument           | Description
-------------------  | -----------
+:------------------  |:-----------
  `label`            | A `String` to be displayed as the label for the radio button group. It can contain HTML.
  `options`          | An `AbstractVector` or `Tuple` of selectable values. Each element represents one radio option and will be displayed using its string representation.
  `id`              | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like `get_value()` and `set_value()`.
@@ -1486,7 +1486,7 @@ function image(
 ```
 
  Argument          | Description
------------------- | -----------
+:------------------ |:-----------
  `src_or_path`    | A `String` representing either a URL or a local file path to the image source.<br/><br/>Only images inside `.Magic/served-files` and subdirectories can be served. If it is a static image that does not change across sessions, a good practice is to place it inside `.Magic/served-files/static/images`. If it is a generated image, e.g. a plot that changes across app reruns, a good practice is to place it inside `.Magic/served-files/cache`.<br/><br/>For the common situation of regenerating and serving a new image on each rerun, there is a helper function `gen_serveable_path(ext)` that generates a file path with a random name and with the given extension `ext` inside `.Magic/served-files/cache`. This function returns the path that you should use to save your image and then pass to `image()` to place it in the app.
  `fill_width`     | A `Bool` indicating whether the image should expand to fill the available horizontal space. Default: `false`.
  `max_width`      | A `String` specifying the maximum width of the image using a CSS value (for example, `"100%"` or `"600px"`). Default: `"100%"`.
@@ -1612,7 +1612,7 @@ function dataframe(
 ```
 
  Argument     | Description
------------------- | -----------
+:------------------ |:-----------
  `data`      | A `DataFrame` to be displayed.
  `column_config` | A `Dict` used to configure column behavior and appearance. Each entry of this `Dict` should be a column name paired with a `Dict` of configurations. These are the supported configuration options: <ul><li>`"editable"`: A `Bool`. If `true`, the cells of the column will be editable (double-click to edit). Default: `false`.</li><li>`"required"`: A `Bool` indicating wether a valid non-empty value is required. Default: `false`.</li></ul>
  `height`    | A `String` specifying the height of the table using a CSS value (for example, `"400px"`).
@@ -1795,7 +1795,7 @@ function file_uploader(
 ```
 
  Argument     | Description
------------------- | -----------
+:------------------ |:-----------
  `label`        | A `String` to be displayed as the label for the file uploader. It can contain HTML.
  `types`        | A `Vector{String}` containing a list of acceptable file extensions and/or mimetypes. Example: `[".png", ".jpg", "application/pdf"]`. Tip: use `*` wildcard to accept all mimetypes begining with a prefix, e.g. `"image/*"`.
  `multiple`     | A `Bool` indicating wether to accept multiple files or not. Default `false`.
@@ -1939,7 +1939,7 @@ function html(
 ```
 
  Argument          | Description
------------------- | -----------
+:------------------ |:-----------
  `tag`             | A `String` specifying the HTML tag name to render (for example, `"div"`, `"span"`, or `"p"`).
  `inner_html`      | A `String` containing the raw HTML content to be placed inside the element.
  `attributes`      | A `Dict` of HTML attributes to apply to the element. Keys are attribute names and values are their corresponding values.
@@ -1973,7 +1973,7 @@ function link(
 ```
 
  Argument        | Description
------------------- | -----------
+:------------------ |:-----------
  `label`        | A `String` to be displayed as the link text. It can contain HTML.
  `url`          | A `String` specifying the destination URL of the link.
  `style`        | A `String` defining the visual style of the link. Accepted values: `"primary"`, `"secondary"`, or `"naked"`. Default: `"secondary"`.
@@ -2015,7 +2015,7 @@ function space(; width::String="1px", height::String="1px")::Nothing
 ```
 
  Argument               | Description
----------------------- | -----------
+:---------------------- |:-----------
  `width`    | A `String` specifying the width of the empty space using CSS units like `px` or `rem`.
  `height`    | A `String` specifying the height of the empty space using CSS units like `px` or `rem`.
 
@@ -2060,7 +2060,7 @@ function h1(
 ```
 
  Argument        | Description
------------------- | -----------
+:------------------ |:-----------
  `text`         | A `String` containing the heading text. It can contain HTML.
  `icon`    | A `String` in the format `material/icon_name`. Example: `material/thumb_up`.<br/><br/>Check out https://fonts.google.com/icons?icon.set=Material+Icons to learn the icon names.
  `icon_color`   | An optional `String` specifying the color of the icon using a CSS color value.
@@ -2104,7 +2104,7 @@ function icon(
 ```
 
  Argument    | Description
------------------- | -----------
+:------------------ |:-----------
  `icon`    | A `String` in the format `material/icon_name`. Example: `material/thumb_up`.<br/><br/>Check out https://fonts.google.com/icons?icon.set=Material+Icons to learn the icon names.
  `color`    | A `String` specifying the icon color using a CSS value. Default: `"inherit"`.
  `size`     | A `String` specifying the icon size using a CSS value. Default: `"inherit"`.
@@ -2132,7 +2132,7 @@ function text(anything::Any)::Nothing
 ```
 
  Argument    | Description
------------------- | -----------
+:------------------ |:-----------
  `text`     | The content to be displayed. If the value is a `AbstractString`, it is rendered as-is. Otherwise, its string representation is obtained using `repr()`.
 
 ### Return Value
@@ -2198,7 +2198,7 @@ function code(
 ```
 
  Argument               | Description
----------------------- | -----------
+:---------------------- |:-----------
  `initial_value`        | A `String` containing the initial code content to display.
  `initial_value_file`   | An optional path to a file whose contents will be loaded as the initial code value. If provided, it takes precedence over `initial_value`.
  `fill_width`           | A `Bool` indicating whether the code block should expand to fill the available horizontal space. Default: `true`.
@@ -2281,10 +2281,6 @@ function create_metric(
 end
 
 """
----
-sidebar_position: 60
----
-
 # metric
 
 Display a metric value with an optional delta indicator.
@@ -2307,7 +2303,7 @@ function metric(
 ```
 
  Argument               | Description
----------------------- | -----------
+:---------------------- |:-----------
  `label`               | A `String` used as the label for the metric.
  `value`               | A `Real` representing the main value of the metric.
  `unit`               | An optional `String` representing the measurement unit of `value`. Examples: `ºC`, `m/s`.
@@ -2425,7 +2421,7 @@ defined `id` was provided. Example:
 selectbox("Selectbox", initial_value="C", options=["A", "B", "C"], id="my_selectbox")
 set_value("my_selectbox", "B")
 value = get_value("my_selectbox") # value = "B"
-````
+```
 
 `get_value()` can be called even before the creation of a widget, in which case
 it will return either `missing` or, if the widget has a default value previously
@@ -2437,7 +2433,7 @@ widget. Example:
 set_default_value("my_selectbox", "B")
 value = get_value("my_selectbox") # value = "B"
 selectbox("Selectbox", options=["A", "B", "C"], id="my_selectbox")
-````
+```
 
 The rationale behind this API behaviour is that, by setting a default value
 before the creation of a widget, you can guarantee that `get_value()` will
@@ -2457,7 +2453,7 @@ function get_value(id::String)::Any
 ```
 
  Argument  | Description
----------- |-------------
+:---------- |:-------------
  `id` | User-defined widget id.
 
 ### Return Value
@@ -2481,7 +2477,7 @@ function set_value(id::String, value::Any)::Nothing
 ```
 
  Argument  | Description
----------- |-------------
+:---------- |:-------------
  `id` | User-defined widget id.
  `value` | The value that should be assigned to the widget. Its type must be compatible with the widget's kind.
 
@@ -2498,7 +2494,7 @@ function get_default_value(id::String)::Any
 ```
 
  Argument  | Description
----------- |-------------
+:---------- |:-------------
  `id` | User-defined widget id.
 
 ### Return Value
@@ -2517,7 +2513,7 @@ function set_default_value(id::String, value::Any)::Nothing
 ```
 
  Argument  | Description
----------- |-------------
+:---------- |:-------------
  `id` | User-defined widget id.
  `value` | The default value that should be assigned to the widget. Its type must be compatible with the widget's kind.
 """

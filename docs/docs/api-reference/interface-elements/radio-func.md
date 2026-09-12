@@ -1,5 +1,5 @@
 ---
-sidebar_position: 20
+sidebar_position: 5
 ---
 
 # radio
@@ -17,12 +17,12 @@ function radio(
 )::Union{String, Number}
 ```
 
- Argument           | Description
-------------------  | -----------
- `label`            | A `String` to be displayed as the label for the radio button group. It can contain HTML.
- `options`          | An `AbstractVector` or `Tuple` of selectable values. Each element represents one radio option and will be displayed using its string representation.
- `id`              | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like `get_value()` and `set_value()`.
- `initial_value`    | The value that should be initially selected. If provided, it should match one of the values in `options`. If `nothing` (default), the default value set with `set_default_value()` will be selected if one was provided. Otherwise, first option in `options` will be selected.
+| Argument        | Description                                                                                                                                                                                                                                                                     |
+|:--------------- |:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `label`         | A `String` to be displayed as the label for the radio button group. It can contain HTML.                                                                                                                                                                                        |
+| `options`       | An `AbstractVector` or `Tuple` of selectable values. Each element represents one radio option and will be displayed using its string representation.                                                                                                                            |
+| `id`            | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like `get_value()` and `set_value()`.                                                                                                |
+| `initial_value` | The value that should be initially selected. If provided, it should match one of the values in `options`. If `nothing` (default), the default value set with `set_default_value()` will be selected if one was provided. Otherwise, first option in `options` will be selected. |
 
 ### Return Value
 

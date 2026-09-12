@@ -1,5 +1,5 @@
 ---
-sidebar_position: 35
+sidebar_position: 12
 ---
 
 # link
@@ -19,16 +19,15 @@ function link(
 )::Nothing
 ```
 
- Argument        | Description
------------------- | -----------
- `label`        | A `String` to be displayed as the link text. It can contain HTML.
- `url`          | A `String` specifying the destination URL of the link.
- `style`        | A `String` defining the visual style of the link. Accepted values: `"primary"`, `"secondary"`, or `"naked"`. Default: `"secondary"`.
- `fill_width`   | A `Bool` indicating whether the link should expand to fill the available horizontal space. Default: `false`.
- `new_tab`      | A `Bool` indicating whether the link should open in a new browser tab. Default: `false`.
- `css`          | A `Dict` of CSS properties applied inline to the element.
+| Argument     | Description                                                                                                                          |
+|:------------ |:------------------------------------------------------------------------------------------------------------------------------------ |
+| `label`      | A `String` to be displayed as the link text. It can contain HTML.                                                                    |
+| `url`        | A `String` specifying the destination URL of the link.                                                                               |
+| `style`      | A `String` defining the visual style of the link. Accepted values: `"primary"`, `"secondary"`, or `"naked"`. Default: `"secondary"`. |
+| `fill_width` | A `Bool` indicating whether the link should expand to fill the available horizontal space. Default: `false`.                         |
+| `new_tab`    | A `Bool` indicating whether the link should open in a new browser tab. Default: `false`.                                             |
+| `css`        | A `Dict` of CSS properties applied inline to the element.                                                                            |
 
 ### Return Value
 
 Nothing.
-

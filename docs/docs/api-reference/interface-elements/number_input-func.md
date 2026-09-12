@@ -1,5 +1,5 @@
 ---
-sidebar_position: 27
+sidebar_position: 7
 ---
 
 # number_input
@@ -27,27 +27,26 @@ function number_input(
 )::Union{Real, Nothing}
 ```
 
- Argument           | Description
------------------- | -----------
- `label`            | A `String` to be displayed as the label for the text input. It can contain HTML.
- `initial_value`    | Either a `Real` specifying the initial value of the input, or `nothing` (default). If `nothing`, the initial value will be the default value previously set with `set_default_value()` if any; otherwise, the widget will be initialized with value `nothing`.
- `placeholder`      | A `String` shown as placeholder when the widget's value is `nothing`. Default: `nothing`.
- `num_type`       | A subtype of `Real` indicating the concrete type to which the widget parameters should be converted. If `nothing`, the concrete type is infered from the parameters of the widget, prioritizing `AbstractFloat` subtypes over `Integer`.
- `precision`       | An `Integer` specifying how many decimal places should be displayed by the widget. If `num_type` is an `Integer`, this parameter is ignored.
- `min`       | A `Real` specifying the minimum value allowed in the widget, or `nothing` (default) indicating that there is no minimum value.
- `max`       | A `Real` specifying the maximum value allowed in the widget, or `nothing` (default) indicating that there is no maximum value.
- `step`       | A `Real` specifying the size of the increment/decrement applied when clicking the `-` and `+` buttons in the widget.
- `decimal_separator`       | A `String` specifying the character that should be used as decimal separator. Default: `"."`.
- `thousands_separator`       | A `String` specifying the character that should be used as decimal separator. Default: `""`.
- `show_label`       | A `Bool` indicating whether the label should be displayed. Default: `true`.
- `fill_width`       | A `Bool` indicating whether the text input should expand to fill the available horizontal space. Default: `false`.
- `id`              | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like `get_value()` and `set_value()`.
- `css`               | A `Dict` of additional CSS properties applied to the input element.
+| Argument              | Description                                                                                                                                                                                                                                                    |
+|:--------------------- |:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `label`               | A `String` to be displayed as the label for the text input. It can contain HTML.                                                                                                                                                                               |
+| `initial_value`       | Either a `Real` specifying the initial value of the input, or `nothing` (default). If `nothing`, the initial value will be the default value previously set with `set_default_value()` if any; otherwise, the widget will be initialized with value `nothing`. |
+| `placeholder`         | A `String` shown as placeholder when the widget's value is `nothing`. Default: `nothing`.                                                                                                                                                                      |
+| `num_type`            | A subtype of `Real` indicating the concrete type to which the widget parameters should be converted. If `nothing`, the concrete type is infered from the parameters of the widget, prioritizing `AbstractFloat` subtypes over `Integer`.                       |
+| `precision`           | An `Integer` specifying how many decimal places should be displayed by the widget. If `num_type` is an `Integer`, this parameter is ignored.                                                                                                                   |
+| `min`                 | A `Real` specifying the minimum value allowed in the widget, or `nothing` (default) indicating that there is no minimum value.                                                                                                                                 |
+| `max`                 | A `Real` specifying the maximum value allowed in the widget, or `nothing` (default) indicating that there is no maximum value.                                                                                                                                 |
+| `step`                | A `Real` specifying the size of the increment/decrement applied when clicking the `-` and `+` buttons in the widget.                                                                                                                                           |
+| `decimal_separator`   | A `String` specifying the character that should be used as decimal separator. Default: `"."`.                                                                                                                                                                  |
+| `thousands_separator` | A `String` specifying the character that should be used as decimal separator. Default: `""`.                                                                                                                                                                   |
+| `show_label`          | A `Bool` indicating whether the label should be displayed. Default: `true`.                                                                                                                                                                                    |
+| `fill_width`          | A `Bool` indicating whether the text input should expand to fill the available horizontal space. Default: `false`.                                                                                                                                             |
+| `id`                  | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like `get_value()` and `set_value()`.                                                                               |
+| `css`                 | A `Dict` of additional CSS properties applied to the input element.                                                                                                                                                                                            |
 
 ### Return Value
 
-The current value of the number input converted to the provided or infered
-`num_type`; or `nothing` if no value has been assigned to the widget.
+The current value of the number input converted to the provided or infered `num_type`; or `nothing` if no value has been assigned to the widget.
 
 ### Example
 

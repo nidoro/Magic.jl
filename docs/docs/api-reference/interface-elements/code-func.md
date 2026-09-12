@@ -1,5 +1,5 @@
 ---
-sidebar_position: 65
+sidebar_position: 18
 ---
 
 # code
@@ -22,17 +22,17 @@ function code(
 )::String
 ```
 
- Argument               | Description
----------------------- | -----------
- `initial_value`        | A `String` containing the initial code content to display.
- `initial_value_file`   | An optional path to a file whose contents will be loaded as the initial code value. If provided, it takes precedence over `initial_value`.
- `fill_width`           | A `Bool` indicating whether the code block should expand to fill the available horizontal space. Default: `true`.
- `max_width`            | A `String` specifying the maximum width of the code block using a CSS value (for example, `"100%"` or `"800px"`).
- `max_height`           | A `String` specifying the maximum height of the code block using a CSS value. If the content exceeds this height, it becomes scrollable.
- `padding`              | A `String` specifying the padding applied inside the code block using a CSS value.
- `strip_whitespace`     | A `Bool` indicating whether leading and trailing whitespace should be removed from the initial code content. Default: `true`.
- `show_line_numbers`    | A `Bool` indicating whether line numbers should be shown or not. Default: `false`.
- `css`                  | A `Dict` of additional CSS properties applied to the code block.
+| Argument             | Description                                                                                                                                |
+|:-------------------- |:------------------------------------------------------------------------------------------------------------------------------------------ |
+| `initial_value`      | A `String` containing the initial code content to display.                                                                                 |
+| `initial_value_file` | An optional path to a file whose contents will be loaded as the initial code value. If provided, it takes precedence over `initial_value`. |
+| `fill_width`         | A `Bool` indicating whether the code block should expand to fill the available horizontal space. Default: `true`.                          |
+| `max_width`          | A `String` specifying the maximum width of the code block using a CSS value (for example, `"100%"` or `"800px"`).                          |
+| `max_height`         | A `String` specifying the maximum height of the code block using a CSS value. If the content exceeds this height, it becomes scrollable.   |
+| `padding`            | A `String` specifying the padding applied inside the code block using a CSS value.                                                         |
+| `strip_whitespace`   | A `Bool` indicating whether leading and trailing whitespace should be removed from the initial code content. Default: `true`.              |
+| `show_line_numbers`  | A `Bool` indicating whether line numbers should be shown or not. Default: `false`.                                                         |
+| `css`                | A `Dict` of additional CSS properties applied to the code block.                                                                           |
 
 ### Return Value
 

@@ -13,7 +13,7 @@ another website, or is refreshed, or internet connection is lost, etc).
 Everything that happens in between, happens within the session.
 
 You can have separate persistent data for each session. See
-[Session persistent data](/docs/build/docs/api-reference/application-logic/session-persistent-data)
+[Session persistent data](/docs/build/docs/api-reference/application-logic/set_session_data-func)
 to learn more.
 
 `Magic.jl` web apps are julia scripts that run from top to bottom. This happens
@@ -28,21 +28,21 @@ initialization tasks should only be executed once, at the appropriate time.
 `Magic.jl` defines three macros that you can use to enclose code blocks that
 should only be executed at the initialization moment.
 
-- [`@app_startup`](/docs/build/docs/api-reference/application-logic/app_startup-macro):
+- [`@app_startup`](/docs/build/docs/api-reference/application-logic/@app_startup-func):
 used to define a code block that runs only when the app is started and a dry-run
 of the app script is executed.
-- [`@page_startup`](/docs/build/docs/api-reference/application-logic/page_startup-macro):
+- [`@page_startup`](/docs/build/docs/api-reference/application-logic/@page_startup-func):
 used to define a code block that runs only when a dry run of the current page is
 executed.
-- [`@session_startup`](/docs/build/docs/api-reference/application-logic/session_startup-macro):
+- [`@session_startup`](/docs/build/docs/api-reference/application-logic/@session_startup-func):
 used to define a code block that runs only when the session is starting, i.e.
 the script is being executed for the first time for the current session.
 
 For instance, very often you will want to associate some data to a session.
 Session persistent data can be initialized and stored in `@session_startup`
 blocks, and retrieved from anywhere using
-[`get_session_data()`](/docs/build/docs/api-reference/application-logic/session-persistent-data).
-See [`@session_startup`](/docs/build/docs/api-reference/application-logic/session_startup-macro)
+[`get_session_data()`](/docs/build/docs/api-reference/application-logic/set_session_data-func).
+See [`@session_startup`](/docs/build/docs/api-reference/application-logic/@session_startup-func)
 to learn more.
 
 ## Layout
@@ -139,8 +139,8 @@ actions that will affect how the app looks and behaves.
 ## Multiple Pages
 
 `Magic.js` web apps can have multiple pages. Each page is bound to one or more
-URL paths by calling the [`add_page()`](/docs/build/docs/api-reference/application-logic/page-static-settings)
-function at a [`@app_startup`](/docs/build/docs/api-reference/application-logic/app_startup-macro)
+URL paths by calling the [`add_page()`](/docs/build/docs/api-reference/application-logic/set_title-func)
+function at a [`@app_startup`](/docs/build/docs/api-reference/application-logic/@app_startup-func)
 code block. Example:
 
 ```julia
@@ -161,8 +161,8 @@ end
 ```
 
 Each page can have its own static configuration and persistent data. See
-[Page static settings](/docs/build/docs/api-reference/application-logic/page-static-settings)
-and [Page persistent data](/docs/build/docs/api-reference/application-logic/page-persistent-data)
+[Page static settings](/docs/build/docs/api-reference/application-logic/set_title-func)
+and [Page persistent data](/docs/build/docs/api-reference/application-logic/set_page_data-func)
 to learn more.
 
 ## The `.Magic` directory

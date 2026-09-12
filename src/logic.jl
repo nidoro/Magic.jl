@@ -21,7 +21,7 @@ function start_app(
 ```
 
  Argument        | Description
----------------- |-------------
+:---------------- |:-------------
  `script_or_func` | A `String` specifying the path to the entry point script or `Function` specifying the entry point function. Default: "app.jl".
  `host_name`   | A `String` specifying the hostname or IP address the server should bind to. Default is `"localhost"`.
  `port`        | An `Int` specifying the port number on which the server will listen. Default is `3443`.
@@ -884,7 +884,7 @@ function stop_app()
     write(g.ipc_connection, " ")
 end
 
-"""
+const DOC_FIRST_PASS = """
 # First pass functions
 
 Family of `Bool` returning functions:
@@ -896,6 +896,8 @@ is being run, and `false` otherwise. See also: `@page_startup`.
 - `is_session_first_pass()`: returns `true` it is the first time the session
 is being run, and `false` otherwise. See also: `@session_startup`.
 """
+
+@doc DOC_FIRST_PASS
 function is_app_first_pass()::Bool
     return g.first_pass
 end
@@ -913,7 +915,7 @@ end
 ```
 
 Internally, this macro is implemented by checking the result of
-[`is_app_first_pass()`](/docs/build/docs/api-reference/application-logic/is_first_pass-func)
+[`is_app_first_pass()`](/docs/build/docs/api-reference/application-logic/is_app_first_pass-func)
 and running the `@app_startup` code block only if it returns `true`.
 
 ## Usage
@@ -948,13 +950,13 @@ shared accross sessions.
 You can store data that you want to be globally available through all of your
 app's pages and sessions via the `set_app_data()` function, and retrieve it
 using the `get_app_data()` function.
-See [App persistent data](/docs/build/docs/api-reference/application-logic/app-persistent-data)
+See [App persistent data](/docs/build/docs/api-reference/application-logic/set_app_data-func)
 to learn more.
 
 ## See also
 
-- [`@page_startup`](/docs/build/docs/api-reference/application-logic/page_startup-macro)
-- [`@session_startup`](/docs/build/docs/api-reference/application-logic/session_startup-macro)
+- [`@page_startup`](/docs/build/docs/api-reference/application-logic/@page_startup-func)
+- [`@session_startup`](/docs/build/docs/api-reference/application-logic/@session_startup-func)
 """
 macro app_startup(block)
     return :(
@@ -982,7 +984,7 @@ function top_fragment()::Fragment
     return task.fragment_stack[end]
 end
 
-"""
+const DOC_FRAGMENT = """
 # Fragments
 
 A fragment is a function that can be rerun independently of the full app. It
@@ -1002,7 +1004,7 @@ function fragment(func::Function; id::String=String(nameof(func)))
 ```
 
  Argument  | Description
----------- |-------------
+:---------- |:-------------
  `func`   | The `Function` that will be isolated from the rest of the app.
  `id`   | A `String` to uniquely identify the fragment.
 
@@ -1027,7 +1029,7 @@ a fragment.
 ```julia
 using Magic
 
-@once mutable struct SessionData
+mutable struct SessionData
     app_reruns::Int
     fragment_reruns::Int
 end
@@ -1055,6 +1057,8 @@ In the above example, everytime the `Outside Button` is clicked, both counters
 the `Inside Button` is clicked, only the `session.fragment_reruns` counter is
 incremented.
 """
+
+@doc DOC_FRAGMENT
 function fragment(func::Function; id::String=String(nameof(func)))
     task = task_local_storage("app_task")
 
@@ -1083,7 +1087,7 @@ function fragment(func::Function; id::String=String(nameof(func)))
     pop_fragment()
 end
 
-@doc @doc(fragment)
+@doc DOC_FRAGMENT
 macro fragment(block)
     file = replace(String(__source__.file), r"[^A-Za-z0-9]" => "_")
     name = Symbol("fragment_", file, "_", __source__.line)
@@ -1094,7 +1098,7 @@ macro fragment(block)
     )
 end
 
-"""
+const DOC_SESSION_PERSISTENT_DATA = """
 # Session persistent data
 
 Session persistent data is an user defined data that is bound to a session and
@@ -1140,7 +1144,7 @@ function set_session_data(session_data::Any)::Nothing
 ```
 
  Argument  | Description
----------- |-------------
+:---------- |:-------------
  `session_data` | Data of `Any` type.
 
 ## `get_session_data()`
@@ -1153,6 +1157,8 @@ Retrieves the previously stored session persistent data.
 function get_session_data()::Any
 ```
 """
+
+@doc DOC_SESSION_PERSISTENT_DATA
 function get_session_data()::Any
     task = task_local_storage("app_task")
     return task.session.user_session_data
@@ -1167,14 +1173,14 @@ function get_session_data(client_id::Cint)::Any
     return session.user_session_data
 end
 
-@doc @doc(get_session_data) set_session_data
+@doc DOC_SESSION_PERSISTENT_DATA
 function set_session_data(session_data::Any)::Nothing
     task = task_local_storage("app_task")
     task.session.user_session_data = session_data
     return nothing
 end
 
-@doc @doc(is_app_first_pass) is_session_first_pass
+@doc DOC_FIRST_PASS
 function is_session_first_pass()::Bool
     task = task_local_storage("app_task")
     return task.session.first_pass
@@ -1193,7 +1199,7 @@ end
 ```
 
 Internally, this macro is implemented by checking the result of
-[`is_session_first_pass()`](/docs/build/docs/api-reference/application-logic/is_first_pass-func)
+[`is_session_first_pass()`](/docs/build/docs/api-reference/application-logic/is_app_first_pass-func)
 and running the `@session_startup` code block only if it returns `true`.
 
 ## Usage
@@ -1216,13 +1222,13 @@ moment using `get_page_data()`.
 
 You can store data that you want to be available within a session via the
 `set_session_data()` function, and retrieve it using the `get_session_data()`
-function. See [Session persistent data](/docs/build/docs/api-reference/application-logic/session-persistent-data)
+function. See [Session persistent data](/docs/build/docs/api-reference/application-logic/set_session_data-func)
 to learn more.
 
 ## See also
 
-- [`@app_startup`](/docs/build/docs/api-reference/application-logic/app_startup-macro)
-- [`@page_startup`](/docs/build/docs/api-reference/application-logic/page_startup-macro)
+- [`@app_startup`](/docs/build/docs/api-reference/application-logic/@app_startup-func)
+- [`@page_startup`](/docs/build/docs/api-reference/application-logic/@page_startup-func)
 """
 macro session_startup(block)
     return :(
@@ -1308,7 +1314,7 @@ function get_page(uri)::Union{PageConfig, Missing}
     return missing
 end
 
-"""
+const DOC_PAGE_PERSISTENT_DATA = """
 # Page persistent data
 
 Page persistent data is an user defined data that is bound to a page and
@@ -1352,7 +1358,7 @@ function set_page_data(page_data::Any)::Nothing
 ```
 
  Argument  | Description
----------- |-------------
+:---------- |:-------------
  `page_data` | Data of `Any` type.
 
 ## `get_page_data()`
@@ -1365,12 +1371,14 @@ Retrieves the previously stored page persistent data.
 function get_page_data()::Any
 ```
 """
+
+@doc DOC_PAGE_PERSISTENT_DATA
 function get_page_data()::Any
     page = get_page(get_url_path())
     return page.user_page_data
 end
 
-@doc @doc(get_page_data) set_page_data
+@doc DOC_PAGE_PERSISTENT_DATA
 function set_page_data(page_data::Any)::Nothing
     page = get_page(get_url_path())
     page.user_page_data = page_data
@@ -1411,7 +1419,7 @@ function add_page(
     page.title = title
     page.description = description
 
-    for func in [:set_title, :set_description, :add_font, :add_css_rule]
+    for func in PAGE_CONFIG_FUNCS
         define_page_config_func(page, func)
     end
 
@@ -1465,7 +1473,7 @@ function set_title(title::String)::Nothing
 ```
 
 Argument        | Description
----------------- |-------------
+:---------------- |:-------------
  `title`        | `String`. Title to be assigned to the current page.
 
 ## set_description
@@ -1480,7 +1488,7 @@ function set_description(description::String)::Nothing
 ```
 
 Argument        | Description
----------------- |-------------
+:---------------- |:-------------
  `description`        | `String`. Description to be assigned to the current page.
 
 ## add_font
@@ -1495,11 +1503,11 @@ function add_font(font_name::String, src_or_path::String)::Nothing
 ```
 
 Argument        | Description
----------------- |-------------
+:---------------- |:-------------
  `font_name`        | `String`. The name that should be associated with the font.
  `src_or_path` | `String`. Either an external URL or a local serveable path inside the project's `.Magic/served-files/` directory. We recommend that you place all of your font files inside `.Magic/served-files/fonts/`.
 
-## add_css_rule
+## add\\_css\\_rule
 
 Appends CSS rule(s) to the `head` of the current page.
 
@@ -1523,8 +1531,8 @@ function add_css_rule(rule::String)::Nothing
 ```
 
 Argument        | Description
----------------- |-------------
- `rule`        | `String`. A valid CSS rule. Example: <pre>h1, h2, h3, h4, h5, h6 \\{<br/>  color: navy;<br/>\\}</pre>
+:---------------- |:-------------
+ `rule`        | `String`. A valid CSS rule. Example: <pre>h1, h2, h3, h4, h5, h6 &lbrace;<br/>  color: navy;<br/>&rbrace;</pre>
 
 ## inject_html
 
@@ -1547,13 +1555,12 @@ function inject_html(;
 ```
 
 Argument        | Description
----------------- |-------------
+:---------------- |:-------------
  `html`        | `String` with the HTML code to be injected into the page.
  `file_path`   | `String` specifying the file containing the HTML that should be injected into the page.
  `location`   | `String` specifying the location *in the page* where the HTML should be injected. Possible values: `"body_bottom"` (default, injects near the bottom of the HTML body), `"body_top"` (injects near the top of the HTML body), `"head_bottom"` (injects near the bottom of the HTML head), `"head_top"` (injects near the top of the HTML head).
 """
 
-@doc DOC_PAGE_STATIC_SETTINGS
 function set_title(page::PageConfig, title::String)::Nothing
     if !(page.first_pass || is_app_first_pass()) throw(PastStartupCall("set_title", "page")) end
     page.title = title
@@ -1566,7 +1573,6 @@ function set_title(title::String)::Nothing
     return set_title(task.current_page, title)
 end
 
-@doc DOC_PAGE_STATIC_SETTINGS
 function set_description(page::PageConfig, description::String)::Nothing
     if !(page.first_pass || is_app_first_pass()) throw(PastStartupCall("set_description", "page")) end
     page.description = description
@@ -1579,7 +1585,6 @@ function set_description(description::String)::Nothing
     return set_description(task.current_page, description)
 end
 
-@doc DOC_PAGE_STATIC_SETTINGS
 function add_font(page::PageConfig, font_name::String, src_or_path::String)::Nothing
     if isempty(font_name) throw(InvalidArgument(@named(font_name), "`font_name` can't be an empty String.")) end
 
@@ -1608,7 +1613,6 @@ function add_font(font_name::String, src_or_path::String)::Nothing
     return nothing
 end
 
-@doc DOC_PAGE_STATIC_SETTINGS
 function add_css_rule(page::PageConfig, style::String)::Nothing
     if !(page.first_pass || is_app_first_pass()) throw(PastStartupCall("add_css_rule", "page")) end
     page.style *= style
@@ -1621,9 +1625,10 @@ function add_css_rule(style::String)::Nothing
     return add_css_rule(task.current_page, style)
 end
 
-@doc DOC_PAGE_STATIC_SETTINGS
-function inject_html(page::PageConfig; html::String="", file_path::Union{String, Nothing}=nothing, location::String="body_bottom")::Nothing
+function inject_html(page::PageConfig, html::String=""; file_path::Union{String, Nothing}=nothing, location::String="body_bottom")::Nothing
     if !(page.first_pass || is_app_first_pass()) throw(PastStartupCall("inject_html", "page")) end
+
+    assert_string_in_list(@named(location), ("body_bottom", "body_top", "head_bottom", "head_top"))
 
     if !isnothing(file_path)
         assert_valid_utf8_file(@named(file_path))
@@ -1636,9 +1641,9 @@ function inject_html(page::PageConfig; html::String="", file_path::Union{String,
 end
 
 @doc DOC_PAGE_STATIC_SETTINGS
-function inject_html(; html::String="", file_path::Union{String, Nothing}=nothing, location::String="body_bottom")::Nothing
+function inject_html(html::String=""; file_path::Union{String, Nothing}=nothing, location::String="body_bottom")::Nothing
     task = task_local_storage("app_task")
-    return inject_html(task.current_page, html=html, file_path=file_path, location=location)
+    return inject_html(task.current_page, html, file_path=file_path, location=location)
 end
 
 function begin_page_config(page::PageConfig)::Nothing
@@ -1696,7 +1701,7 @@ function create_404_html(output_path::String)::Nothing
     return nothing
 end
 
-@doc @doc(is_app_first_pass) is_page_first_pass
+@doc DOC_FIRST_PASS
 function is_page_first_pass()::Bool
     page = get_current_page()
     if page !== missing
@@ -1719,7 +1724,7 @@ end
 ```
 
 Internally, this macro is implemented by checking the result of
-[`is_page_first_pass()`](/docs/build/docs/api-reference/application-logic/is_first_pass-func)
+[`is_page_first_pass()`](/docs/build/docs/api-reference/application-logic/is_app_first_pass-func)
 and running the `@page_startup` code block only if it returns `true`.
 
 ## Usage
@@ -1740,7 +1745,7 @@ Page static settings are persistent settings that are defined at the page's
 dry-run and that cannot be changed later. These include the page title,
 description, extra fonts and extra styles. The static settings related functions
 below can only be called inside `@page_startup` blocks
-(see [Page static settings](/docs/build/docs/api-reference/application-logic/page-static-settings)
+(see [Page static settings](/docs/build/docs/api-reference/application-logic/set_title-func)
 to learn more).
 
 - `set_title()`
@@ -1769,13 +1774,13 @@ the data will persist. Page persistent data can be retrieved at any moment using
 
 You can store data that you want to be available to all the sessions of a page
 via the `set_page_data()` function, and retrieve it using the `get_page_data()`
-function. See [Page persistent data](/docs/build/docs/api-reference/application-logic/page-persistent-data)
+function. See [Page persistent data](/docs/build/docs/api-reference/application-logic/set_page_data-func)
 to learn more.
 
 ## See also
 
-- [`@app_startup`](/docs/build/docs/api-reference/application-logic/app_startup-macro)
-- [`@session_startup`](/docs/build/docs/api-reference/application-logic/session_startup-macro)
+- [`@app_startup`](/docs/build/docs/api-reference/application-logic/@app_startup-func)
+- [`@session_startup`](/docs/build/docs/api-reference/application-logic/@session_startup-func)
 """
 macro page_startup(block)
     return :(
@@ -1790,7 +1795,7 @@ end
 get_current_page()::Union{PageConfig, Missing} = get_page(get_url_path())
 
 """
-# is_on_page
+# is\\_on\\_page
 
 Checks if the current page is the page associated with a given path.
 
@@ -1801,7 +1806,7 @@ function is_on_page(path::String)::Bool
 ```
 
 Argument        | Description
----------------- |-------------
+:---------------- |:-------------
  `path`        | `String`. A path associated with a page of the app.
 
 ## Return Value
@@ -1846,7 +1851,7 @@ end
 
 # App data
 #--------------
-"""
+const DOC_APP_PERSISTENT_DATA = """
 # App persistent data
 
 App persistent data is an user defined data whose lifetime is the lifetime of
@@ -1890,7 +1895,7 @@ function set_app_data(app_data::Any)::Nothing
 ```
 
  Argument  | Description
----------- |-------------
+:---------- |:-------------
  `app_data` | Data of `Any` type.
 
 ## `get_app_data()`
@@ -1903,11 +1908,13 @@ Retrieves the previously stored app persistent data.
 function get_app_data()::Any
 ```
 """
+
+@doc DOC_APP_PERSISTENT_DATA
 function get_app_data()::Any
     return g.user_app_data
 end
 
-@doc @doc(get_app_data) set_app_data
+@doc DOC_APP_PERSISTENT_DATA
 function set_app_data(app_data::Any)::Nothing
     g.user_app_data = app_data
     return nothing
@@ -1955,7 +1962,7 @@ function get_random_string(n::Integer)::String
 end
 
 """
-# gen_serveable_path
+# gen\\_serveable\\_path
 
 Generates a file path where you can save a file to be served in your app.
 
@@ -2004,7 +2011,7 @@ function gen_serveable_path(extension::String; lifetime::String="session")::Stri
 ```
 
  Argument  | Description
----------- |-------------
+:---------- |:-------------
  `extension` | File extension `String` to be appended to the randomly generated path.
  `lifetime` | A `String` indicating the lifetime of the resource. Possible values: `"session"` (default) or `"app"`. If `"session"` is provided, the file will become unavailable after the session is ended. If `"app"` is provided, the file will become unavailable after the app is stopped.
 
@@ -2042,7 +2049,7 @@ function is_serveable_path(path::AbstractString)::Bool
 end
 
 """
-# make_serveable_copy
+# make\\_serveable\\_copy
 
 Saves a serveable copy of a file inside `.Magic/served-files/`. This is a
 convenience function that calls `gen_serveable_path()` and `cp()` to create a
@@ -2061,7 +2068,7 @@ function make_serveable_copy(file_path::String; lifetime::String="session")::Str
 ```
 
  Argument  | Description
----------- |-------------
+:---------- |:-------------
  `file_path` | A `String` with the path of the file that should be copied.
  `lifetime` | A `String` indicating the lifetime of the generated copy. Possible values: `"session"` (default) or `"app"`. If `"session"` is provided, the file copy will become unavailable after the session is ended. If `"app"` is provided, the file copy will become unavailable after the app is stopped.
 
@@ -2081,7 +2088,7 @@ function make_serveable_copy(file_path::String; lifetime::String="session")::Str
 end
 
 """
-# move_to_serveable_dir
+# move\\_to\\_serveable\\_dir
 
 Moves a file to somewhere inside `.Magic/served-files/`. This is a
 convenience function that calls `gen_serveable_path()` and `mv()` to move the
@@ -2100,7 +2107,7 @@ function move_to_serveable_dir(file_path::String; lifetime::String="session")::S
 ```
 
  Argument  | Description
----------- |-------------
+:---------- |:-------------
  `file_path` | A `String` with the path of the file that should be moved.
  `lifetime` | A `String` indicating the lifetime of the generated copy. Possible values: `"session"` (default) or `"app"`. If `"session"` is provided, the file will become unavailable after the session is ended. If `"app"` is provided, the file copy will become unavailable (deleted) after the app is stopped.
 
@@ -2180,4 +2187,60 @@ macro once(def)
             Magic.USER_TYPES[$(QuoteNode(struct_name))] = $struct_name
         end
     end)
+end
+
+function save_doc(object::Any, file_path::String, sidebar_position::Union{Integer, Nothing}=nothing)::Nothing
+    doc = Base.Docs.doc(object)
+
+    open(file_path, "w") do io
+        if !isnothing(sidebar_position)
+            write(io, "---\n")
+            write(io, "sidebar_position: $(sidebar_position)\n")
+            write(io, "---\n\n")
+        end
+
+        show(io, MIME"text/markdown"(), doc)
+    end
+
+    return nothing
+end
+
+function gen_docs()::Nothing
+    doc_layout_dir      = mkpath(joinpath(pkgdir(Magic), "docs/docs/api-reference/layout-elements"))
+    doc_interface_dir   = mkpath(joinpath(pkgdir(Magic), "docs/docs/api-reference/interface-elements"))
+    doc_logic_dir       = mkpath(joinpath(pkgdir(Magic), "docs/docs/api-reference/application-logic"))
+
+    # Layout API
+    #-------------
+    objects = [:set_page_layout, :column, :columns, :row, :container,
+               :main_area, :push_container, :left_sidebar]
+
+    for (i, object) in enumerate(objects)
+        save_doc(getfield(Magic, object), joinpath(doc_layout_dir, "$(object)-func.md"), i)
+    end
+
+    # Logic API
+    #-------------
+    objects = [:start_app, Symbol("@app_startup"), Symbol("@page_startup"),
+               Symbol("@session_startup"), Symbol("@fragment"), :set_app_data,
+               :set_page_data, :set_session_data, :gen_serveable_path,
+               :make_serveable_copy, :move_to_serveable_dir, :is_on_page,
+               :is_app_first_pass, :set_title]
+
+    for (i, object) in enumerate(objects)
+        save_doc(getfield(Magic, object), joinpath(doc_logic_dir, "$(object)-func.md"), i)
+    end
+
+    # Interface API
+    #----------------
+    objects = [:button, :selectbox, :checkbox, :checkboxes, :radio, :text_input,
+               :number_input, :slider, :dataframe, :file_uploader,
+               :download_button, :link, :color_picker, :image, :text, :h1,
+               :metric, :code, :icon, :space, :html, :get_value]
+
+    for (i, object) in enumerate(objects)
+        save_doc(getfield(Magic, object), joinpath(doc_interface_dir, "$(object)-func.md"), i)
+    end
+
+    return nothing
 end

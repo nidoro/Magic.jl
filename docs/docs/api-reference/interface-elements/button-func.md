@@ -18,13 +18,13 @@ function button(
 )::Bool
 ```
 
- Argument  | Description
----------- |-------------
- `label`   | A `String` to be displayed inside the button. It can contain HTML.
- `style`   | A `String` specifying the predefined style to be applied to the button. Possible values: `primary`, `secondary` (default), or `naked`.
- `icon`    | A `String` in the format `material/icon_name`. Example: `material/thumb_up`.<br/><br/>Check out https://fonts.google.com/icons?icon.set=Material+Icons to learn the icon names.
- `onclick` | A callback `Function`. This function will be called when the button is clicked, before the app script is rerun.
- `args`    | A `Vector` of arguments that will be passed to the `onclick` callback function.
+| Argument  | Description                                                                                                                                                                     |
+|:--------- |:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `label`   | A `String` to be displayed inside the button. It can contain HTML.                                                                                                              |
+| `style`   | A `String` specifying the predefined style to be applied to the button. Possible values: `primary`, `secondary` (default), or `naked`.                                          |
+| `icon`    | A `String` in the format `material/icon_name`. Example: `material/thumb_up`.<br/><br/>Check out https://fonts.google.com/icons?icon.set=Material+Icons to learn the icon names. |
+| `onclick` | A callback `Function`. This function will be called when the button is clicked, before the app script is rerun.                                                                 |
+| `args`    | A `Vector` of arguments that will be passed to the `onclick` callback function.                                                                                                 |
 
 ### Return Value
 

@@ -35,6 +35,7 @@ tar -czf "$ARTIFACTS_DIR.tar.gz" -C "$ARTIFACTS_DIR" .
 WIN64_TREE_SHA1=$(julia -e "using Pkg; using Pkg.GitTools; println(bytes2hex(Pkg.GitTools.tree_hash(\"$ARTIFACTS_DIR\")))")
 WIN64_SHA256=$(sha256sum "$ARTIFACTS_DIR.tar.gz" | cut -d' ' -f1)
 
+#---------------------------
 # Create Artifacts.toml
 #---------------------------
 echo "Creating Artifacts.toml..."
@@ -58,6 +59,7 @@ arch = \"x86_64\"
     sha256 = \"$WIN64_SHA256\"
 " > Artifacts.toml
 
+#------------------------------
 # Update Project.toml version
 #------------------------------
 echo "Updating Project.toml..."
@@ -65,4 +67,15 @@ julia -e "using TOML; d = TOML.parsefile(\"Project.toml\"); d[\"version\"] = \"$
 
 echo "Ok!"
 
+#------------------------------
+# Regenerate docs
+#------------------------------
+pushd test
+echo "Regenerating docs..."
+julia --project -e 'using Magic; Magic.gen_docs()'
+echo "Ok!"
 popd
+
+popd
+
+

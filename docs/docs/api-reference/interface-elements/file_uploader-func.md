@@ -1,5 +1,5 @@
 ---
-sidebar_position: 32
+sidebar_position: 10
 ---
 
 # file_uploader
@@ -24,25 +24,23 @@ function file_uploader(
 )::Union{Vector{UploadedFile}, UploadedFile, Nothing}
 ```
 
- Argument     | Description
------------------- | -----------
- `label`        | A `String` to be displayed as the label for the file uploader. It can contain HTML.
- `types`        | A `Vector{String}` containing a list of acceptable file extensions and/or mimetypes. Example: `[".png", ".jpg", "application/pdf"]`. Tip: use `*` wildcard to accept all mimetypes begining with a prefix, e.g. `"image/*"`.
- `multiple`     | A `Bool` indicating wether to accept multiple files or not. Default `false`.
- `max_file_size`| An optional `Int` specifying the maximum file size accepted by the widget. If `nothing` (default), the limit set to the default value provided as argument of `start_app()`.
- `max_files`    | An optional `Int` specifying the maximum number of file accepted by the widget. If `nothing` (default), the limit set to the default value provided as argument of `start_app()`.
- `fill_width`   | A `Bool` indicating whether the widget should expand to fill the available horizontal space. Default: `false`.
- `show_label`   | A `Bool` indicating whether the label should be displayed. Default: `true`.
- `id`              | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like `get_value()` and `set_value()`.
- `onchange`        | A callback `Function`. This function is called when any cell value changes, before the app script is rerun.
- `args`            | A `Vector` of arguments that should be passed to the `onchange` callback function.
- `css`          | A `Dict` of additional CSS properties applied to the widget element.
+| Argument        | Description                                                                                                                                                                                                                  |
+|:--------------- |:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `label`         | A `String` to be displayed as the label for the file uploader. It can contain HTML.                                                                                                                                          |
+| `types`         | A `Vector{String}` containing a list of acceptable file extensions and/or mimetypes. Example: `[".png", ".jpg", "application/pdf"]`. Tip: use `*` wildcard to accept all mimetypes begining with a prefix, e.g. `"image/*"`. |
+| `multiple`      | A `Bool` indicating wether to accept multiple files or not. Default `false`.                                                                                                                                                 |
+| `max_file_size` | An optional `Int` specifying the maximum file size accepted by the widget. If `nothing` (default), the limit set to the default value provided as argument of `start_app()`.                                                 |
+| `max_files`     | An optional `Int` specifying the maximum number of file accepted by the widget. If `nothing` (default), the limit set to the default value provided as argument of `start_app()`.                                            |
+| `fill_width`    | A `Bool` indicating whether the widget should expand to fill the available horizontal space. Default: `false`.                                                                                                               |
+| `show_label`    | A `Bool` indicating whether the label should be displayed. Default: `true`.                                                                                                                                                  |
+| `id`            | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like `get_value()` and `set_value()`.                                             |
+| `onchange`      | A callback `Function`. This function is called when any cell value changes, before the app script is rerun.                                                                                                                  |
+| `args`          | A `Vector` of arguments that should be passed to the `onchange` callback function.                                                                                                                                           |
+| `css`           | A `Dict` of additional CSS properties applied to the widget element.                                                                                                                                                         |
 
 ### Return Value
 
-If `multiple` is `false`, a single [`UploadedFile`](#uploadedfile) instance is returned if a
-file was provided. If `multiple` is `true`, a `Vector{UploadedFile}` is returned
-if any file was provided. If no file was provided, it returns `nothing`.
+If `multiple` is `false`, a single [`UploadedFile`](#uploadedfile) instance is returned if a file was provided. If `multiple` is `true`, a `Vector{UploadedFile}` is returned if any file was provided. If no file was provided, it returns `nothing`.
 
 ## UploadedFile
 
@@ -60,6 +58,4 @@ end
 
 ### Example
 
-See [Image Filters Demo](https://magic.coisasdodavi.net/image-filters) for a
-`file_uploader()` example.
-
+See [Image Filters Demo](https://magic.coisasdodavi.net/image-filters) for a `file_uploader()` example.

@@ -1,5 +1,5 @@
 ---
-sidebar_position: 80
+sidebar_position: 21
 ---
 
 # html
@@ -17,12 +17,12 @@ function html(
 )::Nothing
 ```
 
- Argument          | Description
------------------- | -----------
- `tag`             | A `String` specifying the HTML tag name to render (for example, `"div"`, `"span"`, or `"p"`).
- `inner_html`      | A `String` containing the raw HTML content to be placed inside the element.
- `attributes`      | A `Dict` of HTML attributes to apply to the element. Keys are attribute names and values are their corresponding values.
- `css`             | A `Dict` of CSS properties applied inline to the element.
+| Argument     | Description                                                                                                              |
+|:------------ |:------------------------------------------------------------------------------------------------------------------------ |
+| `tag`        | A `String` specifying the HTML tag name to render (for example, `"div"`, `"span"`, or `"p"`).                            |
+| `inner_html` | A `String` containing the raw HTML content to be placed inside the element.                                              |
+| `attributes` | A `Dict` of HTML attributes to apply to the element. Keys are attribute names and values are their corresponding values. |
+| `css`        | A `Dict` of CSS properties applied inline to the element.                                                                |
 
 ### Return Value
 

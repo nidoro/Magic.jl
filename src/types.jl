@@ -103,15 +103,16 @@ end
     code            ::Function = (args...; kwargs...)->()
     icon            ::Function = (args...; kwargs...)->()
     space           ::Function = (args...; kwargs...)->()
+    slider          ::Function = (args...; kwargs...)->()
 end
 
 const ShallowSimpleDict = Dict{String, Union{String, Real}}
 
-CONTAINER_INTERFACE_FUNCS = [
+const CONTAINER_INTERFACE_FUNCS = [
     :columns, :column, :row, :button, :download_button, :image, :html, :radio, :selectbox,
     :h1, :h2, :h3, :h4, :h5, :h6, :dataframe, :checkbox, :checkboxes,
     :file_uploader, :text_input, :link, :color_picker, :text, :metric, :code,
-    :icon, :space
+    :icon, :space, :slider
 ]
 
 @with_kw mutable struct Containers
@@ -149,7 +150,10 @@ end
     set_description ::Function = (args...; kwargs...)->()
     add_font        ::Function = (args...; kwargs...)->()
     add_css_rule    ::Function = (args...; kwargs...)->()
+    inject_html     ::Function = (args...; kwargs...)->()
 end
+
+const PAGE_CONFIG_FUNCS = [:set_title, :set_description, :add_font, :add_css_rule, :inject_html]
 
 # AppTask
 #------------

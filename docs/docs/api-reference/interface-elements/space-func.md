@@ -1,5 +1,5 @@
 ---
-sidebar_position: 75
+sidebar_position: 20
 ---
 
 # space
@@ -12,10 +12,10 @@ Inserts an empty space in the page.
 function space(; width::String="1px", height::String="1px")::Nothing
 ```
 
- Argument               | Description
----------------------- | -----------
- `width`    | A `String` specifying the width of the empty space using CSS units like `px` or `rem`.
- `height`    | A `String` specifying the height of the empty space using CSS units like `px` or `rem`.
+| Argument | Description                                                                             |
+|:-------- |:--------------------------------------------------------------------------------------- |
+| `width`  | A `String` specifying the width of the empty space using CSS units like `px` or `rem`.  |
+| `height` | A `String` specifying the height of the empty space using CSS units like `px` or `rem`. |
 
 ### Return Value
 

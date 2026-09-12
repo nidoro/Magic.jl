@@ -75,7 +75,7 @@ function container(
 ```
 
  Argument        | Description
----------------- |-------------
+:---------------- |:-------------
  `inner_func`   | An optional do-block `Function`, so you can define a container and its children like this: <pre>container() do<br/>  # children here<br/>end</pre> which is basically the same as: <pre>@push container()<br/># children here<br/>@pop</pre>In both cases, elements created inside the `do-end`/`push-pop` blocks will be placed inside the container returned by `container()`, with the difference that `push-pop` does not define a new scope, and thus variables created inside that block can be accessed after `@pop`.
  `css`          | A `Dict` of CSS properties to apply to the container.
  `attributes`   | A `Dict` of additional HTML attributes to attach to the container.
@@ -135,7 +135,7 @@ function container(
     return i_container
 end
 
-"""
+const DOC_PUSH_POP_CONTAINER = """
 # Push/Pop Container
 
 ## The `@push` and `@pop` macros
@@ -234,13 +234,15 @@ function pop_container()::ContainerInterface
 
 The container on the top of the container stack.
 """
+
+@doc DOC_PUSH_POP_CONTAINER
 function push_container(i_container::ContainerInterface)::ContainerInterface
     task = task_local_storage("app_task")
     push!(task.container_stack, i_container)
     return i_container
 end
 
-@doc @doc(push_container) pop_container
+@doc DOC_PUSH_POP_CONTAINER
 function pop_container()::ContainerInterface
     task = task_local_storage("app_task")
     return pop!(task.container_stack)
@@ -251,10 +253,12 @@ function top_container()::Dict
     return task.container_stack[end].container
 end
 
+@doc DOC_PUSH_POP_CONTAINER
 macro push(container)
     :(Magic.push_container($(esc(container))))
 end
 
+@doc DOC_PUSH_POP_CONTAINER
 macro pop()
     :(Magic.pop_container())
 end
@@ -347,7 +351,7 @@ function column(
 ```
 
  Argument        | Description
----------------- |-------------
+:---------------- |:-------------
  `inner_func`        | An optional do-block `Function`, so you can define a column and its children like this: <pre>column() do<br/>  # children here<br/>end</pre> which is basically the same as: <pre>@push column()<br/># children here<br/>@pop</pre>In both cases, elements created inside the `do-end`/`push-pop` blocks will be placed inside the column returned by `column()`, with the difference that `push-pop` does not define a new scope, and thus variables created inside that block can be accessed after `@pop`.
  `fill_width`        | A `Bool`. If `true`, the column expands to fill the available horizontal space.
  `fill_height`       | A `Bool`. If `true`, the column expands to fill the available vertical space.
@@ -453,7 +457,7 @@ function row(
 ```
 
  Argument        | Description
----------------- |-------------
+:---------------- |:-------------
  `inner_func`        | An optional do-block `Function`, so you can define a row and its children like this: <pre>row() do<br/>  # children here<br/>end</pre> which is basically the same as: <pre>@push row()<br/># children here<br/>@pop</pre>In both cases, elements created inside the `do-end`/`push-pop` blocks will be placed inside the row returned by `row()`, with the difference that `push-pop` does not define a new scope, and thus variables created inside that block can be accessed after `@pop`.
  `fill_width`        | A `Bool`. If `true`, the row expands to fill the available horizontal space.
  `fill_height`       | A `Bool`. If `true`, the row expands to fill the available vertical space.
@@ -549,7 +553,7 @@ function columns(
 ```
 
  Argument              | Description
---------------------- |-------------
+:--------------------- |:-------------
  `amount_or_widths` | Either an `Int`, specifying the number of equally sized columns to create, or a `Vector{Number}` specifying the width of each column relative to eachother.<br/><br/>For `Vector{Number}`, the width of a column is calculated based on the available space on the parent container and the proportion of its width relative to the sum of all relative widths. For instance, `columns([70,30])` will return two columns: the first one with width `70/100 = 0.7`, taking 70% of the available space, and the second with width `30/100 = 0.3`, taking 30% of the available space.
  `kwargs`              | Keyword arguments forwarded to each individual column container. These correspond to the keyword arguments accepted by `column()`, such as alignment, spacing, borders, CSS, and attributes.
 
@@ -672,7 +676,7 @@ function create_sidebar(
 end
 
 """
-# set_page_layout
+# set\\_page\\_layout
 
 Configure the overall page layout.
 
@@ -702,7 +706,7 @@ function set_page_layout(
 ```
 
  Argument                              | Description
------------------------------------- |-------------
+:------------------------------------ |:-------------
  `style`                           | A `String` for selecting the overall layout style. The default `"basic"` style imposes minimal layout behaviour on the `main_area()` container. Possible values: `"basic"`, `"centered"`, `"wide"`.
  `max_width`                      | A `String` specifying the maximum width of the container returned by `main_area()`.
  `left_sidebar_initial_state`   | Either `nothing` or a `String` specifying the initial state of the left sidebar (`"open"` or `"closed"`). If `nothing`, the sidebar is disabled.
@@ -833,8 +837,8 @@ function main_area(inner_func::Function=()->())::ContainerInterface
 ```
 
  Argument                              | Description
------------------------------------- |-------------
- `inner_func`                      | An optional do-block `Function`, so you can define the page main area and its children like this: <pre>main_area() do<br/>  # main area content<br/>end</pre> which is basically the same as: <pre>@push main_area()<br/># main area content<br/>@pop</pre>In both cases, elements created inside the `do-end`/`push-pop` blocks will be placed inside the container returned by `main_area()`, with the difference that `push-pop` does not define a new scope, and thus variables created inside that block can be accessed after `@pop`.
+:------------------------------------ |:-------------
+ `inner_func`                      | An optional do-block `Function`, so you can define the page main area and its children like this: <pre>main\\_area() do<br/>  # main area content<br/>end</pre> which is basically the same as: <pre>@push main\\_area()<br/># main area content<br/>@pop</pre>In both cases, elements created inside the `do-end`/`push-pop` blocks will be placed inside the container returned by `main_area()`, with the difference that `push-pop` does not define a new scope, and thus variables created inside that block can be accessed after `@pop`.
 
 ### Return Value
 
@@ -875,7 +879,7 @@ function main_area(inner_func::Function)::ContainerInterface
     return task.layout.main_area
 end
 
-"""
+const DOC_SIDEBARS = """
 # Sidebars
 
 Pair of functions to retrieve the left and right sidebar `ContainerInterface`s:
@@ -898,8 +902,8 @@ function right_sidebar(inner_func::Function=()->())::ContainerInterface
 ```
 
  Argument                              | Description
------------------------------------- |-------------
- `inner_func`                      | An optional do-block `Function`, so you can add content to the sidebar like this: <pre>left_sidebar() do<br/>  # sidebar content<br/>end</pre> which is basically the same as: <pre>@push left_sidebar()<br/># sidebar content<br/>@pop</pre>In both cases, elements created inside the `do-end`/`push-pop` blocks will be placed inside the container returned by `left_sidebar()` or `right_sidebar()`, with the difference that `push-pop` does not define a new scope, and thus variables created inside that block can be accessed after `@pop`.
+:------------------------------------ |:-------------
+ `inner_func`                      | An optional do-block `Function`, so you can add content to the sidebar like this: <pre>left\\_sidebar() do<br/>  # sidebar content<br/>end</pre> which is essentially the same as: <pre>@push left\\_sidebar()<br/># sidebar content<br/>@pop</pre>In both cases, elements created inside the `do-end`/`push-pop` blocks will be placed inside the container returned by `left_sidebar()` or `right_sidebar()`, with the difference that `push-pop` does not define a new scope, and thus variables created inside that block can be accessed after `@pop`.
 
 ### Return Value
 
@@ -926,6 +930,8 @@ right_sidebar() do
 end
 ```
 """
+
+@doc DOC_SIDEBARS
 function left_sidebar(inner_func::Function)::ContainerInterface
     task = task_local_storage("app_task")
     if task.layout.left_sidebar == nothing
@@ -940,7 +946,7 @@ function left_sidebar(inner_func::Function)::ContainerInterface
     return task.layout.left_sidebar
 end
 
-@doc @doc(left_sidebar) right_sidebar
+@doc DOC_SIDEBARS
 function right_sidebar(inner_func::Function)::ContainerInterface
     task = task_local_storage("app_task")
     if task.layout.right_sidebar == nothing

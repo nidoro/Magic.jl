@@ -6,11 +6,7 @@ sidebar_position: 1
 
 Configure the overall page layout.
 
-This function defines the global layout of the page, including the main content
-area and optional left and right sidebars. The containers corresponding to each
-of these regions can be accessed via the API functions `main_area()`,
-`left_sidebar()` and `right_sidebar()`, and they can be used like any other
-function that returns a `ContainerInterface`. See usage example below.
+This function defines the global layout of the page, including the main content area and optional left and right sidebars. The containers corresponding to each of these regions can be accessed via the API functions `main_area()`, `left_sidebar()` and `right_sidebar()`, and they can be used like any other function that returns a `ContainerInterface`. See usage example below.
 
 ### Function Signature
 
@@ -31,35 +27,32 @@ function set_page_layout(
 )::Containers
 ```
 
- Argument                              | Description
------------------------------------- |-------------
- `style`                           | A `String` for selecting the overall layout style. The default `"basic"` style imposes minimal layout behaviour on the `main_area()` container. Possible values: `"basic"`, `"centered"`, `"wide"`.
- `max_width`                      | A `String` specifying the maximum width of the container returned by `main_area()`.
- `left_sidebar_initial_state`   | Either `nothing` or a `String` specifying the initial state of the left sidebar (`"open"` or `"closed"`). If `nothing`, the sidebar is disabled.
- `left_sidebar_initial_width`   | A `String` specifying the initial width of the left sidebar.
- `left_sidebar_position`         | A `String` specifying how the left sidebar is positioned relative to the main content (`"slide-out"` or `"overlay"`).
- `left_sidebar_toggle_labels`   | A `Tuple` of two optional `String` values defining the labels for opening and closing the left sidebar toggle button.
- `right_sidebar_initial_state`   | Either `nothing` or a `String` specifying the initial state of the right sidebar (`"open"` or `"closed"`). If `nothing`, the sidebar is disabled.
- `right_sidebar_initial_width`   | A `String` specifying the initial width of the right sidebar.
- `right_sidebar_position`         | A `String` specifying how the right sidebar is positioned relative to the main content (`"slide-out"` or `"overlay"`).
- `right_sidebar_toggle_labels`   | A `Tuple` of two optional `String` values defining the labels for opening and closing the right sidebar toggle button.
+| Argument                      | Description                                                                                                                                                                                         |
+|:----------------------------- |:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `style`                       | A `String` for selecting the overall layout style. The default `"basic"` style imposes minimal layout behaviour on the `main_area()` container. Possible values: `"basic"`, `"centered"`, `"wide"`. |
+| `max_width`                   | A `String` specifying the maximum width of the container returned by `main_area()`.                                                                                                                 |
+| `left_sidebar_initial_state`  | Either `nothing` or a `String` specifying the initial state of the left sidebar (`"open"` or `"closed"`). If `nothing`, the sidebar is disabled.                                                    |
+| `left_sidebar_initial_width`  | A `String` specifying the initial width of the left sidebar.                                                                                                                                        |
+| `left_sidebar_position`       | A `String` specifying how the left sidebar is positioned relative to the main content (`"slide-out"` or `"overlay"`).                                                                               |
+| `left_sidebar_toggle_labels`  | A `Tuple` of two optional `String` values defining the labels for opening and closing the left sidebar toggle button.                                                                               |
+| `right_sidebar_initial_state` | Either `nothing` or a `String` specifying the initial state of the right sidebar (`"open"` or `"closed"`). If `nothing`, the sidebar is disabled.                                                   |
+| `right_sidebar_initial_width` | A `String` specifying the initial width of the right sidebar.                                                                                                                                       |
+| `right_sidebar_position`      | A `String` specifying how the right sidebar is positioned relative to the main content (`"slide-out"` or `"overlay"`).                                                                              |
+| `right_sidebar_toggle_labels` | A `Tuple` of two optional `String` values defining the labels for opening and closing the right sidebar toggle button.                                                                              |
 
 ### Return Value
 
-A `Containers` object representing the layout regions created by the page
-layout.
+A `Containers` object representing the layout regions created by the page layout.
 
 ### Usage
 
-The `Container`s created by `set_page_layout()` can be accessed via the API
-functions:
+The `Container`s created by `set_page_layout()` can be accessed via the API functions:
 
-- `main_area()`
-- `left_sidebar()`
-- `right_sidebar()`
+  * `main_area()`
+  * `left_sidebar()`
+  * `right_sidebar()`
 
-After calling `set_page_layout()` you can insert elements inside these regions
-using the functions above. Example:
+After calling `set_page_layout()` you can insert elements inside these regions using the functions above. Example:
 
 ```julia
 set_page_layout("centered", left_sidebar_initial_state="open")
@@ -73,6 +66,5 @@ left_sidebar() do
 end
 ```
 
-> **TIP**: In general, you don't have to explicitly call `main_area()` to place
-> elements into the main area. After calling `set_page_layout()`, any element
-> created in the top-level of your app is placed inside `main_area()`.
+> **TIP**: In general, you don't have to explicitly call `main_area()` to place elements into the main area. After calling `set_page_layout()`, any element created in the top-level of your app is placed inside `main_area()`.
+
