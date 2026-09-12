@@ -85,6 +85,16 @@ end
             throw_client_side_error=true
         )
 
+        # Test that add_font fails with empty string name
+        @test_throws Magic.InvalidArgument start_app(
+            ()->(add_font("", "../examples/.Magic/served-files/fonts/Pacifico-Regular.ttf")),
+            port=PORT,
+            dev_mode=true,
+            init_and_quit=true,
+            rethrow_rerun_exceptions=true,
+            throw_client_side_error=true
+        )
+
         # Test that add_css_rule fails if it is called outside @page_startup
         @test_throws Magic.PastStartupCall start_app(
             ()->(add_css_rule("")),
@@ -95,8 +105,25 @@ end
             throw_client_side_error=true
         )
 
-        # TODO: Test that add_font fails with empty string name
-        # TODO: inject_html
+        # Test that inject_html fails if called non-UTF8 file
+        @test_throws Magic.InvalidArgument start_app(
+            ()->(inject_html(file_path="../examples/.Magic/served-files/fonts/Pacifico-Regular.ttf")),
+            port=PORT,
+            dev_mode=true,
+            init_and_quit=true,
+            rethrow_rerun_exceptions=true,
+            throw_client_side_error=true
+        )
+
+        # Test that inject_html fails if it is called outside @page_startup
+        @test_throws Magic.PastStartupCall start_app(
+            ()->(inject_html()),
+            port=PORT,
+            dev_mode=true,
+            callback=single_session_rerun_callback,
+            rethrow_rerun_exceptions=true,
+            throw_client_side_error=true
+        )
     end
 end
 

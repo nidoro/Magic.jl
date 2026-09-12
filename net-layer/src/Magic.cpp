@@ -794,13 +794,9 @@ MG_API void* MG_RunServer(void*) {
     HS_RunForever(&g.hserver, true);
 #endif
 
-    // NOTE: If we are stoping because of a fatal error on julia side, don't
-    // try to notify the app layer.
-    if (!g.appFatalError) {
-        MG_NetEvent ev = MG_CreateNetEvent(MG_NetEventType_ServerLoopInterrupted, 0, 0, 0, 0);
-        MG_PushNetEvent(ev);
-        MG_WakeUpAppLayer();
-    }
+    MG_NetEvent ev = MG_CreateNetEvent(MG_NetEventType_ServerLoopInterrupted, 0, 0, 0, 0);
+    MG_PushNetEvent(ev);
+    MG_WakeUpAppLayer();
 
     HS_Stop(&g.hserver);
     HS_Destroy(&g.hserver);

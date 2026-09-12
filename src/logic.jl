@@ -189,11 +189,15 @@ function start_app(
     # When a net-layer event happens, it forwards the event to the App-layer
     # loop by pushing the event to the `internal_events` channel.
     #---------------------------------------------------------------------------
-    Threads.@spawn begin
+    ipc_task = Threads.@spawn begin
         stop_loop = false
 
         while isopen(g.ipc_connection) && !stop_loop
-            read(g.ipc_connection, UInt8)
+            try
+                read(g.ipc_connection, UInt8)
+            catch e
+                close(g.ipc_connection)
+            end
 
             ev = pop_net_event()
             while ev.ev_type != NetEventType_None
@@ -390,6 +394,7 @@ function start_app(
             app_event = create_app_event(AppEventType_FatalError, Cint(0), nothing)
             push_app_event(app_event)
             write(g.ipc_connection, " ")
+            wait(ipc_task)
             rethrow(e)
         end
     end
@@ -1620,9 +1625,11 @@ end
 function inject_html(page::PageConfig; html::String="", file_path::Union{String, Nothing}=nothing, location::String="body_bottom")::Nothing
     if !(page.first_pass || is_app_first_pass()) throw(PastStartupCall("inject_html", "page")) end
 
-    if file_path !== nothing
-        html *= read(file_path, String)
+    if !isnothing(file_path)
+        assert_valid_utf8_file(@named(file_path))
+        html = read(file_path, String)
     end
+
     get!(page.html_injection, location, "")
     page.html_injection[location] *= html
     return nothing
