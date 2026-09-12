@@ -2014,6 +2014,8 @@ A random file path inside `.Magic/served-files/generated/` with extension
 `extension`.
 """
 function gen_serveable_path(extension::String=""; lifetime::String="session")::String
+    assert_string_in_list(@named(lifetime), ["session", "app"])
+
     task = task_local_storage("app_task")
     if length(extension) > 0
         if extension[1] != '.'
@@ -2028,11 +2030,15 @@ function gen_serveable_path(extension::String=""; lifetime::String="session")::S
         dir_path = "$(g.dot_magic_dir)/.Magic/served-files/generated/app"
     end
 
-    return "$(dir_path)/$(file_name)"
+    return joinpath(dir_path, file_name)
+end
+
+function get_serveable_dir()::String
+    return "$(g.dot_magic_dir)/.Magic/served-files"
 end
 
 function is_serveable_path(path::AbstractString)::Bool
-    return startswith(path, "$(g.dot_magic_dir)/.Magic/served-files")
+    return startswith(path, get_serveable_dir())
 end
 
 """
@@ -2064,6 +2070,11 @@ function make_serveable_copy(file_path::String; lifetime::String="session")::Str
 A `String` with the path to the file copy.
 """
 function make_serveable_copy(file_path::String; lifetime::String="session")::String
+    assert_string_in_list(@named(lifetime), ["session", "app"])
+    if !isfile(file_path)
+        throw(InvalidArgument(@named(file_path), "The provided path does not exist or is not a file."))
+    end
+
     serveable_path = gen_serveable_path(lifetime=lifetime) * splitext(file_path)[2]
     cp(file_path, serveable_path, force=true)
     return serveable_path
@@ -2098,6 +2109,11 @@ function move_to_serveable_dir(file_path::String; lifetime::String="session")::S
 A `String` with the new path to the file provided.
 """
 function move_to_serveable_dir(file_path::String; lifetime::String="session")::String
+    assert_string_in_list(@named(lifetime), ["session", "app"])
+    if !isfile(file_path)
+        throw(InvalidArgument(@named(file_path), "The provided path does not exist or is not a file."))
+    end
+
     serveable_path = gen_serveable_path(lifetime=lifetime) * splitext(file_path)[2]
     mv(file_path, serveable_path, force=true)
     return serveable_path

@@ -127,5 +127,25 @@ end
     end
 end
 
+@testset "other public logic functions" begin
+    @maybe_suppress @info """
+    ------------------------------------------------------------------
+    Test: other public logic functions
+    ------------------------------------------------------------------------
+    """
 
+    @maybe_suppress begin
+        @test_throws Magic.InvalidArgument gen_serveable_path(lifetime="INVALID_LIFETIME")
+
+        temp_dir = mktempdir()
+        temp_file = tempname()
+        touch(temp_file)
+
+        @test_throws Magic.InvalidArgument make_serveable_copy(temp_dir)
+        @test_throws Magic.InvalidArgument make_serveable_copy(temp_file, lifetime="INVALID_LIFETIME")
+
+        @test_throws Magic.InvalidArgument move_to_serveable_dir(temp_dir)
+        @test_throws Magic.InvalidArgument move_to_serveable_dir(temp_file, lifetime="INVALID_LIFETIME")
+    end
+end
 

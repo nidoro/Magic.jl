@@ -83,7 +83,7 @@ function is_valid_hostname(hostname::String)
     return true
 end
 
-function assert_string_in_list(arg::Tuple, white_list::Tuple)::Nothing
+function assert_string_in_list(arg::Tuple, white_list::Union{Vector, Tuple})::Nothing
     arg[2] in white_list || throw(InvalidArgument(arg, "`$(arg[1])` should be one of these: $(white_list)."))
     return nothing
 end
