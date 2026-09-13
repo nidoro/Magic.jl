@@ -4,9 +4,9 @@ sidebar_position: 8
 
 # Session persistent data
 
-Session persistent data is an user defined data that is bound to a session and whose lifetime is the lifetime of the session, i.e., as long as the session stays active the data will persist. Session persistent data can be retrieved at any moment using `get_session_data()` and is only visible to the current session.
+Session persistent data is an user defined data that is bound to a session and whose lifetime is the lifetime of the session, that is, as long as the session stays active the data will persist. Session persistent data can be retrieved at any moment using `get_session_data()` and is only visible to the current session.
 
-Although the session persistent data can be either mutable or immutable, a common practice is to define a mutable struct to store all of your sessions's data and store it with `set_session_data()` at the session startup. Example:
+Although the session persistent data can be either mutable or immutable, a good practice is to define a mutable struct to store all of the session data and store it with `set_session_data()` at the session startup. Example:
 
 ```julia
 # Define the struct to hold the session persistent data

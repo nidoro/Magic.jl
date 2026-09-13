@@ -4,9 +4,9 @@ sidebar_position: 7
 
 # Page persistent data
 
-Page persistent data is an user defined data that is bound to a page and whose lifetime is the lifetime of the app, i.e., as long as the app is running the data will persist. Page persistent data can be retrieved at any moment using `get_page_data()` and is shared accross sessions.
+Page persistent data is an user defined data that is bound to a page and whose lifetime is the lifetime of the app, that is, as long as the app is running the data will persist. Page persistent data can be retrieved at any moment using `get_page_data()` and is shared accross sessions.
 
-Although the page persistent data can be either mutable or immutable, a common practice is to define a mutable struct to store all of your page's data and store it with `set_page_data()` at the page startup. Example:
+Although the page persistent data can be either mutable or immutable, a good practice is to define a mutable struct to store all of your page's data and store it with `set_page_data()` at the page startup. Example:
 
 ```julia
 # Define the struct to hold the page persistent data

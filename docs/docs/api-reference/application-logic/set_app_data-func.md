@@ -4,9 +4,9 @@ sidebar_position: 6
 
 # App persistent data
 
-App persistent data is an user defined data whose lifetime is the lifetime of the app, i.e., as long as the app is running the data will persist. App persistent data can be retrieved at any moment using `get_app_data()` and is shared accross pages and sessions.
+App persistent data is an user defined data whose lifetime is the lifetime of the app, that is, as long as the app is running the data will persist. App persistent data can be retrieved at any moment using `get_app_data()` and is shared accross pages and sessions.
 
-Although the app persistent data can be either mutable or immutable, a common practice is to define a mutable struct to store all of your app's data and store it with `set_app_data()` at the application startup. Example:
+Although the app persistent data can be either mutable or immutable, a good practice is to define a mutable struct to store all of your app's data and store it with `set_app_data()` at the application startup. Example:
 
 ```julia
 # Define the struct to hold the app persistent data

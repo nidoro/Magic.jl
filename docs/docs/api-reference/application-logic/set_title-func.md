@@ -1,10 +1,10 @@
 ---
-sidebar_position: 14
+sidebar_position: 16
 ---
 
 # Page static settings
 
-Page static settings are persistent page settings that can only be defined at the page's dry-run (`@page_startup`). The page static settings are used to build the static HTML that is served when a user accesses one of the page's URLs, which is why they cannot be changed after the page's dry-run.
+Page static settings are persistent page settings. These can only be defined at the page's dry-run, inside `@page_startup` code blocks. The page static settings are used to build the static HTML that is served when a user accesses the page, and include things like the page title and description.
 
 Example:
 
@@ -15,11 +15,11 @@ Example:
 end
 ```
 
-See below functions to customize different page static settings.
+See below what functions to use to customize different page static settings.
 
 ## set_title
 
-Sets the title of the current page (i.e. the HTML `<title>` tag).
+Sets the title of the current page, that is, the inner HTML of the `<title>` element.
 
 ### Function Signature
 
@@ -33,7 +33,7 @@ function set_title(title::String)::Nothing
 
 ## set_description
 
-Sets the description of the current page (i.e. the HTML `<meta property="og:description">` tag).
+Sets the description of the current page, that is, the inner HTML of the `<meta property="og:description">` element.
 
 ### Function Signature
 
@@ -62,7 +62,7 @@ function add_font(font_name::String, src_or_path::String)::Nothing
 
 ## add_css_rule
 
-Appends CSS rule(s) to the `head` of the current page.
+Appends CSS rule(s) to a style element inside the `head` of the current page.
 
 Example:
 
@@ -94,21 +94,21 @@ Injects arbitrary code into the HTML page served to the clients.
 Example:
 
 ```julia
-inject_html(html="<div>Hello!</div>")
+inject_html("<div>Hello!</div>")
 ```
 
 ### Function Signature
 
 ```julia
-function inject_html(;
-    html::String="",
+function inject_html(
+    html::String="";
     file_path::Union{String, Nothing}=nothing,
     location::String="body_bottom"
 )::Nothing
 ```
 
-| Argument    | Description                                                                                                                                                                                                                                                                                                                                     |
-|:----------- |:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `html`      | `String` with the HTML code to be injected into the page.                                                                                                                                                                                                                                                                                       |
-| `file_path` | `String` specifying the file containing the HTML that should be injected into the page.                                                                                                                                                                                                                                                         |
-| `location`  | `String` specifying the location *in the page* where the HTML should be injected. Possible values: `"body_bottom"` (default, injects near the bottom of the HTML body), `"body_top"` (injects near the top of the HTML body), `"head_bottom"` (injects near the bottom of the HTML head), `"head_top"` (injects near the top of the HTML head). |
+| Argument    | Description                                                                                                                                                                                                                                                                                                                                                   |
+|:----------- |:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `html`      | `String` with the HTML code to be injected into the page. If the `file_path` argument is provided, this is ignored.                                                                                                                                                                                                                                           |
+| `file_path` | `String` specifying the file containing the HTML that should be injected into the page. If this is provided, the `html` argument is ignored.                                                                                                                                                                                                                  |
+| `location`  | `String` specifying the location *in the HTML page* where the provided HTML should be injected. Possible values: `"body_bottom"` (default, injects near the bottom of the HTML body), `"body_top"` (injects near the top of the HTML body), `"head_bottom"` (injects near the bottom of the HTML head), `"head_top"` (injects near the top of the HTML head). |

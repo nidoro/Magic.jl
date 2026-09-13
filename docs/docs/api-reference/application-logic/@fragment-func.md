@@ -4,9 +4,21 @@ sidebar_position: 5
 
 # Fragments
 
-A fragment is a function that can be rerun independently of the full app. It can be created using the the `fragment()` function or the `@fragment` macro.
+A fragment is a function that can be rerun independently of the full app. It can be created using the `@fragment` macro or the `fragment` function.
 
 Use fragments to avoid rerunning the entire app script on every widget interaction.
+
+### The `@fragment` macro
+
+Turns a code block into a fragment. Usage:
+
+```julia
+@fragment begin
+    # code block
+end
+```
+
+Internally, `@fragment` creates a function with the passed code block as its body, and then calls `fragment()` to register the function as a fragment. This means that you should treat the code block as a function with closed scope, meaning that objects created inside a fragment won't be visible outside the fragment.
 
 ### The `fragment()` function
 
@@ -22,18 +34,6 @@ function fragment(func::Function; id::String=String(nameof(func)))
 |:-------- |:-------------------------------------------------------------- |
 | `func`   | The `Function` that will be isolated from the rest of the app. |
 | `id`     | A `String` to uniquely identify the fragment.                  |
-
-### The `@fragment` macro
-
-Turns a code block into a fragment. Usage:
-
-```julia
-@fragment begin
-    # code block
-end
-```
-
-Internally, `@fragment` creates a function with the passed code block as its body, and then calls the function `fragment()` to register the function as a fragment.
 
 ## Example
 

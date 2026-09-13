@@ -3,20 +3,17 @@
 
 Start the application server.
 
-Once called, this function blocks the current process and keeps the server
-running until it is stopped with `Ctrl+C`.
-
 ### Function Signature
 
 ```julia
 function start_app(
-    script_or_func      ::String="app.jl";
-    host_name           ::String="localhost",
-    port                ::Int=3443,
-    upload_max_size     ::Int=25*MiB,
-    upload_max_files    ::Int=10,
-    init_and_quit       ::Bool=false,
-    verbose             ::Bool=false,
+    script_or_func              ::Union{String, Function}   ="app.jl";
+    host_name                   ::String                    ="localhost",
+    port                        ::Int                       =3443,
+    upload_max_size             ::Int                       =25*MiB,
+    upload_max_files            ::Int                       =10,
+    dot_magic_dir               ::Union{String, Nothing}    =nothing,
+    open_browser                ::Bool                      =true
 )::Nothing
 ```
 
@@ -27,38 +24,39 @@ function start_app(
  `port`        | An `Int` specifying the port number on which the server will listen. Default is `3443`.
  `upload_max_size` | An `Int` specifying the maximum file size acceptable by `file_uploader` widgets. Default is 25 MiB.
  `upload_max_files` | An `Int` specifying the maximum number of file acceptable by `file_uploader` widgets. Default is 10.
- `init_and_quit` | A `Bool`. If `true`, Magic will initialize the server and immediately return. Useful for automating dry-run tests.
- `verbose`    | A `Bool`. If `true`, Magic will log more information.
+ `dot_magic_dir` | A `String` specifying the [`.Magic` directory](/docs/build/docs/getting-started/basic-concepts#the-magic-directory) location. If `nothing` (default), the current working directory will be used.
+ `open_browser`    | A `Bool` indicating whether the default system browser should be open in the web app or not.
+ * | Other arguments have been ommited here because they are for developers only.
 
 ### Return Value
 
-Returns `nothing`.
+Returns `nothing`. Once called, this function blocks the current process and
+keeps the server running until it is stopped with `Ctrl+C`.
 
 ### Example
 
-Call this function from the REPL to start the web app:
+From the REPL:
 
 ```julia
 > using Magic
 > start_app("my-app.jl")
 ```
-
 """
 function start_app(
-    script_or_func::Union{String, Function}="app.jl";
-    host_name::String="localhost",
-    port::Int=3443,
-    upload_max_size::Int=25*MiB,
-    upload_max_files::Int=10,
-    dot_magic_dir::Union{String, Nothing}=nothing,
-    open_browser::Bool=true,
-    docs_path::Union{String, Nothing}=nothing,
-    init_and_quit::Bool=false,
-    callback::Union{Function, Nothing}=nothing,
-    verbose::Bool=false,
-    dev_mode::Bool=false,
-    rethrow_rerun_exceptions::Bool=false,
-    throw_client_side_error::Bool=false,
+    script_or_func              ::Union{String, Function}   ="app.jl";
+    host_name                   ::String                    ="localhost",
+    port                        ::Int                       =3443,
+    upload_max_size             ::Int                       =25*MiB,
+    upload_max_files            ::Int                       =10,
+    dot_magic_dir               ::Union{String, Nothing}    =nothing,
+    open_browser                ::Bool                      =true,
+    docs_path                   ::Union{String, Nothing}    =nothing,
+    init_and_quit               ::Bool                      =false,
+    callback                    ::Union{Function, Nothing}  =nothing,
+    verbose                     ::Bool                      =false,
+    dev_mode                    ::Bool                      =false,
+    rethrow_rerun_exceptions    ::Bool                      =false,
+    throw_client_side_error     ::Bool                      =false,
 )::Nothing
 
     # Input validation
@@ -890,11 +888,11 @@ const DOC_FIRST_PASS = """
 Family of `Bool` returning functions:
 
 - `is_app_first_pass()`: returns `true` it is the first time the app is being
-run, and `false` otherwise. See also: `@app_startup`.
+run, and `false` otherwise. See also: [`@app_startup`](/docs/build/docs/api-reference/application-logic/@app_startup-func).
 - `is_page_first_pass()`: returns `true` it is the first time the current page
-is being run, and `false` otherwise. See also: `@page_startup`.
+is being run, and `false` otherwise. See also: [`@page_startup`](/docs/build/docs/api-reference/application-logic/@page_startup-func).
 - `is_session_first_pass()`: returns `true` it is the first time the session
-is being run, and `false` otherwise. See also: `@session_startup`.
+is being run, and `false` otherwise. See also: [`@session_startup`](/docs/build/docs/api-reference/application-logic/@session_startup-func).
 """
 
 @doc DOC_FIRST_PASS
@@ -905,8 +903,8 @@ end
 """
 # @app_startup
 
-Macro to define a code block that should only be executed at the startup of the
-application (app dry-run). Usage:
+Macro to define a code block that is only executed at the startup of the
+application, that is, the app's dry-run. Usage:
 
 ```julia
 @app_startup begin
@@ -925,8 +923,9 @@ all of your app initialization logic inside a single `@app_startup` block near
 the top of your entry-point script (`app.jl` by default).
 
 Although apps are not required to have `@app_startup` code blocks, some
-initialization tasks should be only performed inside `@app_startup`
-code blocks. See below what you are expected to do inside `@app_startup` code blocks.
+initialization tasks can only be performed inside `@app_startup`
+code blocks. See below what you are expected to do inside `@app_startup`
+code blocks.
 
 ### 1. Definition of the app pages
 
@@ -939,6 +938,10 @@ code blocks. See below what you are expected to do inside `@app_startup` code bl
     add_page("/third-page")
 end
 ```
+
+After creating the pages in an `@app_startup` block, you should initialize each
+page in a `@page_startup` block. See [`@page_startup`](/docs/build/docs/api-reference/application-logic/set_title-func)
+to learn more.
 
 ### 2. Initialization of app persistent data
 
@@ -988,10 +991,26 @@ const DOC_FRAGMENT = """
 # Fragments
 
 A fragment is a function that can be rerun independently of the full app. It
-can be created using the the `fragment()` function or the `@fragment` macro.
+can be created using the `@fragment` macro or the `fragment` function.
 
 Use fragments to avoid rerunning the entire app script on every widget
 interaction.
+
+### The `@fragment` macro
+
+Turns a code block into a fragment. Usage:
+
+```julia
+@fragment begin
+    # code block
+end
+```
+
+Internally, `@fragment` creates a function with the passed code block as its
+body, and then calls `fragment()` to register the function as a fragment. This
+means that you should treat the code block as a function with closed scope,
+meaning that objects created inside a fragment won't be visible outside the
+fragment.
 
 ### The `fragment()` function
 
@@ -1007,20 +1026,6 @@ function fragment(func::Function; id::String=String(nameof(func)))
 :---------- |:-------------
  `func`   | The `Function` that will be isolated from the rest of the app.
  `id`   | A `String` to uniquely identify the fragment.
-
-### The `@fragment` macro
-
-Turns a code block into a fragment. Usage:
-
-```julia
-@fragment begin
-    # code block
-end
-```
-
-Internally, `@fragment` creates a function with the passed code block as its
-body, and then calls the function `fragment()` to register the function as
-a fragment.
 
 ## Example
 
@@ -1102,13 +1107,13 @@ const DOC_SESSION_PERSISTENT_DATA = """
 # Session persistent data
 
 Session persistent data is an user defined data that is bound to a session and
-whose lifetime is the lifetime of the session, i.e., as long as the session
+whose lifetime is the lifetime of the session, that is, as long as the session
 stays active the data will persist. Session persistent data can be retrieved at
 any moment using `get_session_data()` and is only visible to the current
 session.
 
 Although the session persistent data can be either mutable or immutable, a
-common practice is to define a mutable struct to store all of your sessions's
+good practice is to define a mutable struct to store all of the session
 data and store it with `set_session_data()` at the session startup. Example:
 
 ```julia
@@ -1209,15 +1214,15 @@ keep all of your session initialization logic inside a single `@session_startup`
 block after the page initialization logic.
 
 Although sessions are not required to have `@session_startup` code blocks, some
-initialization tasks should be only performed inside `@session_startup`
-code blocks. See below what you are expected to do inside `@session_startup`
-code blocks.
+initialization tasks can only be performed inside `@session_startup`
+code blocks. See below what you are expected to do inside `@session_startup` code
+blocks.
 
-### 1. Initialization of session persistent data
+### Initialization of session persistent data
 
 Session persistent data is a user defined data that is bound to a session and
-whose lifetime is the lifetime of the session, i.e., as long as the session is
-active the data will persist. Session persistent data can be retrieved at any
+whose lifetime is the lifetime of the session, that is, as long as the session
+is alive the data will persist. Session persistent data can be retrieved at any
 moment using `get_page_data()`.
 
 You can store data that you want to be available within a session via the
@@ -1318,11 +1323,11 @@ const DOC_PAGE_PERSISTENT_DATA = """
 # Page persistent data
 
 Page persistent data is an user defined data that is bound to a page and
-whose lifetime is the lifetime of the app, i.e., as long as the app is running
+whose lifetime is the lifetime of the app, that is, as long as the app is running
 the data will persist. Page persistent data can be retrieved at any moment using
 `get_page_data()` and is shared accross sessions.
 
-Although the page persistent data can be either mutable or immutable, a common
+Although the page persistent data can be either mutable or immutable, a good
 practice is to define a mutable struct to store all of your page's data and
 store it with `set_page_data()` at the page startup. Example:
 
@@ -1446,10 +1451,10 @@ end
 DOC_PAGE_STATIC_SETTINGS = """
 # Page static settings
 
-Page static settings are persistent page settings that can only be defined
-at the page's dry-run (`@page_startup`). The page static settings are used to
-build the static HTML that is served when a user accesses one of the page's
-URLs, which is why they cannot be changed after the page's dry-run.
+Page static settings are persistent page settings. These can only be defined
+at the page's dry-run, inside `@page_startup` code blocks. The page static
+settings are used to build the static HTML that is served when a user accesses
+the page, and include things like the page title and description.
 
 Example:
 
@@ -1460,11 +1465,12 @@ Example:
 end
 ```
 
-See below functions to customize different page static settings.
+See below what functions to use to customize different page static settings.
 
 ## set_title
 
-Sets the title of the current page (i.e. the HTML `<title>` tag).
+Sets the title of the current page, that is, the inner HTML of the `<title>`
+element.
 
 ### Function Signature
 
@@ -1478,8 +1484,8 @@ Argument        | Description
 
 ## set_description
 
-Sets the description of the current page (i.e. the HTML
-`<meta property="og:description">` tag).
+Sets the description of the current page, that is, the inner HTML of the
+`<meta property="og:description">` element.
 
 ### Function Signature
 
@@ -1509,7 +1515,7 @@ Argument        | Description
 
 ## add\\_css\\_rule
 
-Appends CSS rule(s) to the `head` of the current page.
+Appends CSS rule(s) to a style element inside the `head` of the current page.
 
 Example:
 
@@ -1541,14 +1547,14 @@ Injects arbitrary code into the HTML page served to the clients.
 Example:
 
 ```julia
-inject_html(html="<div>Hello!</div>")
+inject_html("<div>Hello!</div>")
 ```
 
 ### Function Signature
 
 ```julia
-function inject_html(;
-    html::String="",
+function inject_html(
+    html::String="";
     file_path::Union{String, Nothing}=nothing,
     location::String="body_bottom"
 )::Nothing
@@ -1556,9 +1562,9 @@ function inject_html(;
 
 Argument        | Description
 :---------------- |:-------------
- `html`        | `String` with the HTML code to be injected into the page.
- `file_path`   | `String` specifying the file containing the HTML that should be injected into the page.
- `location`   | `String` specifying the location *in the page* where the HTML should be injected. Possible values: `"body_bottom"` (default, injects near the bottom of the HTML body), `"body_top"` (injects near the top of the HTML body), `"head_bottom"` (injects near the bottom of the HTML head), `"head_top"` (injects near the top of the HTML head).
+ `html`        | `String` with the HTML code to be injected into the page. If the `file_path` argument is provided, this is ignored.
+ `file_path`   | `String` specifying the file containing the HTML that should be injected into the page. If this is provided, the `html` argument is ignored.
+ `location`   | `String` specifying the location *in the HTML page* where the provided HTML should be injected. Possible values: `"body_bottom"` (default, injects near the bottom of the HTML body), `"body_top"` (injects near the top of the HTML body), `"head_bottom"` (injects near the bottom of the HTML head), `"head_top"` (injects near the top of the HTML head).
 """
 
 function set_title(page::PageConfig, title::String)::Nothing
@@ -1713,8 +1719,8 @@ end
 """
 # @page_startup
 
-Macro to define a code block that should only be executed at the startup
-(dry-run) of the current page being run (i.e. the page associated with the URL
+Macro to define a code block that is only executed at the startup (dry-run)
+of the current page being run, that is, the page associated with the URL
 path returned by `get_url_path()`). Usage:
 
 ```julia
@@ -1735,30 +1741,30 @@ near the top of your page script file (or, if you have all of your pages in a
 single file, near the top of where the page's logic begins).
 
 Although pages are not required to have `@page_startup` code blocks, some
-initialization tasks should be only performed inside `@page_startup`
-code blocks. See below what you are expected to do inside `@page_startup` code
-blocks.
+initialization tasks can only be performed inside `@page_startup` code blocks.
+See below what you are expected to do inside `@page_startup` code blocks.
 
 ### 1. Page static settings
 
 Page static settings are persistent settings that are defined at the page's
-dry-run and that cannot be changed later. These include the page title,
-description, extra fonts and extra styles. The static settings related functions
-below can only be called inside `@page_startup` blocks
-(see [Page static settings](/docs/build/docs/api-reference/application-logic/set_title-func)
-to learn more).
-
-- `set_title()`
-- `set_description()`
-- `add_font()`
-- `add_css_rule()`
+dry-run. These are initialized once and that cannot be changed later, and
+include, among other things, the page title and description. The static settings
+related functions can only be called inside `@page_startup` blocks. See
+[Page static settings](/docs/build/docs/api-reference/application-logic/set_title-func)
+to learn more.
 
 Example:
 
 ```julia
-@page_startup begin
-    set_title("My Magic App")
-    set_description("An awesome app built with Magic.jl")
+@app_startup begin
+    add_page("/foo")
+end
+
+if is_on_page("/foo")
+    @page_startup begin
+        set_title("My Magic App")
+        set_description("An awesome app built with Magic.jl")
+    end
 end
 ```
 
@@ -1768,7 +1774,7 @@ served when a user accesses the page's URL.
 ### 2. Initialization of page persistent data
 
 Page persistent data is a user defined data that is bound to a page and
-whose lifetime is the lifetime of the app, i.e., as long as the app is running
+whose lifetime is the lifetime of the app, that is, as long as the app is running
 the data will persist. Page persistent data can be retrieved at any moment using
 `get_page_data()` and is shared accross sessions.
 
@@ -1776,6 +1782,25 @@ You can store data that you want to be available to all the sessions of a page
 via the `set_page_data()` function, and retrieve it using the `get_page_data()`
 function. See [Page persistent data](/docs/build/docs/api-reference/application-logic/set_page_data-func)
 to learn more.
+
+Example:
+
+```julia
+mutable struct PageFoo
+    data::Any
+end
+
+@app_startup begin
+    add_page("/foo")
+end
+
+if is_on_page("/foo")
+    @page_startup begin
+        page_data = PageFoo("data")
+        set_page_data(page_data)
+    end
+end
+```
 
 ## See also
 
@@ -1855,11 +1880,11 @@ const DOC_APP_PERSISTENT_DATA = """
 # App persistent data
 
 App persistent data is an user defined data whose lifetime is the lifetime of
-the app, i.e., as long as the app is running the data will persist. App
+the app, that is, as long as the app is running the data will persist. App
 persistent data can be retrieved at any moment using `get_app_data()` and is
 shared accross pages and sessions.
 
-Although the app persistent data can be either mutable or immutable, a common
+Although the app persistent data can be either mutable or immutable, a good
 practice is to define a mutable struct to store all of your app's data and store
 it with `set_app_data()` at the application startup. Example:
 
@@ -1938,9 +1963,15 @@ end
 """
 # get_dot_magic_dir
 
-Returns the location of the app's .Magic directory. By default, the .Magic
-directory is created in the process working directory, but this can be changed
-in the call to start_app() or via the command line.
+Returns the location of the app's [`.Magic` directory](/docs/build/docs/getting-started/basic-concepts#the-magic-directory).
+By default, the .Magic directory is created in the process working directory,
+but this can be changed in the call to `start_app()` or via the command line.
+
+### Function Signature
+
+```julia
+function get_dot_magic_dir()::String
+```
 """
 function get_dot_magic_dir()::String
     return g.dot_magic_dir
@@ -1949,8 +1980,14 @@ end
 """
 # get_dot_magic_path
 
-Returns the app's .Magic directory path. This is the same as
-`joinpath(get_dot_magic_dir(), ".Magic")`
+Returns the app's [`.Magic` directory](/docs/build/docs/getting-started/basic-concepts#the-magic-directory) path.
+This is equivalent to calling `joinpath(get_dot_magic_dir(), ".Magic")`
+
+### Function Signature
+
+```julia
+function get_dot_magic_path()::String
+```
 """
 function get_dot_magic_path()::String
     return joinpath(g.dot_magic_dir, ".Magic")
@@ -1973,14 +2010,15 @@ Generates a file path where you can save a file to be served in your app.
 Some widgets serve files to the client, such as
 [`image`](/docs/build/docs/api-reference/interface-elements/image-func),
 which serves an image in a given system path. Such widgets can only serve
-resources that live inside your project's `.Magic/served-files/` directory and
+files that live inside your project's `.Magic/served-files/` directory and
 subdirectories.
 
 `gen_serveable_path()` is a convenience function to be used when you want
-don't care for the name of the file you want to serve, nor where it lives, as
-long as it is "serveable", i.e. it lives somewhere inside `.Magic/served-files/`.
-`gen_serveable_path()` generates a path with a random file name with a given
-extension inside `.Magic/served-files/generated`. You are then supposed to save your
+don't care for the name of the file you want to serve, nor where exactly it
+lives, as long as it is "serveable", that is, as long as it lives somewhere
+inside `.Magic/served-files/` somewhere. `gen_serveable_path()` generates a path
+with a random file name with a given extension inside
+`.Magic/served-files/generated`. You are then supposed to save your
 file in the returned path and pass this path to the wiget you want.
 
 For instance, consider an app that displays a plot given some user input. The
@@ -2000,7 +2038,7 @@ also helps to avoid browser caching issues. For instance, in the above example,
 suppose that instead of saving the plot in a random serveable path everytime the
 plot is regenerated we always saved it in the same serveable path. Most browsers
 will automatically cache the image associated with a path, so newly generated
-images in the same path would never be requested by these browsers.
+images in the same path would never be requested in this situation.
 Serving the newly generated plot in the path returned by `gen_serveable_path()`
 prevents that from happening.
 
@@ -2224,8 +2262,8 @@ function gen_docs()::Nothing
     objects = [:start_app, Symbol("@app_startup"), Symbol("@page_startup"),
                Symbol("@session_startup"), Symbol("@fragment"), :set_app_data,
                :set_page_data, :set_session_data, :gen_serveable_path,
-               :make_serveable_copy, :move_to_serveable_dir, :is_on_page,
-               :is_app_first_pass, :set_title]
+               :make_serveable_copy, :move_to_serveable_dir, :get_dot_magic_dir,
+               :get_dot_magic_path, :is_on_page, :is_app_first_pass, :set_title]
 
     for (i, object) in enumerate(objects)
         save_doc(getfield(Magic, object), joinpath(doc_logic_dir, "$(object)-func.md"), i)

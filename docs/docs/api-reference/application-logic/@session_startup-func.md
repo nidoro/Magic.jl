@@ -18,11 +18,11 @@ Internally, this macro is implemented by checking the result of [`is_session_fir
 
 You can define multiple `@session_startup` code blocks, but we recommend you to keep all of your session initialization logic inside a single `@session_startup` block after the page initialization logic.
 
-Although sessions are not required to have `@session_startup` code blocks, some initialization tasks should be only performed inside `@session_startup` code blocks. See below what you are expected to do inside `@session_startup` code blocks.
+Although sessions are not required to have `@session_startup` code blocks, some initialization tasks can only be performed inside `@session_startup` code blocks. See below what you are expected to do inside `@session_startup` code blocks.
 
-### 1. Initialization of session persistent data
+### Initialization of session persistent data
 
-Session persistent data is a user defined data that is bound to a session and whose lifetime is the lifetime of the session, i.e., as long as the session is active the data will persist. Session persistent data can be retrieved at any moment using `get_page_data()`.
+Session persistent data is a user defined data that is bound to a session and whose lifetime is the lifetime of the session, that is, as long as the session is alive the data will persist. Session persistent data can be retrieved at any moment using `get_page_data()`.
 
 You can store data that you want to be available within a session via the `set_session_data()` function, and retrieve it using the `get_session_data()` function. See [Session persistent data](/docs/build/docs/api-reference/application-logic/set_session_data-func) to learn more.
 

@@ -4,7 +4,7 @@ sidebar_position: 2
 
 # @app_startup
 
-Macro to define a code block that should only be executed at the startup of the application (app dry-run). Usage:
+Macro to define a code block that is only executed at the startup of the application, that is, the app's dry-run. Usage:
 
 ```julia
 @app_startup begin
@@ -18,7 +18,7 @@ Internally, this macro is implemented by checking the result of [`is_app_first_p
 
 You can define multiple `@app_startup` code blocks, but we recommend you to keep all of your app initialization logic inside a single `@app_startup` block near the top of your entry-point script (`app.jl` by default).
 
-Although apps are not required to have `@app_startup` code blocks, some initialization tasks should be only performed inside `@app_startup` code blocks. See below what you are expected to do inside `@app_startup` code blocks.
+Although apps are not required to have `@app_startup` code blocks, some initialization tasks can only be performed inside `@app_startup` code blocks. See below what you are expected to do inside `@app_startup` code blocks.
 
 ### 1. Definition of the app pages
 
@@ -32,6 +32,8 @@ Although apps are not required to have `@app_startup` code blocks, some initiali
     add_page("/third-page")
 end
 ```
+
+After creating the pages in an `@app_startup` block, you should initialize each page in a `@page_startup` block. See [`@page_startup`](/docs/build/docs/api-reference/application-logic/set_title-func) to learn more.
 
 ### 2. Initialization of app persistent data
 
