@@ -904,7 +904,7 @@ end
 # @app_startup
 
 Macro to define a code block that is only executed at the startup of the
-application, that is, the app's dry-run. Usage:
+application, during the app's dry-run. Usage:
 
 ```julia
 @app_startup begin
@@ -939,14 +939,14 @@ code blocks.
 end
 ```
 
-After creating the pages in an `@app_startup` block, you should initialize each
+After creating the pages in an `@app_startup` block, you can configure each
 page in a `@page_startup` block. See [`@page_startup`](/docs/build/docs/api-reference/application-logic/set_title-func)
 to learn more.
 
 ### 2. Initialization of app persistent data
 
 App persistent data is an user defined data whose lifetime is the lifetime of
-the app, i.e., as long as the app is running the data will persist. App
+the app, meaning that as long as the app is running the data will persist. App
 persistent data can be retrieved at any moment using `get_app_data()` and is
 shared accross sessions.
 
@@ -1107,7 +1107,7 @@ const DOC_SESSION_PERSISTENT_DATA = """
 # Session persistent data
 
 Session persistent data is an user defined data that is bound to a session and
-whose lifetime is the lifetime of the session, that is, as long as the session
+whose lifetime is the lifetime of the session, meaning that as long as the session
 stays active the data will persist. Session persistent data can be retrieved at
 any moment using `get_session_data()` and is only visible to the current
 session.
@@ -1194,7 +1194,7 @@ end
 """
 # @session_startup
 
-Macro to define a code block that should only executed at a session's first run.
+Macro to define a code block that is only executed at a session's first run.
 Usage:
 
 ```julia
@@ -1221,7 +1221,7 @@ blocks.
 ### Initialization of session persistent data
 
 Session persistent data is a user defined data that is bound to a session and
-whose lifetime is the lifetime of the session, that is, as long as the session
+whose lifetime is the lifetime of the session, meaning that as long as the session
 is alive the data will persist. Session persistent data can be retrieved at any
 moment using `get_page_data()`.
 
@@ -1281,6 +1281,28 @@ function unescape_uri(s::AbstractString)::String
     return String(take!(io))
 end
 
+"""
+# get\\_url\\_search
+
+Returns the search string part of the URL used by the client to access the web
+app.
+
+> **🛈 NOTE**: This returns the raw search string. If you would like to retrieve
+> it with query parameters already parsed, check out `get_query_params`.
+
+### Function Signature
+
+```julia
+function get_url_search()::String
+```
+
+## See also
+
+- [`get_server_host`](/docs/build/docs/api-reference/application-logic/get_server_host-func)
+- [`get_server_port`](/docs/build/docs/api-reference/application-logic/get_server_port-func)
+- [`get_server_origin`](/docs/build/docs/api-reference/application-logic/get_server_origin-func)
+- [`get_query_params`](/docs/build/docs/api-reference/application-logic/get_query_params-func)
+"""
 function get_url_search()::String
     task = task_local_storage("app_task")
     return task.session.location["search"]
@@ -1291,6 +1313,25 @@ function get_url_search(client_id::Cint)::String
     return session.location["search"]
 end
 
+"""
+# get\\_query\\_params
+
+Returns a `Dict` with the key-value pairs in the search string part of the URL
+used by the client to access the web app.
+
+### Function Signature
+
+```julia
+function get_query_params()::Dict
+```
+
+## See also
+
+- [`get_server_host`](/docs/build/docs/api-reference/application-logic/get_server_host-func)
+- [`get_server_port`](/docs/build/docs/api-reference/application-logic/get_server_port-func)
+- [`get_server_origin`](/docs/build/docs/api-reference/application-logic/get_server_origin-func)
+- [`get_url_search`](/docs/build/docs/api-reference/application-logic/get_url_search-func)
+"""
 function get_query_params()::Dict
     return parse_query(get_url_search())
 end
@@ -1323,7 +1364,7 @@ const DOC_PAGE_PERSISTENT_DATA = """
 # Page persistent data
 
 Page persistent data is an user defined data that is bound to a page and
-whose lifetime is the lifetime of the app, that is, as long as the app is running
+whose lifetime is the lifetime of the app, meaning that as long as the app is running
 the data will persist. Page persistent data can be retrieved at any moment using
 `get_page_data()` and is shared accross sessions.
 
@@ -1719,9 +1760,8 @@ end
 """
 # @page_startup
 
-Macro to define a code block that is only executed at the startup (dry-run)
-of the current page being run, that is, the page associated with the URL
-path returned by `get_url_path()`). Usage:
+Macro to define a code block that is only executed at the startup
+of the currently requested page, during the page's dry-run. Usage:
 
 ```julia
 @page_startup begin
@@ -1737,8 +1777,8 @@ and running the `@page_startup` code block only if it returns `true`.
 
 You can define multiple `@page_startup` code blocks, but we recommend you to
 keep all of your page initialization logic inside a single `@page_startup` block
-near the top of your page script file (or, if you have all of your pages in a
-single file, near the top of where the page's logic begins).
+near the top of your page script file, or, if you have all of your pages in a
+single file, near the top of where the page's logic begins.
 
 Although pages are not required to have `@page_startup` code blocks, some
 initialization tasks can only be performed inside `@page_startup` code blocks.
@@ -1749,7 +1789,9 @@ See below what you are expected to do inside `@page_startup` code blocks.
 Page static settings are persistent settings that are defined at the page's
 dry-run. These are initialized once and that cannot be changed later, and
 include, among other things, the page title and description. The static settings
-related functions can only be called inside `@page_startup` blocks. See
+related functions can only be called inside `@page_startup` blocks.
+Internally, these static settings are used to build the static HTML that is
+served when a user accesses the page's URL. See
 [Page static settings](/docs/build/docs/api-reference/application-logic/set_title-func)
 to learn more.
 
@@ -1768,13 +1810,10 @@ if is_on_page("/foo")
 end
 ```
 
-Internally, these static settings are used to build the static HTML that is
-served when a user accesses the page's URL.
-
 ### 2. Initialization of page persistent data
 
 Page persistent data is a user defined data that is bound to a page and
-whose lifetime is the lifetime of the app, that is, as long as the app is running
+whose lifetime is the lifetime of the app, meaning tht as long as the app is running
 the data will persist. Page persistent data can be retrieved at any moment using
 `get_page_data()` and is shared accross sessions.
 
@@ -1880,7 +1919,7 @@ const DOC_APP_PERSISTENT_DATA = """
 # App persistent data
 
 App persistent data is an user defined data whose lifetime is the lifetime of
-the app, that is, as long as the app is running the data will persist. App
+the app, meaning that as long as the app is running the data will persist. App
 persistent data can be retrieved at any moment using `get_app_data()` and is
 shared accross pages and sessions.
 
@@ -1950,18 +1989,54 @@ function set_callback(callback::Function)::Nothing
     return nothing
 end
 
+# Misc
+#------------
+"""
+# get\\_server\\_host
+
+Returns the configured server host `String`.
+
+### Function Signature
+
+```julia
+function get_server_host()::String
+```
+
+## See also
+
+- [`get_server_port`](/docs/build/docs/api-reference/application-logic/get_server_port-func)
+- [`get_server_origin`](/docs/build/docs/api-reference/application-logic/get_server_origin-func)
+- [`get_url_search`](/docs/build/docs/api-reference/application-logic/get_url_search-func)
+- [`get_query_params`](/docs/build/docs/api-reference/application-logic/get_query_params-func)
+"""
 function get_server_host()::String
     return "$(g.host_name):$(g.port)"
 end
 
+"""
+# get\\_server\\_origin
+
+Returns the configured server origin `String`.
+
+### Function Signature
+
+```julia
+function get_server_origin()::String
+```
+
+## See also
+
+- [`get_server_host`](/docs/build/docs/api-reference/application-logic/get_server_host-func)
+- [`get_server_port`](/docs/build/docs/api-reference/application-logic/get_server_port-func)
+- [`get_url_search`](/docs/build/docs/api-reference/application-logic/get_url_search-func)
+- [`get_query_params`](/docs/build/docs/api-reference/application-logic/get_query_params-func)
+"""
 function get_server_origin()::String
     return "http$(is_https_enabled() ? "s" : "")://$(get_server_host())"
 end
 
-# Misc
-#------------
 """
-# get_dot_magic_dir
+# get\\_dot\\_magic\\_dir
 
 Returns the location of the app's [`.Magic` directory](/docs/build/docs/getting-started/basic-concepts#the-magic-directory).
 By default, the .Magic directory is created in the process working directory,
@@ -1978,7 +2053,7 @@ function get_dot_magic_dir()::String
 end
 
 """
-# get_dot_magic_path
+# get\\_dot\\_magic\\_path
 
 Returns the app's [`.Magic` directory](/docs/build/docs/getting-started/basic-concepts#the-magic-directory) path.
 This is equivalent to calling `joinpath(get_dot_magic_dir(), ".Magic")`
@@ -2092,7 +2167,7 @@ end
 Saves a serveable copy of a file inside `.Magic/served-files/`. This is a
 convenience function that calls `gen_serveable_path()` and `cp()` to create a
 serveable copy of a file. If you want to move the file to make it serveable
-instead of creating a serveable copy, call
+instead of creating a serveable copy, use
 [`move_to_serveable_dir()`](/docs/build/docs/api-reference/application-logic/move_to_serveable_dir-func)
 instead.
 
@@ -2262,8 +2337,10 @@ function gen_docs()::Nothing
     objects = [:start_app, Symbol("@app_startup"), Symbol("@page_startup"),
                Symbol("@session_startup"), Symbol("@fragment"), :set_app_data,
                :set_page_data, :set_session_data, :gen_serveable_path,
-               :make_serveable_copy, :move_to_serveable_dir, :get_dot_magic_dir,
-               :get_dot_magic_path, :is_on_page, :is_app_first_pass, :set_title]
+               :make_serveable_copy, :move_to_serveable_dir, :get_dot_magic_path,
+               :get_dot_magic_dir, :is_on_page, :is_app_first_pass, :set_title,
+               :get_url_search, :get_query_params, :get_server_host,
+               :get_server_port, :get_server_origin]
 
     for (i, object) in enumerate(objects)
         save_doc(getfield(Magic, object), joinpath(doc_logic_dir, "$(object)-func.md"), i)
