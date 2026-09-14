@@ -1,4 +1,4 @@
-### v0.8.0 (xxxx-xx-xx)
+### v0.8.0 (2026-09-13)
 
 - Breaking: complete rewrite of the `metric` widget, changing its signature.
 - Breaking: implemented type inference for `number_input` and `slider` based on
