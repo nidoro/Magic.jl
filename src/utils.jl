@@ -306,3 +306,14 @@ end
 function maybe_prepend(str::AbstractString, prefix::String)::String
     return startswith(str, prefix) ? str : prefix * str
 end
+
+function ensure_app_task_exists(func::Union{Function, Nothing}=nothing)::AppTask
+    if haskey(task_local_storage(), "magic_app_task")
+        task = task_local_storage("magic_app_task")
+        if task isa AppTask
+            return task
+        end
+    end
+    throw(IncorrectUsage(func))
+end
+

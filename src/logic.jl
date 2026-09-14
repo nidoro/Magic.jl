@@ -506,7 +506,7 @@ function handle_client_left(client_id::Cint)::Nothing
 end
 
 function run_user_script()::Nothing
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     if g.script_or_func isa String
         Base.include(task.session.app_mod, g.script_or_func)
     else
@@ -539,7 +539,7 @@ function rerun(client_id::Cint, payload::Dict)::Task
 
     session.rerun_task = Threads.@spawn try
         task = AppTask()
-        task_local_storage("app_task", task)
+        task_local_storage("magic_app_task", task)
         task.task = current_task()
         task.client_id = client_id
         task.session = session
@@ -727,7 +727,7 @@ function rerun(client_id::Cint, payload::Dict)::Task
         end
 
     catch e
-        task = task_local_storage("app_task")
+        task = ensure_app_task_exists()
 
         if !task.session.client_left
             session.rerun_error = get_rerun_error(e)
@@ -972,18 +972,18 @@ end
 # Fragment
 #-----------------------
 function push_fragment(frag::Fragment)::Nothing
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     push!(task.fragment_stack, frag)
     return nothing
 end
 
 function pop_fragment()::Fragment
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     return pop!(task.fragment_stack)
 end
 
 function top_fragment()::Fragment
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     return task.fragment_stack[end]
 end
 
@@ -1065,7 +1065,7 @@ incremented.
 
 @doc DOC_FRAGMENT
 function fragment(func::Function; id::String=String(nameof(func)))
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
 
     wrapper = create_container(
         top_container(),
@@ -1165,7 +1165,7 @@ function get_session_data()::Any
 
 @doc DOC_SESSION_PERSISTENT_DATA
 function get_session_data()::Any
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     return task.session.user_session_data
 end
 
@@ -1180,14 +1180,14 @@ end
 
 @doc DOC_SESSION_PERSISTENT_DATA
 function set_session_data(session_data::Any)::Nothing
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     task.session.user_session_data = session_data
     return nothing
 end
 
 @doc DOC_FIRST_PASS
 function is_session_first_pass()::Bool
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     return task.session.first_pass
 end
 
@@ -1243,8 +1243,24 @@ macro session_startup(block)
     )
 end
 
+"""
+# get\\_url\\_path
+
+Returns the path part of the URL used by the client to access the web app.
+
+### Function Signature
+
+```julia
 function get_url_path()::String
-    task = task_local_storage("app_task")
+```
+
+## See also
+
+- [`get_url_search`](/docs/build/docs/api-reference/application-logic/get_url_search-func)
+- [`get_query_params`](/docs/build/docs/api-reference/application-logic/get_query_params-func)
+"""
+function get_url_path()::String
+    task = ensure_app_task_exists()
     return task.session.location["pathname"]
 end
 
@@ -1304,7 +1320,7 @@ function get_url_search()::String
 - [`get_query_params`](/docs/build/docs/api-reference/application-logic/get_query_params-func)
 """
 function get_url_search()::String
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     return task.session.location["search"]
 end
 
@@ -1609,6 +1625,7 @@ Argument        | Description
 """
 
 function set_title(page::PageConfig, title::String)::Nothing
+    ensure_app_task_exists()
     if !(page.first_pass || is_app_first_pass()) throw(PastStartupCall("set_title", "page")) end
     page.title = title
     return nothing
@@ -1616,7 +1633,7 @@ end
 
 @doc DOC_PAGE_STATIC_SETTINGS
 function set_title(title::String)::Nothing
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     return set_title(task.current_page, title)
 end
 
@@ -1628,7 +1645,7 @@ end
 
 @doc DOC_PAGE_STATIC_SETTINGS
 function set_description(description::String)::Nothing
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     return set_description(task.current_page, description)
 end
 
@@ -1655,7 +1672,7 @@ end
 
 @doc DOC_PAGE_STATIC_SETTINGS
 function add_font(font_name::String, src_or_path::String)::Nothing
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     add_font(task.current_page, font_name, src_or_path)
     return nothing
 end
@@ -1668,7 +1685,7 @@ end
 
 @doc DOC_PAGE_STATIC_SETTINGS
 function add_css_rule(style::String)::Nothing
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     return add_css_rule(task.current_page, style)
 end
 
@@ -1689,18 +1706,18 @@ end
 
 @doc DOC_PAGE_STATIC_SETTINGS
 function inject_html(html::String=""; file_path::Union{String, Nothing}=nothing, location::String="body_bottom")::Nothing
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     return inject_html(task.current_page, html, file_path=file_path, location=location)
 end
 
 function begin_page_config(page::PageConfig)::Nothing
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     task.current_page = page
     return nothing
 end
 
 function end_page_config()::Nothing
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     task.current_page = g.base_page_config
     return nothing
 end
@@ -2136,7 +2153,7 @@ A random file path inside `.Magic/served-files/generated/` with extension
 function gen_serveable_path(extension::String=""; lifetime::String="session")::String
     assert_string_in_list(@named(lifetime), ["session", "app"])
 
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     if length(extension) > 0
         if extension[1] != '.'
             extension = '.' * extension
@@ -2339,7 +2356,7 @@ function gen_docs()::Nothing
                :set_page_data, :set_session_data, :gen_serveable_path,
                :make_serveable_copy, :move_to_serveable_dir, :get_dot_magic_path,
                :get_dot_magic_dir, :is_on_page, :is_app_first_pass, :set_title,
-               :get_url_search, :get_query_params, :get_server_host,
+               :get_url_path, :get_url_search, :get_query_params, :get_server_host,
                :get_server_port, :get_server_origin]
 
     for (i, object) in enumerate(objects)

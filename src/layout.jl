@@ -21,7 +21,7 @@ function create_interface(container::Dict)::ContainerInterface
     interface = ContainerInterface()
     interface.container = container
 
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     widgets = task.session.widgets
 
     for func in CONTAINER_INTERFACE_FUNCS
@@ -237,19 +237,19 @@ The container on the top of the container stack.
 
 @doc DOC_PUSH_POP_CONTAINER
 function push_container(i_container::ContainerInterface)::ContainerInterface
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     push!(task.container_stack, i_container)
     return i_container
 end
 
 @doc DOC_PUSH_POP_CONTAINER
 function pop_container()::ContainerInterface
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     return pop!(task.container_stack)
 end
 
 function top_container()::Dict
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     return task.container_stack[end].container
 end
 
@@ -816,7 +816,7 @@ function set_page_layout(
     containers.left_sidebar = left_sidebar
     containers.right_sidebar = right_sidebar
 
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     task.layout = containers
 
     return containers
@@ -872,7 +872,7 @@ end
 ```
 """
 function main_area(inner_func::Function)::ContainerInterface
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     push_container(task.layout.main_area)
     inner_func()
     pop_container()
@@ -933,7 +933,7 @@ end
 
 @doc DOC_SIDEBARS
 function left_sidebar(inner_func::Function)::ContainerInterface
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     if task.layout.left_sidebar == nothing
         throw(ArgumentError(
             "Your layout does not have a left sidebar. To create one,\n" *
@@ -948,7 +948,7 @@ end
 
 @doc DOC_SIDEBARS
 function right_sidebar(inner_func::Function)::ContainerInterface
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     if task.layout.right_sidebar == nothing
         throw(ArgumentError(
             "Your layout does not have a left sidebar. To create one,\n" *

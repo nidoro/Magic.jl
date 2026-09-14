@@ -117,7 +117,7 @@ function button(
     args    ::Union{Vector, Tuple}  =Vector()
 )::Bool
 
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     widgets = task.session.widgets
     return create_button(widgets, top_container(), label, style, icon, onclick, args, nothing, nothing)
 end
@@ -198,7 +198,7 @@ function download_button(
     args        ::Union{Vector, Tuple}      =Vector()
 )::Bool
 
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     widgets = task.session.widgets
     if file_name === nothing
         file_name = basename(file_path)
@@ -315,7 +315,7 @@ function text_input(
     css             ::Dict                      =Dict()
 )::Union{String, Nothing}
 
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     parent = top_container()
     widgets = task.session.widgets
 
@@ -519,7 +519,7 @@ function number_input(
     css                 ::Dict                          =Dict()
 )::Union{Real, Nothing}
 
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     parent = top_container()
     widgets = task.session.widgets
 
@@ -709,7 +709,7 @@ function slider(
     css                 ::Dict                          =Dict()
 )::Real
 
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     parent = top_container()
     widgets = task.session.widgets
 
@@ -924,7 +924,7 @@ function selectbox(
     css          ::Dict                   =Dict()
 )::Union{String, Number, Vector, Tuple, Nothing}
 
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     parent = top_container()
     widgets = task.session.widgets
 
@@ -1064,7 +1064,7 @@ function color_picker(
     css             ::Dict                      =Dict()
 )::String
 
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     parent = top_container()
     widgets = task.session.widgets
 
@@ -1247,7 +1247,7 @@ function checkbox(
     args         ::Vector               =Vector()
 )::Bool
 
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     widgets = task.session.widgets
 
     init_value = nothing
@@ -1303,7 +1303,7 @@ function checkboxes(
     args         ::Vector                           =Vector()
 )::Union{Vector, Tuple}
 
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     widgets = task.session.widgets
     return create_checkboxes(widgets, top_container(), id, label, options, initial_value, true, onchange, args)
 end
@@ -1418,7 +1418,7 @@ function radio(
     initial_value   ::Union{String, Number, Nothing}    =nothing
 )::Union{String, Number}
 
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     widgets = task.session.widgets
     return create_radio(widgets, top_container(), id, label, options, initial_value)
 end
@@ -1511,7 +1511,7 @@ function image(
     css         ::Dict                      =Dict("height" => "auto")
 )::String
 
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     widgets = task.session.widgets
 
     if !haskey(css, "flex-grow") && !haskey(css, "width")
@@ -1652,7 +1652,7 @@ function dataframe(
     args::Vector=Vector()
 )::DataFrame
 
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     widgets = task.session.widgets
 
     cc = Dict()
@@ -1851,7 +1851,7 @@ function file_uploader(
     max_files = !multiple ? 1 : max_files
     max_files = isnothing(max_files) ? g.upload_max_files : max_files
 
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     widgets = task.session.widgets
     parent = top_container()
 
@@ -2225,7 +2225,7 @@ function code(
     css                 ::Dict                    =Dict("overflow-y" => "auto")
 )::String
 
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     widgets = task.session.widgets
 
     if !isnothing(initial_value_file)
@@ -2520,7 +2520,7 @@ function set_default_value(id::String, value::Any)::Nothing
 
 @doc DOC_WIDGET_VALUE set_default_value
 function set_default_value(user_id::String, value::Any)::Nothing
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     task.session.widget_defaults[user_id] = value
     widget = get_widget_by_user_id(task.session.widgets, user_id)
     if widget !== missing
@@ -2538,13 +2538,13 @@ end
 
 @doc DOC_WIDGET_VALUE get_default_value
 function get_default_value(user_id::String)::Any
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     return get_widget_default_value(task.session, user_id)
 end
 
 @doc DOC_WIDGET_VALUE set_value
 function set_value(user_id::String, value::Any)::Any
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     widget = get_widget_by_user_id(task.session.widgets, user_id)
     if !ismithing(widget)
         if widget.kind == WidgetKind_Selectbox
@@ -2728,7 +2728,7 @@ end
 
 @doc DOC_WIDGET_VALUE get_value
 function get_value(user_id::String)::Any
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     return get_widget_value(task.session, user_id)
 end
 
@@ -2738,7 +2738,7 @@ function get_widget_value(client_id::Cint, user_id::String)::Any
 end
 
 function get_changes(user_id::String)::Union{Missing, Dict{Int, Dict{String, Any}}}
-    task = task_local_storage("app_task")
+    task = ensure_app_task_exists()
     widget = get_widget_by_user_id(task.session.widgets, user_id)
     if widget === missing
         return missing

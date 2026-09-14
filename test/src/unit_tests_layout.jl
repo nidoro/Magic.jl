@@ -5,6 +5,8 @@
     ------------------------------------------------------------------------
     """
 
+    @test_throws Magic.IncorrectUsage set_page_layout("wide")
+
     # Tests that don't throw exceptions
     #--------------------------------------
     tests = [
@@ -48,6 +50,11 @@ end
     ------------------------------------------------------------------------
     """
 
+    @test_throws Magic.IncorrectUsage column()
+    @test_throws Magic.IncorrectUsage row()
+    @test_throws Magic.IncorrectUsage container()
+    @test_throws Magic.IncorrectUsage columns(2)
+
     # Tests that don't throw exceptions
     #--------------------------------------
     tests = [
@@ -60,7 +67,6 @@ end
             row(attributes=Dict(:id => "foo", "tabindex" => 1))
             container(css=Dict(:background => "red", "opacity" => 0.5))
             container(attributes=Dict(:id => "foo", "tabindex" => 1))
-
             columns((20,80), css=Dict(:background => "red", "opacity" => 0.5))
         end
     ]

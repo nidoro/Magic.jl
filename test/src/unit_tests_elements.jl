@@ -10,6 +10,7 @@
     function test_onclick() button("Button", onclick=()->(), args=(1,2,3)) end
 
     @maybe_suppress begin
+        @test_throws Magic.IncorrectUsage button("Button")
         @test_throws Magic.InvalidArgument start_app(test_style, port=PORT, dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true)
         @test_throws Magic.InvalidArgument start_app(test_icon, port=PORT, dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true)
         @test_throws Magic.InvalidArgument start_app(test_onclick, port=PORT, dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true)
@@ -22,6 +23,8 @@ end
     Test: simple selectbox(...) input validation and initialization
     ------------------------------------------------------------------------
     """
+
+    @test_throws Magic.IncorrectUsage selectbox("Select Box", [1,2,3])
 
     # Tests that don't throw exceptions
     #--------------------------------------
@@ -215,6 +218,8 @@ end
     ------------------------------------------------------------------------
     """
 
+    @test_throws Magic.IncorrectUsage checkbox("Checkbox")
+
     # Tests that don't throw exceptions
     #--------------------------------------
     tests = [
@@ -307,6 +312,8 @@ end
     Test: checkboxes(...) input validation and initialization
     ------------------------------------------------------------------------
     """
+
+    @test_throws Magic.IncorrectUsage checkboxes("Checkboxes", [1,2,3])
 
     # Tests that don't throw exceptions
     #--------------------------------------
@@ -413,6 +420,8 @@ end
     ------------------------------------------------------------------------
     """
 
+    @test_throws Magic.IncorrectUsage radio("Radio", [1,2,3])
+
     # Tests that don't throw exceptions
     #--------------------------------------
     tests = [
@@ -510,6 +519,8 @@ end
     ------------------------------------------------------------------------
     """
 
+    @test_throws Magic.IncorrectUsage text_input("Text Input")
+
     # Tests that don't throw exceptions
     #--------------------------------------
     tests = [
@@ -571,6 +582,8 @@ end
     Test: number_input(...) input validation and initialization
     ------------------------------------------------------------------------
     """
+
+    @test_throws Magic.IncorrectUsage number_input("Number Input")
 
     # Tests that don't throw exceptions
     #--------------------------------------
@@ -653,6 +666,8 @@ end
     Test: slider(...) input validation and initialization
     ------------------------------------------------------------------------
     """
+
+    @test_throws Magic.IncorrectUsage slider("Slider")
 
     # Tests that don't throw exceptions
     #--------------------------------------
@@ -770,6 +785,9 @@ end
     Test: file_uploader(...) input validation
     ------------------------------------------------------------------------
     """
+
+    @test_throws Magic.IncorrectUsage file_uploader("File Uploader")
+
     # Tests that throw InvalidArgument
     #-----------------------------------
     tests = [
@@ -824,6 +842,8 @@ end
     ------------------------------------------------------------------------
     """
 
+    @test_throws Magic.IncorrectUsage download_button("Download", @__FILE__)
+
     # Tests that throw InvalidArgument
     #-----------------------------------
     tests = [
@@ -867,6 +887,7 @@ end
             download_button("Download", valid_file; onclick=()->(), args=(1,2,3))
         end,
     ]
+
     @maybe_suppress begin
         for test in tests
             @test_throws Magic.InvalidArgument start_app(test, port=PORT, dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true)
@@ -880,6 +901,8 @@ end
     Test: link(...) input validation
     ------------------------------------------------------------------------
     """
+    @test_throws Magic.IncorrectUsage link("Link", "https://google.com")
+
     function test_style()   link("Link", "https://google.com", style="INVALID_STYLE") end
 
     @maybe_suppress begin
@@ -893,6 +916,8 @@ end
     Test: color_picker(...) input validation and initialization
     ------------------------------------------------------------------------
     """
+
+    @test_throws Magic.IncorrectUsage color_picker("Color Picker")
 
     # Tests that don't throw exceptions
     #--------------------------------------
@@ -975,6 +1000,8 @@ end
     ------------------------------------------------------------------------
     """
 
+    @test_throws Magic.IncorrectUsage image("../examples/.Magic/served-files/images/liberty.jpg")
+
     # Tests that don't throw exceptions
     #--------------------------------------
     tests = [
@@ -1006,6 +1033,13 @@ end
     ------------------------------------------------------------------------
     """
 
+    @test_throws Magic.IncorrectUsage h1("Header")
+    @test_throws Magic.IncorrectUsage h2("Header")
+    @test_throws Magic.IncorrectUsage h3("Header")
+    @test_throws Magic.IncorrectUsage h4("Header")
+    @test_throws Magic.IncorrectUsage h5("Header")
+    @test_throws Magic.IncorrectUsage h6("Header")
+
     # Tests that throw exceptions
     #--------------------------------------
     tests = [
@@ -1032,6 +1066,8 @@ end
     Test: code(...) input validation and initialization
     ------------------------------------------------------------------------
     """
+
+    @test_throws Magic.IncorrectUsage code(initial_value_file=@__FILE__)
 
     # Tests that throw exceptions
     #--------------------------------------

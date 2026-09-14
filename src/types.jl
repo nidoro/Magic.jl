@@ -317,6 +317,7 @@ struct InvalidArgument          <: MagicError arg::Tuple; info::String end
 struct PastStartupCall          <: MagicError func::String; moment::String end
 struct ClientSideError          <: MagicError payload::Dict end
 struct TestFailed               <: MagicError test_id::String; info::String end
+struct IncorrectUsage           <: MagicError func::Union{Function, Nothing} end
 
 # To be used with InvalidArgument
 macro named(expr)
@@ -328,6 +329,7 @@ Base.showerror(io::IO, e::InvalidArgument) = print(io, "Invalid value to argumen
 Base.showerror(io::IO, e::PastStartupCall) = print(io, "PastStartupCall: `$(e.func)` can only be called at $(e.moment) startup.\nYou most likely want to wrap this call in a `@$(e.moment)_startup` initialization block, or check if `is_$(e.moment)_first_pass()` returns true before calling `$(e.func)`.")
 Base.showerror(io::IO, e::ClientSideError) = print(io, "Client side error:\n$(JSON.json(e.payload, 4))")
 Base.showerror(io::IO, e::TestFailed)      = print(io, "Test failed: $(e.test_id)\n$(e.info)")
+Base.showerror(io::IO, e::IncorrectUsage)  = print(io, "Incorrect Magic usage: $(isnothing(e.func) ? "This function" : "`$(string(nameof(e.func)))`"), like most of Magic's functions, can only be called in a script or function passed to `start_app()`.\nEnter `?Magic` in the REPL to learn more.")
 
 # Colored log utils. AC stands for "ANSI Color"
 #------------------------------------------------

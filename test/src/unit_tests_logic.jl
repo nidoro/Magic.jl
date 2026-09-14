@@ -45,6 +45,12 @@ end
     ------------------------------------------------------------------------
     """
 
+    @test_throws Magic.IncorrectUsage set_title("Title")
+    @test_throws Magic.IncorrectUsage set_description("Description")
+    @test_throws Magic.IncorrectUsage add_font("Pacifico", "../examples/.Magic/served-files/fonts/Pacifico-Regular.ttf")
+    @test_throws Magic.IncorrectUsage add_css_rule("")
+    @test_throws Magic.IncorrectUsage inject_html("")
+
     @maybe_suppress begin
         # Test that it is ok to pass to add_page a uri that does not starts with '/'
         @test start_app(()->(@app_startup begin add_page("foo") end), dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true) === nothing
@@ -134,12 +140,20 @@ end
     ------------------------------------------------------------------------
     """
 
+    temp_dir = mktempdir()
+    temp_file = tempname()
+    touch(temp_file)
+
+    @test_throws Magic.IncorrectUsage gen_serveable_path()
+    @test_throws Magic.IncorrectUsage make_serveable_copy(temp_file)
+    @test_throws Magic.IncorrectUsage move_to_serveable_dir(temp_file)
+
+    @test_throws Magic.IncorrectUsage get_url_path()
+    @test_throws Magic.IncorrectUsage get_url_search()
+    @test_throws Magic.IncorrectUsage get_query_params()
+
     @maybe_suppress begin
         @test_throws Magic.InvalidArgument gen_serveable_path(lifetime="INVALID_LIFETIME")
-
-        temp_dir = mktempdir()
-        temp_file = tempname()
-        touch(temp_file)
 
         @test_throws Magic.InvalidArgument make_serveable_copy(temp_dir)
         @test_throws Magic.InvalidArgument make_serveable_copy(temp_file, lifetime="INVALID_LIFETIME")

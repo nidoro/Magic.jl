@@ -116,9 +116,9 @@ end
 
 @page_startup begin
     if !isempty(test_actions_script)
-        inject_html(html="<script>")
+        inject_html("<script>")
         inject_html(file_path=joinpath(@__DIR__, test_actions_script))
-        inject_html(html="</script>")
+        inject_html("</script>")
     end
 end
 
