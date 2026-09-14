@@ -21,7 +21,7 @@ ArgParse = "c7e460c6-2fb9-53a9-8c5b-16f535851c63"
 [compat]
 Random = "1.10"
 Libdl = "1.10"
-SHA = "0.7"
+SHA = "1.10, 1"
 JSON = "0.21, 1.0"
 Tables = "1.12"
 Artifacts = "1.10"
