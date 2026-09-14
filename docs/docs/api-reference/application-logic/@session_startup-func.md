@@ -4,7 +4,7 @@ sidebar_position: 4
 
 # @session_startup
 
-Macro to define a code block that should only executed at a session's first run. Usage:
+Macro to define a code block that is only executed at a session's first run. Usage:
 
 ```julia
 @session_startup begin
@@ -22,7 +22,7 @@ Although sessions are not required to have `@session_startup` code blocks, some 
 
 ### Initialization of session persistent data
 
-Session persistent data is a user defined data that is bound to a session and whose lifetime is the lifetime of the session, that is, as long as the session is alive the data will persist. Session persistent data can be retrieved at any moment using `get_page_data()`.
+Session persistent data is a user defined data that is bound to a session and whose lifetime is the lifetime of the session, meaning that as long as the session is alive the data will persist. Session persistent data can be retrieved at any moment using `get_page_data()`.
 
 You can store data that you want to be available within a session via the `set_session_data()` function, and retrieve it using the `get_session_data()` function. See [Session persistent data](/docs/build/docs/api-reference/application-logic/set_session_data-func) to learn more.
 

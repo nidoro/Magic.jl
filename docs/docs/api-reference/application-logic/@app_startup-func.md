@@ -4,7 +4,7 @@ sidebar_position: 2
 
 # @app_startup
 
-Macro to define a code block that is only executed at the startup of the application, that is, the app's dry-run. Usage:
+Macro to define a code block that is only executed at the startup of the application, during the app's dry-run. Usage:
 
 ```julia
 @app_startup begin
@@ -33,11 +33,11 @@ Although apps are not required to have `@app_startup` code blocks, some initiali
 end
 ```
 
-After creating the pages in an `@app_startup` block, you should initialize each page in a `@page_startup` block. See [`@page_startup`](/docs/build/docs/api-reference/application-logic/set_title-func) to learn more.
+After creating the pages in an `@app_startup` block, you can configure each page in a `@page_startup` block. See [`@page_startup`](/docs/build/docs/api-reference/application-logic/set_title-func) to learn more.
 
 ### 2. Initialization of app persistent data
 
-App persistent data is an user defined data whose lifetime is the lifetime of the app, i.e., as long as the app is running the data will persist. App persistent data can be retrieved at any moment using `get_app_data()` and is shared accross sessions.
+App persistent data is an user defined data whose lifetime is the lifetime of the app, meaning that as long as the app is running the data will persist. App persistent data can be retrieved at any moment using `get_app_data()` and is shared accross sessions.
 
 You can store data that you want to be globally available through all of your app's pages and sessions via the `set_app_data()` function, and retrieve it using the `get_app_data()` function. See [App persistent data](/docs/build/docs/api-reference/application-logic/set_app_data-func) to learn more.
 

@@ -1,15 +1,13 @@
 ---
-sidebar_position: 17
+sidebar_position: 18
 ---
 
 # get_url_search
 
 Returns the search string part of the URL used by the client to access the web app.
 
-> **🛈 NOTE**: This returns the raw search string. If you would like to retrieve
+> **🛈 NOTE**: This returns the raw search string. If you would like to retrieve it with query parameters already parsed, check out `get_query_params`.
 
-
-it with query parameters already parsed, check out `get_query_params`.
 
 ### Function Signature
 
