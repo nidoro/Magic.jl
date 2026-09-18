@@ -290,7 +290,7 @@ function set_css_if_not_set(css::Dict, key::String, value::Union{String, Number}
 end
 
 function set_css_to_achieve_layout(css::Dict, parent::Dict, fill_width::Bool, fill_height::Bool)
-    flex_grow = "0"
+    flex_grow = nothing
     min_width = nothing
     min_height = nothing
     width = nothing
@@ -314,7 +314,7 @@ function set_css_to_achieve_layout(css::Dict, parent::Dict, fill_width::Bool, fi
         end
     end
 
-    css["flex-grow"] = flex_grow
+    if flex_grow !== nothing css["flex-grow"] = flex_grow end
     if min_width !== nothing css["min-width"] = min_width end
     if min_height !== nothing css["min-height"] = min_height end
     if width !== nothing css["width"] = width end
@@ -497,8 +497,8 @@ function row(
     align_items     ::String        ="flex-start",
     justify_content ::String        ="flex-start",
     gap             ::String        ="0.8rem",
-    max_width       ::String        ="100%",
-    max_height      ::String        ="initial",
+    max_width       ::String        ="initial",
+    max_height      ::String        ="100%",
     show_border     ::Bool          =false,
     border          ::String        ="1px solid #d6d6d6",
     padding         ::String        ="none",
@@ -524,7 +524,7 @@ function row(
         "border-radius" => "0.5rem",
         "padding" => padding,
         "margin" => margin,
-        "min-width" => "0",
+        "min-height" => "0",
     )
 
     set_css_to_achieve_layout(combined_css, top_container(), fill_width, fill_height)
@@ -608,6 +608,7 @@ function columns(amount_or_widths::Union{Int, AbstractVector, Tuple}; kwargs...)
         provided_css = kwargs[:css]
         assert_valid_shallow_simple_dict(@named(provided_css))
         provided_css = normalize_shallow_simple_dict(provided_css)
+        kwargs[:css] = provided_css
     end
 
     columns = Containers()
@@ -620,8 +621,10 @@ function columns(amount_or_widths::Union{Int, AbstractVector, Tuple}; kwargs...)
                 merge!(css, provided_css)
             end
 
+            kwargs = merge(NamedTuple(kwargs), (css = css,))
+
             for c in 1:amount_or_widths
-                col = column(; kwargs..., css=css)
+                col = column(; kwargs...)
                 push!(columns.containers, col)
             end
         else
@@ -632,7 +635,9 @@ function columns(amount_or_widths::Union{Int, AbstractVector, Tuple}; kwargs...)
                     merge!(css, provided_css)
                 end
 
-                col = column(; kwargs..., css=css)
+                kwargs = merge(NamedTuple(kwargs), (css = css,))
+
+                col = column(; kwargs...)
                 push!(columns.containers, col)
             end
         end
