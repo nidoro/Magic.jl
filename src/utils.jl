@@ -47,16 +47,18 @@ function detectwsl()
     occursin(r"Microsoft|WSL"i, read("/proc/sys/kernel/osrelease", String))
 end
 
+quiet(cmd::Cmd) = pipeline(cmd; stdout=devnull, stderr=devnull)
+
 function open_in_default_browser(url::AbstractString)::Bool
     try
         if Sys.isapple()
-            Base.run(`open $url`)
+            Base.run(quiet(`open $url`))
             true
         elseif Sys.iswindows() || detectwsl()
-            Base.run(`cmd.exe /s /c start "" /b $url`)
+            Base.run(quiet(`cmd.exe /s /c start "" /b $url`))
             true
         elseif Sys.islinux()
-            Base.run(`xdg-open $url`)
+            Base.run(quiet(`xdg-open $url`))
             true
         else
             false

@@ -799,7 +799,7 @@ function set_page_layout(
             left_sidebar = create_sidebar(left_sidebar_initial_state, "left", left_sidebar_initial_width, left_sidebar_position, left_sidebar_toggle_labels)
         end
 
-        main_area = column(fill_width=true, fill_height=true)
+        main_area = column(fill_width=true, fill_height=true, max_height="100vh")
 
         if right_sidebar_initial_state != nothing
             right_sidebar = create_sidebar(right_sidebar_initial_state, "right", right_sidebar_initial_width, right_sidebar_position, right_sidebar_toggle_labels)
