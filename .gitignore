@@ -1,7 +1,7 @@
 local
 build
 .dockerignore
-Manifest.toml
+Manifest*
 .kate*
 
 .cache-bust
