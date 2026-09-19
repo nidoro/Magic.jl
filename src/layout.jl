@@ -498,7 +498,7 @@ function row(
     justify_content ::String        ="flex-start",
     gap             ::String        ="0.8rem",
     max_width       ::String        ="initial",
-    max_height      ::String        ="100%",
+    max_height      ::String        ="none",
     show_border     ::Bool          =false,
     border          ::String        ="1px solid #d6d6d6",
     padding         ::String        ="none",
@@ -525,6 +525,7 @@ function row(
         "padding" => padding,
         "margin" => margin,
         "min-height" => "0",
+        "flex-shrink" => "0",
     )
 
     set_css_to_achieve_layout(combined_css, top_container(), fill_width, fill_height)
@@ -608,7 +609,7 @@ function columns(amount_or_widths::Union{Int, AbstractVector, Tuple}; kwargs...)
         provided_css = kwargs[:css]
         assert_valid_shallow_simple_dict(@named(provided_css))
         provided_css = normalize_shallow_simple_dict(provided_css)
-        kwargs[:css] = provided_css
+        kwargs = merge(NamedTuple(kwargs), (css = provided_css,))
     end
 
     columns = Containers()
