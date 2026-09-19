@@ -12,14 +12,20 @@ See also [`column()`](/docs/build/docs/api-reference/layout-elements/column-func
 
 ```julia
 function row(
-    inner_func         ::Function   =()->();
-    fill_width         ::Bool       =false,
-    fill_height        ::Bool       =false,
-    align_items        ::String     ="flex-start",
-    justify_content    ::String     ="flex-start",
-    gap                ::String     ="0.8rem",
-    margin             ::String     ="0",
-    css                ::Dict       =Dict()
+    inner_func      ::Function      =()->();
+    fill_width      ::Bool          =false,
+    fill_height     ::Bool          =false,
+    align_items     ::String        ="flex-start",
+    justify_content ::String        ="flex-start",
+    gap             ::String        ="0.8rem",
+    max_width       ::String        ="initial",
+    max_height      ::String        ="none",
+    show_border     ::Bool          =false,
+    border          ::String        ="1px solid #d6d6d6",
+    padding         ::String        ="none",
+    margin          ::String        ="none",
+    css             ::AbstractDict  =Dict(),
+    attributes      ::AbstractDict  =Dict()
 )::ContainerInterface
 ```
 
@@ -30,9 +36,15 @@ function row(
 | `fill_height`     | A `Bool`. If `true`, the row expands to fill the available vertical space.                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | `align_items`     | A `String` controlling vertical alignment of children. Corresponds to the CSS `align-items` property. Example values: `flex-start`, `center`, `flex-end`.                                                                                                                                                                                                                                                                                                                                      |
 | `justify_content` | A `String` controlling horizontal alignment of children. Corresponds to the CSS `justify-content` property. Example values: `flex-start`, `center`, `space-between`.                                                                                                                                                                                                                                                                                                                           |
-| `margin`          | A `String` defining the CSS margin of the row. Corresponds to the CSS `margin` property.                                                                                                                                                                                                                                                                                                                                                                                                       |
 | `gap`             | A `String` specifying the spacing between child elements. Corresponds to the CSS `gap` property.                                                                                                                                                                                                                                                                                                                                                                                               |
+| `max_width`       | A `String` specifying the maximum width of the column. Corresponds to the CSS `max-width` property.                                                                                                                                                                                                                                                                                                                                                                                            |
+| `max_height`      | A `String` specifying the maximum height of the column. Corresponds to the CSS `max-height` property.                                                                                                                                                                                                                                                                                                                                                                                          |
+| `show_border`     | A `Bool`. If `true`, a border is displayed around the column using the value of `border`.                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `border`          | A `String` defining the CSS border style used when `show_border` is `true`. Corresponds to the CSS `border` property.                                                                                                                                                                                                                                                                                                                                                                          |
+| `padding`         | A `String` defining the CSS padding of the column. Corresponds to the CSS `padding` property.                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `margin`          | A `String` defining the CSS margin of the row. Corresponds to the CSS `margin` property.                                                                                                                                                                                                                                                                                                                                                                                                       |
 | `css`             | A `Dict` of additional CSS properties to apply to the row.                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `attributes`      | A `Dict` of additional HTML attributes to attach to the column container.                                                                                                                                                                                                                                                                                                                                                                                                                      |
 
 ### Return Value
 

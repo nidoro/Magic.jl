@@ -1,8 +1,9 @@
-### v0.8.0 (2026-09-13)
+### v0.8.0 (2026-09-19)
 
 - Breaking: complete rewrite of the `metric` widget, changing its signature.
 - Breaking: implemented type inference for `number_input` and `slider` based on
 the provided `initial_value`/`default_value`.
+- New: Magic is now compatible with Julia 1.13.
 - New: `inject_html` function, which allows users to inject arbitrary HTML code
 into the HTML page served to clients.
 - New: multiselect `selectbox`, `checkboxes` and `radio` now can be initialized
