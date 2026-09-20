@@ -397,6 +397,7 @@ function start_app(
         end
     end
 
+    wait(ipc_task)
     deinit_net_layer()
     Libdl.dlclose(g.LIBMAGIC)
 
