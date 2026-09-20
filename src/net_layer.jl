@@ -24,6 +24,11 @@ function init_net_layer(
     )
 end
 
+function deinit_net_layer()::Nothing
+    ccall(get_net_layer_func(:MG_DeinitNetLayer), Cvoid, ())
+    return nothing
+end
+
 function create_app_event(event_type::AppEventType, client_id::Cint, payload::Union{String, Nothing})::AppEvent
     payload_ptr = payload !== nothing ? payload : Ptr{Cchar}(0)
     payload_size = payload !== nothing ? Cint(sizeof(payload)) : Cint(0)

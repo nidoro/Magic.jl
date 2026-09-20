@@ -397,6 +397,7 @@ function start_app(
         end
     end
 
+    deinit_net_layer()
     Libdl.dlclose(g.LIBMAGIC)
 
     @info "ServerLoopStopped"

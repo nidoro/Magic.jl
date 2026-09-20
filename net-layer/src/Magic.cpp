@@ -809,6 +809,10 @@ MG_API void* MG_RunServer(void*) {
 
     close(g.fdSocket);
 
+    return 0;
+}
+
+MG_API void MG_DeinitNetLayer() {
     while (arrcount(g.clients)) {
         MG_DestroyClient(g.clients[0]);
     }
@@ -826,8 +830,6 @@ MG_API void* MG_RunServer(void*) {
     arrfree(g.clients);
     arrfree(g.netEvents);
     arrfree(g.appEvents);
-
-    return 0;
 }
 
 MG_API void MG_InitNetLayer(
