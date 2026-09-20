@@ -182,6 +182,13 @@ MG_Client* MG_GetClientBySessionId(char* sessionId) {
     return 0;
 }
 
+void MG_DestroyClient(MG_Client* mgClient) {
+    arrfree(mgClient->waitingDownload);
+    pthread_mutex_lock(mgClient->mutex);
+    arrremovematch(g.clients, mgClient);
+    free(mgClient->mutex);
+}
+
 // NOTE: Net events are created and pushed by the network layer and poped and
 // destroyed by the app layer.
 MG_NetEvent MG_CreateNetEvent(MG_NetEventType type, int clientId, char* sessionId, char* payload, int payloadSize) {
@@ -548,11 +555,7 @@ int HS_CALLBACK(MG_WSEventsHandler, args) {
                 HS_CloseConnection(wc, 400);
             }
 
-            arrfree(mgClient->waitingDownload);
-
-            pthread_mutex_lock(mgClient->mutex);
-            arrremovematch(g.clients, mgClient);
-            free(mgClient->mutex);
+            MG_DestroyClient(mgClient);
         } break;
 
         case LWS_CALLBACK_RAW_RX: {
@@ -748,14 +751,6 @@ MG_API void* MG_RunServer(void*) {
         if (g.verbose) {
             HS_SetVHostVerbosity(&g.hserver, "magic-companion", 1);
         }
-
-        // HACK: Create a lit.coisasdodavi.net vhost that redirects
-        // to magic.coisasdodavi.net. This is temporary, just while the package
-        // name change is recent.
-        HS_AddRedirToHTTPSVHost(&g.hserver, "lit-redir", "lit.coisasdodavi.net", 443, "magic.coisasdodavi.net", 443);
-        if (!disableSSL) {
-            HS_SetCertificate(&g.hserver, "lit-redir", ".Magic/certs/certificate.crt", ".Magic/certs/private.key");
-        }
     }
 
     MG_StartIPC();
@@ -794,10 +789,14 @@ MG_API void* MG_RunServer(void*) {
     HS_RunForever(&g.hserver, true);
 #endif
 
+    // Notify app-layer that net-layer server loop has stopped
+    //------------------------------------------------------------
     MG_NetEvent ev = MG_CreateNetEvent(MG_NetEventType_ServerLoopInterrupted, 0, 0, 0, 0);
     MG_PushNetEvent(ev);
     MG_WakeUpAppLayer();
 
+    // Cleanup
+    //------------
     HS_Stop(&g.hserver);
     HS_Destroy(&g.hserver);
 
@@ -809,7 +808,25 @@ MG_API void* MG_RunServer(void*) {
     }
 
     close(g.fdSocket);
-    // TODO: free Global stuff
+
+    while (arrcount(g.clients)) {
+        MG_DestroyClient(g.clients[0]);
+    }
+
+    while (arrcount(g.appEvents)) {
+        MG_AppEvent appEvent = MG_PopAppEvent();
+        MG_DestroyAppEvent(appEvent);
+    }
+
+    while (arrcount(g.netEvents)) {
+        MG_NetEvent netEvent = MG_PopNetEvent();
+        MG_DestroyNetEvent(netEvent);
+    }
+
+    arrfree(g.clients);
+    arrfree(g.netEvents);
+    arrfree(g.appEvents);
+
     return 0;
 }
 
