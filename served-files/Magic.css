@@ -190,6 +190,10 @@ img.mg-image {
 
 }
 
+.tabulator-row .tabulator-cell.tabulator-range-selected {
+    background: #CCD6E3 !important;
+}
+
 .tabulator-row.tabulator-row-even {
     background-color: white;
 }

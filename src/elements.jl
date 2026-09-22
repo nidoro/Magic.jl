@@ -1551,7 +1551,7 @@ function create_dataframe(
     user_id::Any,
     data::DataFrame,
     column_config::Dict,
-    height::String,
+    height::Union{String, Nothing},
     onchange::Function,
     args::Vector
 )::DataFrame
@@ -1646,7 +1646,7 @@ dataframe(
 function dataframe(
     data::DataFrame;
     column_config::Dict=Dict(),
-    height::String="400px",
+    height::Union{String, Nothing}=nothing,
     id::Union{String, Nothing}=nothing,
     onchange::Function=(args...; kwargs...)->(),
     args::Vector=Vector()
