@@ -1551,17 +1551,23 @@ function create_dataframe(
     user_id::Any,
     data::DataFrame,
     column_config::Dict,
-    height::Union{String, Nothing},
+    precision::Integer,
+    decimal_separator::String,
+    thousands_separator::String,
     onchange::Function,
-    args::Vector
+    args::Vector,
+    css::Dict,
 )::DataFrame
 
     props = Dict(
         "type" => "dataframe",
         "data_ptr" => repr(pointer_from_objref(data)),
         "column_config" => column_config,
-        "height" => height,
+        "precision" => precision,
+        "decimal_separator" => decimal_separator,
+        "thousands_separator" => thousands_separator,
         "user_id" => user_id,
+        "css" => css,
     )
 
     props["local_id"] = bytes2hex(sha256(JSON.json(props)))
@@ -1644,12 +1650,17 @@ dataframe(
 ```
 """
 function dataframe(
-    data::DataFrame;
-    column_config::Dict=Dict(),
-    height::Union{String, Nothing}=nothing,
-    id::Union{String, Nothing}=nothing,
-    onchange::Function=(args...; kwargs...)->(),
-    args::Vector=Vector()
+    data                ::DataFrame;
+    column_config       ::Dict                      =Dict(),
+    fill_height         ::Bool                      =false,
+    height              ::Union{String, Nothing}    =nothing,
+    max_height          ::Union{String, Nothing}    =nothing,
+    precision           ::Int                       =1,
+    decimal_separator   ::String                    =".",
+    thousands_separator ::String                    =",",
+    id                  ::Union{String, Nothing}    =nothing,
+    onchange            ::Function                  =()->(),
+    args                ::Vector                    =Vector()
 )::DataFrame
 
     task = ensure_app_task_exists()
@@ -1659,6 +1670,7 @@ function dataframe(
 
     for column_name in names(data)
         cc[column_name] = Dict()
+        cc[column_name]["name"] = column_name
 
         if column_name in keys(column_config)
             merge!(cc[column_name], column_config[column_name])
@@ -1687,7 +1699,15 @@ function dataframe(
         end
     end
 
-    return create_dataframe(widgets, top_container(), id, data, cc, height, onchange, args)
+    parent = top_container()
+
+    css = Dict(
+        "height" => coalesce(height, "initial"),
+        "max-height" => coalesce(max_height, "initial"),
+    )
+    set_css_to_achieve_layout(css, parent, false, fill_height)
+
+    return create_dataframe(widgets, parent, id, data, cc, precision, decimal_separator, thousands_separator, onchange, args, css)
 end
 
 function create_file_uploader(

@@ -187,7 +187,7 @@ img.mg-image {
 }
 
 .mg-dataframe-lining {
-
+    height: 100%;
 }
 
 .tabulator-row .tabulator-cell.tabulator-range-selected {
@@ -242,6 +242,14 @@ img.mg-image {
 .tabulator input {
     font-family: inherit !important;
     color: inherit !important;
+}
+
+/* Bottom right fill handle */
+.tabulator .tabulator-tableholder .tabulator-range-overlay .tabulator-range.tabulator-range-active::after {
+    right: 0;
+    bottom: 0;
+    width: 4px;
+    height: 4px;
 }
 
 /* SELECTBOX */
