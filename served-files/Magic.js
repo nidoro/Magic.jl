@@ -1014,8 +1014,6 @@ function createAppElement(parent, props, fragmentId) {
                                             if (value == null) return;
                                             input.value = DD_Components.formatNumber(value, decimalPlaces(value), props.decimal_separator, '');
                                             input.focus();
-                                            // let len = input.value.length;
-                                            // input.setSelectionRange(len, len);
                                         }
                                     }, 0);
                                 };
@@ -1119,10 +1117,12 @@ function createAppElement(parent, props, fragmentId) {
             table.mg_column_config = props.column_config;
             table.mg_queued_changes = [];
             table.on("rangeChanged", function(range) {
-                const cell = range.getCells()[0][0];
-                if (cell) {
-                    cell.getElement().focus();
-                }
+                setTimeout(() => {
+                    const cell = range.getCells()[0][0];
+                    if (cell) {
+                        cell.getElement().focus();
+                    }
+                }, 0);
             });
 
             // Handle Delete/Backspace
