@@ -381,10 +381,12 @@ function dfChange(cell) {
                 rowData[`mg_value[${columnConfig.name}]`] = actualNewValue;
             }
         } else if (DD_Components.isValidNumberString(newValue, decimalSep, thousandsSep)) {
-            cell.mgIgnoreNextChange = true;
             actualNewValue = DD_Components.parseNumber(newValue, decimalSep, thousandsSep);
             rowData[`mg_value[${columnConfig.name}]`] = actualNewValue;
-            cell.setValue(DD_Components.formatNumber(actualNewValue, columnConfig.precision, decimalSep, thousandsSep));
+            newValue = DD_Components.formatNumber(actualNewValue, columnConfig.precision, decimalSep, thousandsSep);
+
+            cell.mgIgnoreNextChange = true;
+            cell.setValue(newValue);
         } else if (columnConfig.required) {
             cell.mgIgnoreNextChange = true;
             cell.setValue(oldValue);
@@ -415,6 +417,8 @@ function dfChange(cell) {
     if (actualNewValue == actualOldValue) {
         return;
     }
+
+    setTimeout(() => {cell.mgIgnoreNextChange = false}, 0);
 
     if (!ignoreChanges) {
         table.mg_queued_changes.push({
@@ -929,6 +933,10 @@ function createAppElement(parent, props, fragmentId) {
 
         newElements.push(elem);
     } else if (props.type == "dataframe") {
+        // NOTE: KNOWN ISSUE -- When enter is pressed on a non-editable cell,
+        // tabulator errors out. I don't know why, but it hasn't caused any
+        // major issue that I know of.
+
         let elem = document.querySelector(`[data-mg-id="${props.id}"]`);
 
         if (!elem) {
@@ -1014,6 +1022,7 @@ function createAppElement(parent, props, fragmentId) {
                             }
 
                             columnOptions.cellEdited = dfChange;
+                            columnOptions.cellEditCancelled = dfChange;
                         }
                     }
 
@@ -1091,6 +1100,12 @@ function createAppElement(parent, props, fragmentId) {
 
             table.mg_column_config = props.column_config;
             table.mg_queued_changes = [];
+            table.on("rangeChanged", function(range) {
+                const cell = range.getCells()[0][0];
+                if (cell) {
+                    cell.getElement().focus();
+                }
+            });
 
             // Handle Delete/Backspace
             //---------------------------------------
@@ -1148,6 +1163,9 @@ function createAppElement(parent, props, fragmentId) {
                             }
                         }
                     }
+                } else if (e.ctrlKey && e.key == "c") {
+                    let elem = document.activeElement;
+                    setTimeout(() => {elem.focus()}, 10);
                 }
             });
 
