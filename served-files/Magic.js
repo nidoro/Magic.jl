@@ -125,6 +125,21 @@ function sleep(seconds) {
     return new Promise(resolve => setTimeout(resolve, seconds*1000));
 }
 
+function decimalPlaces(num) {
+    const str = num.toString();
+
+    // handle scientific notation, e.g. 1e-7 or 1.5e+21
+    if (str.includes("e") || str.includes("E")) {
+        const [, exponent] = str.split(/[eE]/);
+        const match = str.match(/\.(\d+)/);
+        const decimalsInMantissa = match ? match[1].length : 0;
+        return Math.max(0, decimalsInMantissa - Number(exponent));
+    }
+
+    const parts = str.split(".");
+    return parts.length > 1 ? parts[1].length : 0;
+}
+
 async function uplChange(elem, oldValue, newValue) {
     const mgFiles = [];
 
@@ -334,9 +349,6 @@ function dfChange(cell) {
 
     const table = cell.getTable();
 
-    const oldValue = cell.getOldValue();
-    let newValue = cell.getValue();
-
     const rowData = cell.getRow().getData();
     const rowIndex = rowData.mg_original_index;
     const columnName = cell.getField();
@@ -347,52 +359,68 @@ function dfChange(cell) {
     const juliaType = columnConfig.julia_type;
     const decimalSep = tableElem.getAttribute("data-mg-decimal-separator");
     const thousandsSep = tableElem.getAttribute("data-mg-thousands-separator");
-    const precision = tableElem.getAttribute("data-mg-precision");
 
-    if (oldValue == newValue) return;
+    const oldValue = cell.getOldValue();
+    let newValue = cell.getValue();
+    const actualOldValue = columnType == "Real" ? rowData[`mg_value[${columnConfig.name}]`] : oldValue;
+    let actualNewValue = newValue;
 
-    let ignore_changes = false;
+    let ignoreChanges = false;
 
-    if (columnType == "Number") {
+    if (columnType == "Real") {
         if (["", undefined, null].includes(newValue)) {
             if (columnConfig.required) {
                 cell.mgIgnoreNextChange = true;
                 cell.setValue(oldValue);
-                ignore_changes = true;
+                ignoreChanges = true;
                 newValue = oldValue;
+                actualNewValue = actualOldValue;
             } else {
                 newValue = null;
+                actualNewValue = null;
+                rowData[`mg_value[${columnConfig.name}]`] = actualNewValue;
             }
         } else if (DD_Components.isValidNumberString(newValue, decimalSep, thousandsSep)) {
-            newValue = DD_Components.parseNumber(newValue, decimalSep, thousandsSep);
-            cell.setValue(DD_Components.formatNumber(newValue, precision, decimalSep, thousandsSep));
+            cell.mgIgnoreNextChange = true;
+            actualNewValue = DD_Components.parseNumber(newValue, decimalSep, thousandsSep);
+            rowData[`mg_value[${columnConfig.name}]`] = actualNewValue;
+            cell.setValue(DD_Components.formatNumber(actualNewValue, columnConfig.precision, decimalSep, thousandsSep));
         } else if (columnConfig.required) {
             cell.mgIgnoreNextChange = true;
             cell.setValue(oldValue);
-            ignore_changes = true;
+            ignoreChanges = true;
             newValue = oldValue;
+            actualNewValue = actualOldValue;
         } else {
             cell.setValue(null);
             newValue = null;
+            actualNewValue = null;
+            rowData[`mg_value[${columnConfig.name}]`] = actualNewValue;
         }
     } else if (columnType == "String") {
         if ([undefined, null].includes(newValue)) {
             if (columnConfig.required) {
                 cell.mgIgnoreNextChange = true;
                 cell.setValue(oldValue);
-                ignore_changes = true;
+                ignoreChanges = true;
                 newValue = oldValue;
+                actualNewValue = oldValue;
             } else {
                 newValue = null;
+                actualNewValue = null;
             }
         }
     }
 
-    if (!ignore_changes) {
+    if (actualNewValue == actualOldValue) {
+        return;
+    }
+
+    if (!ignoreChanges) {
         table.mg_queued_changes.push({
             row_index: rowIndex,
             column_name: columnName,
-            new_value: newValue,
+            new_value: actualNewValue,
         });
 
         requestAnimationFrame(() => sendDFChanges(table));
@@ -921,11 +949,17 @@ function createAppElement(parent, props, fragmentId) {
             lining.setAttribute("data-mg-fragment-id", fragmentId);
             lining.setAttribute("data-mg-decimal-separator", props.decimal_separator);
             lining.setAttribute("data-mg-thousands-separator", props.thousands_separator);
-            lining.setAttribute("data-mg-precision", props.precision);
             elem.appendChild(lining);
 
             for (const [i, row] of props.initial_value.entries()) {
                 row.mg_original_index = i+1;
+
+                for (let columnName in props.column_config) {
+                    const columnConfig = props.column_config[columnName];
+                    if (columnConfig.type == "Real") {
+                        row[`mg_value[${columnConfig["name"]}]`] = row[columnConfig["name"]];
+                    }
+                }
             }
 
             let columns = [];
@@ -933,6 +967,7 @@ function createAppElement(parent, props, fragmentId) {
             if (("initial_value" in props) && props.initial_value.length) {
                 for (const columnName of Object.keys(props.initial_value[0])) {
                     if (columnName == "mg_original_index") continue;
+                    if (columnName == "mg_value[") continue;
 
                     let columnOptions = {
                         field: columnName,
@@ -947,11 +982,35 @@ function createAppElement(parent, props, fragmentId) {
                             title: columnName,
                         }
 
+                        if (config.type == "Real") {
+                            columnOptions.hozAlign = "right";
+                        }
+
                         if (config.editable) {
                             columnOptions.editor = "input";
-                            if (config.type == "Number") {
+                            if (config.type == "Real") {
                                 columnOptions.sorter = "number";
-                                columnOptions.hozAlign = "right";
+                                columnOptions.cellEditing = function(cell) {
+                                    const table = cell.getTable();
+                                    const columnName = cell.getField();
+                                    const columnConfig = table.mg_column_config[columnName];
+                                    const columnType = columnConfig.type;
+
+                                    const rowData = cell.getRow().getData();
+
+                                    // fires as soon as an editor is opened for a cell
+                                    setTimeout(() => {
+                                        let input = cell.getElement().querySelector("input, textarea");
+                                        if (input) {
+                                            let value = rowData[`mg_value[${columnName}]`];
+                                            if (value == null) return;
+                                            input.value = DD_Components.formatNumber(value, decimalPlaces(value), props.decimal_separator, '');
+                                            input.focus();
+                                            // let len = input.value.length;
+                                            // input.setSelectionRange(len, len);
+                                        }
+                                    }, 0);
+                                };
                             }
 
                             columnOptions.cellEdited = dfChange;
@@ -964,8 +1023,8 @@ function createAppElement(parent, props, fragmentId) {
                 for (let entry of props.initial_value) {
                     for (let columnName in props.column_config) {
                         const columnConfig = props.column_config[columnName];
-                        if (columnConfig.type == "Number") {
-                            entry[columnConfig["name"]] = DD_Components.formatNumber(entry[columnConfig["name"]], props.precision, props.decimal_separator, props.thousands_separator);
+                        if (columnConfig.type == "Real") {
+                            entry[columnConfig["name"]] = DD_Components.formatNumber(entry[columnConfig["name"]], columnConfig["precision"], props.decimal_separator, props.thousands_separator);
                         }
                     }
                 }
@@ -1046,7 +1105,11 @@ function createAppElement(parent, props, fragmentId) {
                     ranges.forEach(range => {
                         range.getCells().forEach(cells => {
                             cells.forEach(cell => {
-                                if (cell.getColumn().getDefinition().editor) {
+                                const table = cell.getTable();
+                                const columnName = cell.getField();
+                                const columnConfig = table.mg_column_config[columnName];
+
+                                if (columnConfig.editable) {
                                     cell.setValue(null);
                                 }
                             });
@@ -1065,7 +1128,11 @@ function createAppElement(parent, props, fragmentId) {
                         if (allCells.length === 1) {
                             let cell = allCells[0];
 
-                            if (cell.getColumn().getDefinition().editor) {
+                            const table = cell.getTable();
+                            const columnName = cell.getField();
+                            const columnConfig = table.mg_column_config[columnName];
+
+                            if (columnConfig.editable) {
                                 e.preventDefault();
                                 cell.edit(true);
 

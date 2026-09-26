@@ -1679,15 +1679,22 @@ function dataframe(
         column_type = eltype(data[:, column_name])
         cc[column_name]["julia_type"] = column_type
 
-        if !("type" in keys(cc[column_name]))
-            if Number <: column_type || Int <: column_type || Real <: column_type
-                cc[column_name]["type"] = "Number"
+        if !haskey(cc[column_name], "type")
+            if AbstractString <: column_type || column_type <: AbstractString
+                cc[column_name]["type"] = "String"
+            elseif Real <: column_type || column_type <: Real
+                cc[column_name]["type"] = "Real"
+                if AbstractFloat <: column_type || column_type <: AbstractFloat
+                    cc[column_name]["precision"] = precision
+                else
+                    cc[column_name]["precision"] = 0
+                end
             else
                 cc[column_name]["type"] = "String"
             end
         end
 
-        if !("empty_value" in keys(cc[column_name]))
+        if !haskey(cc[column_name], "empty_value")
             if Nothing <: column_type
                 cc[column_name]["empty_value"] = "<nothing>"
             elseif Missing <: column_type
