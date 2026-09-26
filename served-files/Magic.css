@@ -246,10 +246,7 @@ img.mg-image {
 
 /* Bottom right fill handle */
 .tabulator .tabulator-tableholder .tabulator-range-overlay .tabulator-range.tabulator-range-active::after {
-    right: 0;
-    bottom: 0;
-    width: 4px;
-    height: 4px;
+    display: none;
 }
 
 /* SELECTBOX */
