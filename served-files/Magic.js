@@ -975,7 +975,7 @@ function createAppElement(parent, props, fragmentId) {
             if (("initial_value" in props) && props.initial_value.length) {
                 for (const columnName of Object.keys(props.initial_value[0])) {
                     if (columnName == "mg_original_index") continue;
-                    if (columnName == "mg_value[") continue;
+                    if (columnName.startsWith("mg_value[")) continue;
 
                     let columnOptions = {
                         field: columnName,
