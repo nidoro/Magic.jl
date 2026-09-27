@@ -319,3 +319,12 @@ function ensure_app_task_exists(func::Union{Function, Nothing}=nothing)::AppTask
     throw(IncorrectUsage(func))
 end
 
+has_subtype(A::Type, B::Type)  = A <: B
+has_subtype(A::Union, B::Type) = has_subtype(A.a, B) || has_subtype(A.b, B)
+
+matching_subtype(A::Type, B::Type) = A <: B ? A : nothing
+
+function matching_subtype(A::Union, B::Type)
+    r = matching_subtype(A.a, B)
+    r !== nothing ? r : matching_subtype(A.b, B)
+end

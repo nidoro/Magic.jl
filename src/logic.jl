@@ -672,15 +672,11 @@ function rerun(client_id::Cint, payload::Dict)::Task
                             column_config = widget.props["column_config"][change["column_name"]]
                             new_value = change["new_value"]
 
-                            if column_config["type"] == "Real" && !(new_value in ["", nothing])
-                                if AbstractFloat <: column_config["julia_type"] || column_config["julia_type"] <: AbstractFloat
-                                    # Nothing to do
-                                else
-                                    new_value = round(column_config["julia_type"], new_value)
-                                end
+                            if !(new_value in ["", nothing]) && (column_config["type"] == "Integer" || column_config["type"] == "Float")
+                                new_value = convert(column_config["julia_type"], round(new_value, digits=column_config["precision"]))
                             end
 
-                            if (column_config["type"] == "Real" && (new_value == "" || new_value == nothing)) ||
+                            if ((column_config["type"] == "Integer" || column_config["type"] == "Float") && (new_value == "" || new_value == nothing)) ||
                                (column_config["type"] == "String" && (new_value == nothing))
                                 if column_config["empty_value"] == "<nothing>"
                                     new_value = nothing

@@ -362,12 +362,12 @@ function dfChange(cell) {
 
     const oldValue = cell.getOldValue();
     let newValue = cell.getValue();
-    const actualOldValue = columnType == "Real" ? rowData[`mg_value[${columnConfig.name}]`] : oldValue;
+    const actualOldValue = columnType == "Integer" || columnType == "Float" ? rowData[`mg_value[${columnConfig.name}]`] : oldValue;
     let actualNewValue = newValue;
 
     let ignoreChanges = false;
 
-    if (columnType == "Real") {
+    if (columnType == "Integer" || columnType == "Float") {
         if (["", undefined, null].includes(newValue)) {
             if (columnConfig.required) {
                 cell.mgIgnoreNextChange = true;
@@ -382,6 +382,7 @@ function dfChange(cell) {
             }
         } else if (DD_Components.isValidNumberString(newValue, decimalSep, thousandsSep)) {
             actualNewValue = DD_Components.parseNumber(newValue, decimalSep, thousandsSep);
+            actualNewValue = columnType == "Integer" ? Math.round(actualNewValue) : actualNewValue;
             rowData[`mg_value[${columnConfig.name}]`] = actualNewValue;
             newValue = DD_Components.formatNumber(actualNewValue, columnConfig.precision, decimalSep, thousandsSep);
 
@@ -964,7 +965,7 @@ function createAppElement(parent, props, fragmentId) {
 
                 for (let columnName in props.column_config) {
                     const columnConfig = props.column_config[columnName];
-                    if (columnConfig.type == "Real") {
+                    if (columnConfig.type == "Integer" || columnConfig.type == "Float") {
                         row[`mg_value[${columnConfig["name"]}]`] = row[columnConfig["name"]];
                     }
                 }
@@ -990,13 +991,13 @@ function createAppElement(parent, props, fragmentId) {
                             title: columnName,
                         }
 
-                        if (config.type == "Real") {
+                        if (config.type == "Integer" || config.type == "Float") {
                             columnOptions.hozAlign = "right";
                         }
 
                         if (config.editable) {
                             columnOptions.editor = "input";
-                            if (config.type == "Real") {
+                            if (config.type == "Integer" || config.type == "Float") {
                                 columnOptions.sorter = "number";
 
                                 columnOptions.cellEditing = function(cell) {
@@ -1027,7 +1028,7 @@ function createAppElement(parent, props, fragmentId) {
                 for (let entry of props.initial_value) {
                     for (let columnName in props.column_config) {
                         const columnConfig = props.column_config[columnName];
-                        if (columnConfig.type == "Real") {
+                        if (columnConfig.type == "Integer" || columnConfig.type == "Float") {
                             entry[columnConfig["name"]] = DD_Components.formatNumber(entry[columnConfig["name"]], columnConfig["precision"], props.decimal_separator, props.thousands_separator);
                         }
                     }
@@ -1046,7 +1047,7 @@ function createAppElement(parent, props, fragmentId) {
                 // read-only cells too, and it also deletes the entire cell content
                 // when the user is editing a specific cell, which is really bad UX.
                 // selectableRangeClearCells: true,
-
+                selectableRange: 1,
                 clipboard: true,
                 clipboardPasteParser:"range",
 
@@ -1107,12 +1108,12 @@ function createAppElement(parent, props, fragmentId) {
             });
 
             table.on("rangeChanged", function(range) {
-                setTimeout(() => {
-                    const cell = range.getCells()[0][0];
-                    if (cell) {
-                        cell.getElement().focus();
-                    }
-                }, 0);
+                // setTimeout(() => {
+                //     const cell = range.getCells()[0][0];
+                //     if (cell) {
+                //         cell.getElement().focus();
+                //     }
+                // }, 0);
             });
 
             table.mg_column_config = props.column_config;
@@ -1120,7 +1121,7 @@ function createAppElement(parent, props, fragmentId) {
 
             // Handle Delete/Backspace
             //---------------------------------------
-            lining.addEventListener("keydown", function(e) {
+            lining.addEventListener("keydown", async function(e) {
                 if (document.activeElement.tagName == "INPUT") {
                     return;
                 }
@@ -1187,7 +1188,7 @@ function createAppElement(parent, props, fragmentId) {
                             const columnConfig = table.mg_column_config[columnName];
                             const rowData = cell.getRow().getData();
 
-                            if (columnConfig.type == "Real") {
+                            if (columnConfig.type == "Integer" || columnConfig.type == "Float") {
                                 let value = rowData[`mg_value[${columnName}]`];
                                 if (value == null) {
                                     return "";
@@ -1199,10 +1200,26 @@ function createAppElement(parent, props, fragmentId) {
                         }).join("\t");
                     }).join("\n");
 
-                    console.log(text);
-
                     navigator.clipboard.writeText(text);
                     e.preventDefault();
+                } else if ((e.ctrlKey || e.metaKey) && e.key === "a") {
+                    e.preventDefault();
+
+                    const rows = table.getRows();
+                    if (!rows.length) return;
+
+                    const lastRow = rows[rows.length - 1];
+
+                    // force the last row to actually render before we reference its cells
+                    await table.scrollToRow(lastRow, "bottom", true);
+
+                    const firstRowCells = rows[0].getCells();
+                    const lastRowCells = lastRow.getCells();
+
+                    const topLeft = firstRowCells[0];
+                    const bottomRight = lastRowCells[lastRowCells.length - 1];
+
+                    table.addRange(topLeft, bottomRight);
                 }
             });
 

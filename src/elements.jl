@@ -1680,24 +1680,31 @@ function dataframe(
         cc[column_name]["julia_type"] = column_type
 
         if !haskey(cc[column_name], "type")
-            if AbstractString <: column_type || column_type <: AbstractString
+            if has_subtype(column_type, AbstractString)
                 cc[column_name]["type"] = "String"
-            elseif Real <: column_type || column_type <: Real
-                cc[column_name]["type"] = "Real"
-                if AbstractFloat <: column_type || column_type <: AbstractFloat
-                    cc[column_name]["precision"] = precision
+                cc[column_name]["julia_type"] = matching_subtype(column_type, AbstractString)
+            elseif has_subtype(column_type, AbstractFloat)
+                cc[column_name]["type"] = "Float"
+                cc[column_name]["julia_type"] = matching_subtype(column_type, AbstractFloat)
+
+                if haskey(column_config[column_name], "precision")
+                    cc[column_name]["precision"] = column_config[column_name]["precision"]
                 else
-                    cc[column_name]["precision"] = 0
+                    cc[column_name]["precision"] = precision
                 end
+            elseif has_subtype(column_type, Integer)
+                cc[column_name]["type"] = "Integer"
+                cc[column_name]["julia_type"] = matching_subtype(column_type, Integer)
+                cc[column_name]["precision"] = 0
             else
                 cc[column_name]["type"] = "String"
             end
         end
 
         if !haskey(cc[column_name], "empty_value")
-            if Nothing <: column_type
+            if has_subtype(column_type, Nothing)
                 cc[column_name]["empty_value"] = "<nothing>"
-            elseif Missing <: column_type
+            elseif has_subtype(column_type, Missing)
                 cc[column_name]["empty_value"] = "<missing>"
             else
                 cc[column_name]["empty_value"] = ""
