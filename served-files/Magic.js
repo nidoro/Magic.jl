@@ -998,12 +998,9 @@ function createAppElement(parent, props, fragmentId) {
                             columnOptions.editor = "input";
                             if (config.type == "Real") {
                                 columnOptions.sorter = "number";
-                                columnOptions.cellEditing = function(cell) {
-                                    const table = cell.getTable();
-                                    const columnName = cell.getField();
-                                    const columnConfig = table.mg_column_config[columnName];
-                                    const columnType = columnConfig.type;
 
+                                columnOptions.cellEditing = function(cell) {
+                                    const columnName = cell.getField();
                                     const rowData = cell.getRow().getData();
 
                                     // fires as soon as an editor is opened for a cell
@@ -1051,11 +1048,6 @@ function createAppElement(parent, props, fragmentId) {
                 // selectableRangeClearCells: true,
 
                 clipboard: true,
-                clipboardCopyRowRange: "range",
-                clipboardCopyConfig:{
-                    rowHeaders: false,
-                    columnHeaders: false,
-                },
                 clipboardPasteParser:"range",
 
                 // NOTE: Unfortunately, we need to implement our own clipboard
@@ -1114,8 +1106,6 @@ function createAppElement(parent, props, fragmentId) {
                 editTriggerEvent:"dblclick"
             });
 
-            table.mg_column_config = props.column_config;
-            table.mg_queued_changes = [];
             table.on("rangeChanged", function(range) {
                 setTimeout(() => {
                     const cell = range.getCells()[0][0];
@@ -1124,6 +1114,9 @@ function createAppElement(parent, props, fragmentId) {
                     }
                 }, 0);
             });
+
+            table.mg_column_config = props.column_config;
+            table.mg_queued_changes = [];
 
             // Handle Delete/Backspace
             //---------------------------------------
@@ -1181,9 +1174,35 @@ function createAppElement(parent, props, fragmentId) {
                             }
                         }
                     }
-                } else if (e.ctrlKey && e.key == "c") {
-                    let elem = document.activeElement;
-                    setTimeout(() => {elem.focus()}, 10);
+                } else if ((e.ctrlKey || e.metaKey) && e.key === "c") {
+                    const ranges = table.getRanges();
+                    if (!ranges.length) return;
+
+                    const range = ranges[0];
+                    const structuredCells = range.getStructuredCells(); // rows x columns
+
+                    const text = structuredCells.map(rowCells => {
+                        return rowCells.map(cell => {
+                            const columnName = cell.getField();
+                            const columnConfig = table.mg_column_config[columnName];
+                            const rowData = cell.getRow().getData();
+
+                            if (columnConfig.type == "Real") {
+                                let value = rowData[`mg_value[${columnName}]`];
+                                if (value == null) {
+                                    return "";
+                                }
+                                return DD_Components.formatNumber(value, decimalPlaces(value), props.decimal_separator, '');
+                            } else {
+                                return cell.getValue();
+                            }
+                        }).join("\t");
+                    }).join("\n");
+
+                    console.log(text);
+
+                    navigator.clipboard.writeText(text);
+                    e.preventDefault();
                 }
             });
 

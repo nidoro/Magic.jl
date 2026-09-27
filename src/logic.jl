@@ -672,14 +672,16 @@ function rerun(client_id::Cint, payload::Dict)::Task
                             column_config = widget.props["column_config"][change["column_name"]]
                             new_value = change["new_value"]
 
-                            if column_config["type"] == "Number" && !(new_value in ["", nothing])
-                                if column_config["julia_type"] <: Integer
+                            if column_config["type"] == "Real" && !(new_value in ["", nothing])
+                                if AbstractFloat <: column_config["julia_type"] || column_config["julia_type"] <: AbstractFloat
+                                    # Nothing to do
+                                else
                                     new_value = round(column_config["julia_type"], new_value)
                                 end
                             end
 
-                            if (column_config["type"] == "Number" && (new_value == "" || new_value == nothing)) ||
-                            (column_config["type"] == "String" && (new_value == nothing))
+                            if (column_config["type"] == "Real" && (new_value == "" || new_value == nothing)) ||
+                               (column_config["type"] == "String" && (new_value == nothing))
                                 if column_config["empty_value"] == "<nothing>"
                                     new_value = nothing
                                 elseif column_config["empty_value"] == "<missing>"
