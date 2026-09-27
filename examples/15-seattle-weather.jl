@@ -295,7 +295,7 @@ end
     # Raw data
     #----------------
     cols[2].h6("Raw Data")
-    cols[2].dataframe(df)
+    cols[2].dataframe(df, max_height="300px")
 end # fragment
 
 space(height="200px")

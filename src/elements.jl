@@ -1687,15 +1687,20 @@ function dataframe(
                 cc[column_name]["type"] = "Float"
                 cc[column_name]["julia_type"] = matching_subtype(column_type, AbstractFloat)
 
-                if haskey(column_config[column_name], "precision")
-                    cc[column_name]["precision"] = column_config[column_name]["precision"]
-                else
+                if !haskey(cc[column_name], "precision")
                     cc[column_name]["precision"] = precision
                 end
             elseif has_subtype(column_type, Integer)
                 cc[column_name]["type"] = "Integer"
                 cc[column_name]["julia_type"] = matching_subtype(column_type, Integer)
                 cc[column_name]["precision"] = 0
+            elseif has_subtype(column_type, Real)
+                cc[column_name]["type"] = "Float"
+                cc[column_name]["julia_type"] = matching_subtype(column_type, Real)
+
+                if !haskey(cc[column_name], "precision")
+                    cc[column_name]["precision"] = precision
+                end
             else
                 cc[column_name]["type"] = "String"
             end

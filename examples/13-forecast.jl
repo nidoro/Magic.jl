@@ -82,7 +82,6 @@ function temp_to_color(temp::Number)
     )
 end
 
-
 function plot_map(temps_df::DataFrame, output_path::String)
     plot(
         legend = false,
@@ -168,7 +167,7 @@ end
 
     data = DataFrame(
         State       = String[row.NAME_1 for row in shp],
-        Temperature = Number[round(rand(15.0:0.1:35.0)) for row in shp]
+        Temperature = Real[round(rand(15.0:0.1:35.0)) for row in shp]
     )
 
     set_session_data(SessionData(data, ""))
@@ -183,9 +182,9 @@ Magic.text("Double click a temperature below to change it")
 
 row() do
     column_config = Dict(
-        "Temperature" => Dict("editable" => true)
+        "Temperature" => Dict("editable" => true, "precision" => 0)
     )
 
-    dataframe(session.data, column_config=column_config, id="df", onchange=update_map)
+    dataframe(session.data, max_height="500px", column_config=column_config, id="df", onchange=update_map)
     image(session.img_path, fill_width=true)
 end

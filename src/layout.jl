@@ -295,11 +295,13 @@ function set_css_to_achieve_layout(css::Dict, parent::Dict, fill_width::Bool, fi
     min_height = nothing
     width = nothing
     height = nothing
+    flex_basis = nothing
 
     if fill_width
         if get_css_value(parent, "flex-direction") == "row"
             flex_grow = "1"
             min_width = "0"
+            flex_basis = "0"
         else
             width = "100%"
         end
@@ -311,10 +313,12 @@ function set_css_to_achieve_layout(css::Dict, parent::Dict, fill_width::Bool, fi
         else
             flex_grow = "1"
             min_height = "0"
+            flex_basis = "0"
         end
     end
 
     if flex_grow !== nothing css["flex-grow"] = flex_grow end
+    if flex_basis !== nothing css["flex-basis"] = flex_basis end
     if min_width !== nothing css["min-width"] = min_width end
     if min_height !== nothing css["min-height"] = min_height end
     if width !== nothing css["width"] = width end
