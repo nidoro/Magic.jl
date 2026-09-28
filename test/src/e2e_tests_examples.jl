@@ -61,6 +61,19 @@ end
         @test Magic.g.test_successfull
     end
 
+    @testset "examples/13-forecast.jl + 13-forecast.js" begin
+        @maybe_suppress @info """
+        ------------------------------------------------------------------
+        Test: examples/13-forecast.jl + 13-forecast.js
+        ------------------------------------------------------------------------
+        """
+        ENV["MAGIC_TEST_PAGE"] = "13-forecast.jl"
+        ENV["MAGIC_TEST_ACTIONS_SCRIPT"] = "13-forecast.js"
+        ENV["MAGIC_TEST_CLIENTS"] = 4
+        @test @maybe_suppress start_app("src/test_examples.jl", dot_magic_dir="../examples", port=PORT, dev_mode=true, rethrow_rerun_exceptions=true, throw_client_side_error=true) === nothing
+        @test Magic.g.test_successfull
+    end
+
     @testset "examples/20-image-filters.jl 20-image-filters.js" begin
         @maybe_suppress @info """
         ------------------------------------------------------------------

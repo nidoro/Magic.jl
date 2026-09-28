@@ -59,6 +59,18 @@ function test_successfull(client_id::Cint)::Tuple{Bool, String}
 
         return (true, "")
 
+    elseif (test_page, test_actions_script) == ("13-forecast.jl", "13-forecast.js")
+        session_data = get_session_data(client_id)
+        df = session_data.data
+        expected = (15, 30)
+        realized = (df[1, 2], df[4, 2])
+
+        if expected != realized
+            return (false, "Expected cells (1,2) and (4,2) to be $(expected), but they are $(realized)")
+        end
+
+        return (true, "")
+
     elseif (test_page, test_actions_script) == ("20-image-filters.jl", "20-image-filters.js")
         # In this test, reaching the end means success.
         return (true, "")
