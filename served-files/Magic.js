@@ -380,6 +380,12 @@ function dfChange(cell) {
                 actualNewValue = null;
                 rowData[`mg_value[${columnConfig.name}]`] = actualNewValue;
             }
+        } else if (typeof newValue === "number" && !Number.isNaN(newValue)) {
+            actualNewValue = newValue;
+            rowData[`mg_value[${columnConfig.name}]`] = actualNewValue;
+            newValue = DD_Components.formatNumber(actualNewValue, columnConfig.precision, decimalSep, thousandsSep);
+            cell.mgIgnoreNextChange = true;
+            cell.setValue(newValue);
         } else if (DD_Components.isValidNumberString(newValue, decimalSep, thousandsSep)) {
             actualNewValue = DD_Components.parseNumber(newValue, decimalSep, thousandsSep);
             actualNewValue = columnType == "Integer" ? Math.round(actualNewValue) : actualNewValue;
@@ -993,28 +999,46 @@ function createAppElement(parent, props, fragmentId) {
 
                         if (config.type == "Integer" || config.type == "Float") {
                             columnOptions.hozAlign = "right";
+                        } else if (config.type == "Bool") {
+                            columnOptions.formatter = "tickCross";
+                            columnOptions.hozAlign = "center";
                         }
 
                         if (config.editable) {
                             columnOptions.editor = "input";
+                            if ("options" in config) {
+                                columnOptions.editor = "list";
+                                columnOptions.editorParams = {
+                                    values: config.options,
+                                    autocomplete: true,
+                                    listOnEmpty: true,
+                                };
+                            } else if (config.type == "Bool") {
+                                columnOptions.cellClick = function(e, cell) {
+                                    cell.setValue(!cell.getValue());
+                                };
+                            }
+
                             if (config.type == "Integer" || config.type == "Float") {
                                 columnOptions.sorter = "number";
 
-                                columnOptions.cellEditing = function(cell) {
-                                    const columnName = cell.getField();
-                                    const rowData = cell.getRow().getData();
+                                if (!("options" in config)) {
+                                    columnOptions.cellEditing = function(cell) {
+                                        const columnName = cell.getField();
+                                        const rowData = cell.getRow().getData();
 
-                                    // fires as soon as an editor is opened for a cell
-                                    setTimeout(() => {
-                                        let input = cell.getElement().querySelector("input, textarea");
-                                        if (input) {
-                                            let value = rowData[`mg_value[${columnName}]`];
-                                            if (value == null) return;
-                                            input.value = DD_Components.formatNumber(value, decimalPlaces(value), props.decimal_separator, '');
-                                            input.focus();
-                                        }
-                                    }, 0);
-                                };
+                                        // fires as soon as an editor is opened for a cell
+                                        setTimeout(() => {
+                                            let input = cell.getElement().querySelector("input, textarea");
+                                            if (input) {
+                                                let value = rowData[`mg_value[${columnName}]`];
+                                                if (value == null) return;
+                                                input.value = DD_Components.formatNumber(value, decimalPlaces(value), props.decimal_separator, '');
+                                                input.focus();
+                                            }
+                                        }, 0);
+                                    };
+                                }
                             }
 
                             columnOptions.cellEdited = dfChange;
