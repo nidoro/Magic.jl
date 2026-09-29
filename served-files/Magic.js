@@ -366,9 +366,20 @@ function dfChange(cell) {
     let actualNewValue = newValue;
 
     let ignoreChanges = false;
+    let valid = true;
+
+    if ("options" in columnConfig) {
+        valid = false;
+
+        for (let option of columnConfig.options) {
+            if (option == newValue) {
+                valid = true;
+            }
+        }
+    }
 
     if (columnType == "Integer" || columnType == "Float") {
-        if (["", undefined, null].includes(newValue)) {
+        if (["", undefined, null].includes(newValue) || !valid) {
             if (columnConfig.required) {
                 cell.mgIgnoreNextChange = true;
                 cell.setValue(oldValue);
@@ -406,8 +417,40 @@ function dfChange(cell) {
             actualNewValue = null;
             rowData[`mg_value[${columnConfig.name}]`] = actualNewValue;
         }
+    } else if (columnType == "Bool") {
+        if (["", undefined, null].includes(newValue) || !valid) {
+            if (columnConfig.required) {
+                cell.mgIgnoreNextChange = true;
+                cell.setValue(oldValue);
+                ignoreChanges = true;
+                newValue = oldValue;
+                actualNewValue = actualOldValue;
+            } else {
+                newValue = null;
+                actualNewValue = null;
+            }
+        } else if ([true, false, 0, 1, "0", "1", "true", "false"].includes(newValue)) {
+            let val = [true, 1, "1", "true"].includes(newValue);
+            if (val !== newValue) {
+                cell.mgIgnoreNextChange = true;
+                cell.setValue(val);
+                newValue = val;
+                actualNewValue = val;
+            }
+        } else if (columnConfig.required) {
+            cell.mgIgnoreNextChange = true;
+            cell.setValue(oldValue);
+            ignoreChanges = true;
+            newValue = oldValue;
+            actualNewValue = actualOldValue;
+        } else {
+            cell.mgIgnoreNextChange = true;
+            cell.setValue(null);
+            newValue = null;
+            actualNewValue = null;
+        }
     } else if (columnType == "String") {
-        if ([undefined, null].includes(newValue)) {
+        if ([undefined, null].includes(newValue) || !valid) {
             if (columnConfig.required) {
                 cell.mgIgnoreNextChange = true;
                 cell.setValue(oldValue);
@@ -415,6 +458,8 @@ function dfChange(cell) {
                 newValue = oldValue;
                 actualNewValue = oldValue;
             } else {
+                cell.mgIgnoreNextChange = true;
+                cell.setValue(null);
                 newValue = null;
                 actualNewValue = null;
             }
@@ -1001,6 +1046,9 @@ function createAppElement(parent, props, fragmentId) {
                             columnOptions.hozAlign = "right";
                         } else if (config.type == "Bool") {
                             columnOptions.formatter = "tickCross";
+                            columnOptions.formatterParams = {
+                                allowEmpty: true,
+                            }
                             columnOptions.hozAlign = "center";
                         }
 

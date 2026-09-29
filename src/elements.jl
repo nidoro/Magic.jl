@@ -1690,10 +1690,9 @@ function dataframe(
                 if !haskey(cc[column_name], "precision")
                     cc[column_name]["precision"] = precision
                 end
-            elseif column_type <: Bool
+            elseif column_type <: Union{Bool, Nothing}
                 cc[column_name]["type"] = "Bool"
                 cc[column_name]["julia_type"] = Bool
-                cc[column_name]["required"] = true
             elseif has_subtype(column_type, Integer)
                 cc[column_name]["type"] = "Integer"
                 cc[column_name]["julia_type"] = matching_subtype(column_type, Integer)
