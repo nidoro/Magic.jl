@@ -349,6 +349,26 @@ function start_app(
 
                         session.rerun_task = nothing
 
+                        # Start async jobs
+                        #--------------------
+                        for job in session.jobs
+                            if job.status == "created"
+                                Threads.@spawn try
+                                    task_local_storage("magic_job", job)
+                                    job.task = current_task()
+                                    job.session = session
+                                    job.status = "started"
+                                    invokelatest(job.func)
+                                    job.status = "finished"
+                                    put!(g.internal_events, InternalEvent(InternalEventType_Job, job))
+                                catch e
+                                    job.caught_error = get_rerun_error(e)
+                                    print_rerun_error(job.caught_error)
+                                    put!(g.internal_events, InternalEvent(InternalEventType_Job, job))
+                                end
+                            end
+                        end
+
                         # Start next rerun request on queue, if any
                         #-------------------------------------------
                         if length(session.rerun_queue) > 0
@@ -365,6 +385,10 @@ function start_app(
                         # Notify if download is ready
                         #-------------------------------
                         for front_event in ev.data.payload["events"]
+                            if front_event["type"] == "rerun_fragment"
+                                continue
+                            end
+
                             if haskey(session.widgets, front_event["widget_id"])
                                 widget = session.widgets[front_event["widget_id"]]
                                 if widget.kind == WidgetKind_Button && typeof(widget.props["download_path"]) <: AbstractString
@@ -385,6 +409,29 @@ function start_app(
                         try_rm("$(g.dot_magic_dir)/.Magic/served-files/generated/$(session.session_id)", recursive=true, force=true)
                     end
                 end
+            elseif ev.ev_type == InternalEventType_RerunJobFragments
+                job = ev.data
+                session = job.session
+
+                if !session.client_left
+                    @debug "RerunJobFragments | ClientId=$(session.client_id)"
+
+                    payload = Dict(
+                        "type" => "rerun_fragments",
+                        "dev_mode" => g.dev_mode,
+                        "fragments" => [frag.id for frag in job.fragments],
+                    )
+
+                    payload_string = JSON.json(payload)
+                    app_event = create_app_event(AppEventType_NewPayload, session.client_id, payload_string)
+                    push_app_event(app_event)
+
+                    write(g.ipc_connection, " ")
+                else
+                    @debug "ClientlessJobFragments | ClientId=$(session.client_id)"
+                end
+            elseif ev.ev_type == InternalEventType_Job
+                job = ev.data
             end
         end
     catch e
@@ -554,8 +601,7 @@ function rerun(client_id::Cint, payload::Dict)::Task
         fragment_id = ""
 
         for front_event in payload["events"]
-            widget = session.widgets[front_event["widget_id"]]
-            fragment_id = widget.fragment_id
+            fragment_id = front_event["fragment_id"]
         end
 
         frag = session.fragments[fragment_id]
@@ -587,6 +633,10 @@ function rerun(client_id::Cint, payload::Dict)::Task
             # NOTE: Although we receive a list of events from the front-end, at the
             # moment we don't expect it to have more than one event.
             for front_event in payload["events"]
+                if front_event["type"] == "rerun_fragment"
+                    continue
+                end
+
                 widget = session.widgets[front_event["widget_id"]]
                 if front_event["type"] == "click"
                     widget.clicked = true
@@ -765,6 +815,9 @@ end
 function is_rerun_request_valid(session::Session, request::RerunRequest)::Bool
     payload = request.payload
     for front_event in payload["events"]
+        if front_event["type"] == "rerun_fragment"
+            return true
+        end
         if !haskey(session.widgets, front_event["widget_id"])
             return false
         end
@@ -1064,7 +1117,7 @@ incremented.
 """
 
 @doc DOC_FRAGMENT
-function fragment(func::Function; id::String=String(nameof(func)))
+function fragment(func::Function; id::String=String(nameof(func)))::Fragment
     task = ensure_app_task_exists()
 
     wrapper = create_container(
@@ -1090,6 +1143,8 @@ function fragment(func::Function; id::String=String(nameof(func)))
     func()
     pop_container()
     pop_fragment()
+
+    return frag
 end
 
 @doc DOC_FRAGMENT
@@ -1098,6 +1153,22 @@ macro fragment(block)
     name = Symbol("fragment_", file, "_", __source__.line)
     return :(
         Magic.fragment(function $(esc(name))()
+            $(esc(block))
+        end)
+    )
+end
+
+function create_job(func::Function)::AsyncJob
+    result = AsyncJob()
+    result.func = func
+    task = ensure_app_task_exists()
+    push!(task.session.jobs, result)
+    return result
+end
+
+macro job(block)
+    return :(
+        Magic.create_job(function()
             $(esc(block))
         end)
     )
@@ -2317,6 +2388,44 @@ macro once(def)
             Magic.USER_TYPES[$(QuoteNode(struct_name))] = $struct_name
         end
     end)
+end
+
+function bind_fragment(job::AsyncJob, frag::Fragment)::Nothing
+    push!(job.fragments, frag)
+    return nothing
+end
+
+function set_job_data(job::AsyncJob, data::Any)::Nothing
+    job.data = data
+    return nothing
+end
+
+function get_job()::Union{AsyncJob, Nothing}
+    if haskey(task_local_storage(), "magic_job")
+        job = task_local_storage("magic_job")
+        if job isa AsyncJob
+            return job
+        end
+    end
+    return nothing
+end
+
+function set_job_data(data::Any)::Nothing
+    job = get_job()
+    return set_job_data(get_job(), data)
+end
+
+function get_job_data(job::AsyncJob)::Any
+    return job.data
+end
+
+function rerun_fragments(job::AsyncJob)::Nothing
+    put!(g.internal_events, InternalEvent(InternalEventType_RerunJobFragments, job))
+    return nothing
+end
+
+function rerun_fragments()::Nothing
+    return rerun_fragments(get_job())
 end
 
 function save_doc(object::Any, file_path::String, sidebar_position::Union{Integer, Nothing}=nothing)::Nothing

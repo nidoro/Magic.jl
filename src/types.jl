@@ -125,12 +125,32 @@ end
 
 Base.getindex(containers::Containers, i) = containers.containers[i]
 
+# CaughtError
+#-----------------
+@with_kw struct RerunError
+    exception   ::Union{Exception, Nothing} = nothing
+    message     ::String                    = ""
+    stacktrace  ::String                    = ""
+end
+
 # Fragment
 #-----------------------
 @with_kw mutable struct Fragment
     id              ::String   = ""
     func            ::Function = ()->()
     container_props ::Dict     = Dict()
+end
+
+# AsyncJob
+#---------------
+@with_kw mutable struct AsyncJob
+    status          ::String                        = "created"
+    task            ::Union{Task, Nothing}          = nothing
+    func            ::Function                      = ()->()
+    fragments       ::Vector{Fragment}              = Vector{Fragment}()
+    data            ::Any                           = nothing
+    session         ::Any                           = nothing
+    caught_error    ::Union{RerunError, Nothing}    = nothing
 end
 
 # PageConfig
@@ -207,14 +227,16 @@ end
 
 # InternalEvent
 #-------------------
-const InternalEventType          = Cint
-const InternalEventType_None     = Cint(0)
-const InternalEventType_Network  = Cint(1)
-const InternalEventType_Task     = Cint(2)
+const InternalEventType                 = Cint
+const InternalEventType_None            = Cint(0)
+const InternalEventType_Network         = Cint(1)
+const InternalEventType_Task            = Cint(2)
+const InternalEventType_Job             = Cint(3)
+const InternalEventType_RerunJobFragments  = Cint(4)
 
 @with_kw mutable struct InternalEvent
     ev_type ::InternalEventType         = InternalEventType_None
-    data    ::Union{NetEvent, AppTask}  = Union{NetEvent, AppTask}()
+    data    ::Union{NetEvent, AppTask, AsyncJob}  = Union{NetEvent, AppTask, AsyncJob}()
 end
 
 # CallbackReason
@@ -238,12 +260,6 @@ end
     payload::Dict = Dict()
 end
 
-@with_kw struct RerunError
-    exception   ::Union{Exception, Nothing} = nothing
-    message     ::String                    = ""
-    stacktrace  ::String                    = ""
-end
-
 @with_kw mutable struct Session
     client_id                   ::Cint                      = 0
     session_id                  ::String                    = ""
@@ -260,6 +276,7 @@ end
     rerun_error                 ::Union{RerunError, Nothing} = nothing
     refresh                     ::Bool                      = false
     app_mod                     ::Module                    = Module(:MagicApp)
+    jobs                        ::Vector{AsyncJob}          = Vector{AsyncJob}()
 end
 
 # Global

@@ -1541,6 +1541,14 @@ async function wsOnMessage(event) {
 
             magic.eventListener({type: "rerun_complete", rerun});
         })
+    } else if (msg.type == "rerun_fragments") {
+        for (let fragmentId of msg.fragments) {
+            let events = [{
+                type: "rerun_fragment",
+                fragment_id: fragmentId
+            }];
+            requestUpdate(events);
+        }
     } else if (msg.type == "please_refresh") {
         location.reload();
     } else if (msg.type == "response_hello") {
