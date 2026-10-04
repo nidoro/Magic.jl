@@ -136,21 +136,33 @@ end
 # Fragment
 #-----------------------
 @with_kw mutable struct Fragment
-    id              ::String   = ""
-    func            ::Function = ()->()
-    container_props ::Dict     = Dict()
+    id              ::String    = ""
+    func            ::Function  = ()->()
+    container_props ::Dict      = Dict()
 end
 
 # AsyncJob
 #---------------
+struct ProgressSnapshot
+    progress    ::Float64
+    message     ::String
+    data        ::Any
+end
+
 @with_kw mutable struct AsyncJob
-    status          ::String                        = "created"
-    task            ::Union{Task, Nothing}          = nothing
-    func            ::Function                      = ()->()
-    fragments       ::Vector{Fragment}              = Vector{Fragment}()
-    data            ::Any                           = nothing
-    session         ::Any                           = nothing
-    caught_error    ::Union{RerunError, Nothing}    = nothing
+    task                ::Union{Task, Nothing}          = nothing
+    func                ::Function                      = ()->()
+    result              ::Any                           = missing
+    fragments           ::Vector{String}                = Vector{String}()
+    session             ::Any                           = nothing
+    caught_error        ::Union{RerunError, Nothing}    = nothing
+    data                ::Any                           = nothing
+    progress_snapshots  ::Vector{ProgressSnapshot}      = ProgressSnapshot[ProgressSnapshot(0.0, "&nbsp;", nothing)]
+    polled_progress     ::Int                           = 0
+    rerun_progress_snapshot::Int                        = 1
+    ran_fragments       ::Vector{String}                = String[]
+    last_rerun_request  ::Float64                       = 0
+    rerun_cooldown      ::Bool                          = false
 end
 
 # PageConfig
@@ -227,16 +239,21 @@ end
 
 # InternalEvent
 #-------------------
-const InternalEventType                 = Cint
-const InternalEventType_None            = Cint(0)
-const InternalEventType_Network         = Cint(1)
-const InternalEventType_Task            = Cint(2)
-const InternalEventType_Job             = Cint(3)
-const InternalEventType_RerunJobFragments  = Cint(4)
+const InternalEventType                     = Cint
+const InternalEventType_None                = Cint(0)
+const InternalEventType_Network             = Cint(1)
+const InternalEventType_Task                = Cint(2)
+const InternalEventType_Job                 = Cint(3)
+const InternalEventType_RerunFragments      = Cint(4)
+
+struct RerunFragmentsEvent
+    client_id::Cint
+    fragments::Vector{String}
+end
 
 @with_kw mutable struct InternalEvent
     ev_type ::InternalEventType         = InternalEventType_None
-    data    ::Union{NetEvent, AppTask, AsyncJob}  = Union{NetEvent, AppTask, AsyncJob}()
+    data    ::Union{NetEvent, AppTask, AsyncJob, RerunFragmentsEvent}  = Union{NetEvent, AppTask, AsyncJob, RerunFragmentsEvent}()
 end
 
 # CallbackReason
@@ -277,6 +294,7 @@ end
     refresh                     ::Bool                      = false
     app_mod                     ::Module                    = Module(:MagicApp)
     jobs                        ::Vector{AsyncJob}          = Vector{AsyncJob}()
+    ran_fragments               ::Vector{String}            = String[]
 end
 
 # Global

@@ -1951,7 +1951,7 @@ end
 
 # HTML
 #----------------
-function create_html(parent::Dict, tag::String, inner_html::String, attributes::Dict, css::Dict)
+function create_html(parent::Dict, tag::String, inner_html::String, attributes::Dict, css::Dict)::Nothing
     html = Dict(
         "type" => "html",
         "tag" => tag,
@@ -1991,9 +1991,13 @@ function html(
 
 Nothing.
 """
-function html(tag::String, inner_html::String; attributes::Dict=Dict(), css::Dict=Dict())::Nothing
-    create_html(top_container(), tag, inner_html, attributes, css)
-    return nothing
+function html(
+    tag::String,
+    inner_html::String;
+    attributes::Dict=Dict(),
+    css::Dict=Dict()
+)::Nothing
+    return create_html(top_container(), tag, inner_html, attributes, css)
 end
 
 """
@@ -2787,3 +2791,44 @@ function get_changes(user_id::String)::Union{Missing, Dict{Int, Dict{String, Any
     end
     return widget.changes
 end
+
+function spinner(size::String="medium")::Nothing
+    if      size == "small"     size = "25px"
+    elseif  size == "medium"    size = "50px"
+    elseif  size == "large"     size = "75px"
+    end
+
+    println(top_container())
+    println()
+
+    column(fill_width=true, align_items="center", max_width="calc(var(--spinner-size) * 10)", css=Dict("--spinner-size" => "calc($(size) / 2.5)")) do
+        html("dd-spinner", "")
+    end
+
+    return nothing
+end
+
+function spinner_dialog(
+    job::Union{AsyncJob, Nothing}
+)::Nothing
+    frag = dialog_fragment() do
+        h2("Please wait")
+
+        column(fill_width=true, align_items="center") do
+            space(height="1em")
+            spinner("medium")
+            space(height="1em")
+
+            if !is_finished(job)
+                progress = get_progress(job)
+                text(progress.message)
+            else
+                rerun()
+            end
+        end
+    end
+
+    bind_fragment(job, frag)
+    return nothing
+end
+

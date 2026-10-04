@@ -273,7 +273,7 @@ function start_app(
                                 write(g.ipc_connection, " ")
                             elseif session.rerun_task === nothing
                                 if is_rerun_request_valid(session, rerun_request)
-                                    rerun(ev.data.client_id, payload)
+                                    rerun_app(ev.data.client_id, payload)
                                 else
                                     return_invalid_request(ev.data.client_id, payload["request_id"])
                                 end
@@ -352,19 +352,19 @@ function start_app(
                         # Start async jobs
                         #--------------------
                         for job in session.jobs
-                            if job.status == "created"
-                                Threads.@spawn try
+                            if isnothing(job.task)
+                                job.task = Threads.@spawn try
                                     task_local_storage("magic_job", job)
-                                    job.task = current_task()
                                     job.session = session
-                                    job.status = "started"
-                                    invokelatest(job.func)
-                                    job.status = "finished"
+                                    job.result = invokelatest(job.func)
                                     put!(g.internal_events, InternalEvent(InternalEventType_Job, job))
+                                    return job.result
                                 catch e
                                     job.caught_error = get_rerun_error(e)
                                     print_rerun_error(job.caught_error)
+                                    job.result = e.task.result
                                     put!(g.internal_events, InternalEvent(InternalEventType_Job, job))
+                                    return e
                                 end
                             end
                         end
@@ -375,7 +375,7 @@ function start_app(
                             rerun_request = popfirst!(session.rerun_queue)
                             if is_rerun_request_valid(session, rerun_request)
                                 @debug "Running next rerun request in queue"
-                                rerun(session.client_id, rerun_request.payload)
+                                rerun_app(session.client_id, rerun_request.payload)
                             else
                                 @debug "Next rerun request in queue is invalid"
                                 return_invalid_request(session.client_id, ev.data.payload["request_id"])
@@ -409,17 +409,16 @@ function start_app(
                         try_rm("$(g.dot_magic_dir)/.Magic/served-files/generated/$(session.session_id)", recursive=true, force=true)
                     end
                 end
-            elseif ev.ev_type == InternalEventType_RerunJobFragments
-                job = ev.data
-                session = job.session
+            elseif ev.ev_type == InternalEventType_RerunFragments
+                session = g.sessions[ev.data.client_id]
 
                 if !session.client_left
-                    @debug "RerunJobFragments | ClientId=$(session.client_id)"
+                    @debug "RerunFragments | ClientId=$(session.client_id)"
 
                     payload = Dict(
                         "type" => "rerun_fragments",
                         "dev_mode" => g.dev_mode,
-                        "fragments" => [frag.id for frag in job.fragments],
+                        "fragments" => ev.data.fragments,
                     )
 
                     payload_string = JSON.json(payload)
@@ -428,7 +427,7 @@ function start_app(
 
                     write(g.ipc_connection, " ")
                 else
-                    @debug "ClientlessJobFragments | ClientId=$(session.client_id)"
+                    @debug "ClientlessInternalEvent | ClientId=$(session.client_id)"
                 end
             elseif ev.ev_type == InternalEventType_Job
                 job = ev.data
@@ -579,7 +578,7 @@ function filtered_stacktrace(bt; cutoff_file = nothing)
     return frames
 end
 
-function rerun(client_id::Cint, payload::Dict)::Task
+function rerun_app(client_id::Cint, payload::Dict)::Task
     session = g.sessions[client_id]
 
     if payload["location"] !== nothing
@@ -604,6 +603,7 @@ function rerun(client_id::Cint, payload::Dict)::Task
             fragment_id = front_event["fragment_id"]
         end
 
+        session.ran_fragments = String[fragment_id]
         frag = session.fragments[fragment_id]
         frag.container_props["children"] = Vector{Dict{String, Any}}()
 
@@ -760,6 +760,33 @@ function rerun(client_id::Cint, payload::Dict)::Task
                 Base.invokelatest(g.callback, CallbackReason_AfterSessionFirstPass, client_id, session.session_id)
             end
 
+            # Update jobs
+            #----------------
+            for job in session.jobs
+                if job.rerun_progress_snapshot == 0
+                    continue
+                end
+
+                if isempty(job.fragments)
+                    bind_fragment(job, "")
+                end
+
+                for frag in job.fragments
+                    if frag in session.ran_fragments && !(frag in job.ran_fragments)
+                        push!(job.ran_fragments, frag)
+                    end
+                end
+
+                if length(job.ran_fragments) == length(job.fragments)
+                    if job.rerun_progress_snapshot < length(job.progress_snapshots)
+                        job.rerun_progress_snapshot = 0
+                        rerun_fragments(job)
+                    else
+                        job.rerun_progress_snapshot = 0
+                    end
+                end
+            end
+
             # Remove dead widgets
             #-------------------------
             filter!(p -> p.second.alive, session.widgets)
@@ -862,7 +889,7 @@ function execute_dry_runs()::Bool
 
     handle_new_client(Cint(0), "0")
     @info "Dry Run: First pass over '$(g.script_name)'.\n$(AC_Green("@app_startup")) code blocks will run now."
-    wait_rerun(rerun(Cint(0), dry_run_payload))
+    wait_rerun(rerun_app(Cint(0), dry_run_payload))
     rerun_error = g.sessions[Cint(0)].rerun_error
     handle_client_left(Cint(0))
 
@@ -880,7 +907,7 @@ function execute_dry_runs()::Bool
             dry_run_payload["location"]["href"] = get_server_origin() * page.uris[1]
             dry_run_payload["location"]["pathname"] = page.uris[1]
 
-            wait_rerun(rerun(Cint(0), dry_run_payload))
+            wait_rerun(rerun_app(Cint(0), dry_run_payload))
             rerun_error = g.sessions[Cint(0)].rerun_error
             handle_client_left(Cint(0))
 
@@ -1143,6 +1170,8 @@ function fragment(func::Function; id::String=String(nameof(func)))::Fragment
     func()
     pop_container()
     pop_fragment()
+
+    push!(task.session.ran_fragments, id)
 
     return frag
 end
@@ -2390,9 +2419,13 @@ macro once(def)
     end)
 end
 
-function bind_fragment(job::AsyncJob, frag::Fragment)::Nothing
-    push!(job.fragments, frag)
+function bind_fragment(job::AsyncJob, fragment_id::String)::Nothing
+    push!(job.fragments, fragment_id)
     return nothing
+end
+
+function bind_fragment(job::AsyncJob, frag::Fragment)::Nothing
+    return bind_fragment(job, frag.id)
 end
 
 function set_job_data(job::AsyncJob, data::Any)::Nothing
@@ -2419,13 +2452,71 @@ function get_job_data(job::AsyncJob)::Any
     return job.data
 end
 
-function rerun_fragments(job::AsyncJob)::Nothing
-    put!(g.internal_events, InternalEvent(InternalEventType_RerunJobFragments, job))
+function rerun_fragments(client_id::Cint, fragments::Vector{String})::Nothing
+    event = RerunFragmentsEvent(client_id, fragments)
+    put!(g.internal_events, InternalEvent(InternalEventType_RerunFragments, event))
     return nothing
 end
 
-function rerun_fragments()::Nothing
-    return rerun_fragments(get_job())
+function rerun_fragments(job::AsyncJob)::Nothing
+    if isempty(job.fragments)
+        return nothing
+    end
+
+    if job.rerun_progress_snapshot == 0
+        elapsed_time = time() - job.last_rerun_request
+        if elapsed_time >= 0.2
+            job.rerun_cooldown = false
+            job.rerun_progress_snapshot = length(job.progress_snapshots)
+            job.ran_fragments = String[]
+            job.last_rerun_request = time()
+            rerun_fragments(job.session.client_id, job.fragments)
+        elseif !job.rerun_cooldown
+            Threads.@spawn begin
+                println("COOLDOWN BEGIN")
+                sleep(0.2 - elapsed_time)
+                rerun_fragments(job)
+                job.rerun_cooldown = false
+                println("COOLDOWN END")
+            end
+            job.rerun_cooldown = true
+        end
+    end
+    return nothing
+end
+
+function rerun(fragment_id::String="")::Nothing
+    task = ensure_app_task_exists()
+    return rerun_fragments(task.session.client_id, [fragment_id])
+end
+
+function set_progress(job::AsyncJob, progress::AbstractFloat, message::Union{AbstractString, Nothing}=nothing, data::Any=nothing)::ProgressSnapshot
+    if isnothing(message) message = "$(round(progress*100))%" end
+    progress = ProgressSnapshot(progress, message, data)
+    push!(job.progress_snapshots, progress)
+    rerun_fragments(job)
+    yield()
+    return progress
+end
+
+function set_progress(progress::AbstractFloat; message::Union{AbstractString, Nothing}=nothing, data::Any=nothing)::ProgressSnapshot
+    return set_progress(get_job(), progress, message, data)
+end
+
+function get_progress(job::AsyncJob)::ProgressSnapshot
+    if job.rerun_progress_snapshot == 0
+        return job.progress_snapshots[end]
+    else
+        return job.progress_snapshots[job.rerun_progress_snapshot]
+    end
+end
+
+function get_result(job::AsyncJob)::Any
+    return job.result
+end
+
+function is_finished(job::AsyncJob)::Bool
+    return !isnothing(job.task) && istaskdone(job.task)
 end
 
 function save_doc(object::Any, file_path::String, sidebar_position::Union{Integer, Nothing}=nothing)::Nothing

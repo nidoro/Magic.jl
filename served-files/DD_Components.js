@@ -5174,8 +5174,9 @@ style.textContent = `
         -webkit-transform: translateZ(0);
         -ms-transform: translateZ(0);
         transform: translateZ(0) translateY(-100%);
-        -webkit-animation-delay: -0.16s;
-        animation-delay: -0.16s;
+        -webkit-animation-delay: calc((-1 * var(--element-age, 0s)) - 0.16s);
+        animation-delay: calc((-1 * var(--element-age, 0s)) - 0.16s);
+        pointer-events: none;
     }
     .dd-spinner:before,
     .dd-spinner:after {
@@ -5185,11 +5186,13 @@ style.textContent = `
     }
     .dd-spinner:before {
         left: -3.5em;
-        -webkit-animation-delay: -0.32s;
-        animation-delay: -0.32s;
+        -webkit-animation-delay: calc((-1 * var(--element-age, 0s)) - 0.32s);
+        animation-delay: calc((-1 * var(--element-age, 0s)) - 0.32s);
     }
     .dd-spinner:after {
         left: 3.5em;
+        -webkit-animation-delay: calc(-1 * var(--element-age, 0s));
+        animation-delay: calc(-1 * var(--element-age, 0s));
     }
     @-webkit-keyframes load7 {
         0%,

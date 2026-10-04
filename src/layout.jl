@@ -663,6 +663,35 @@ function columns(amount_or_widths::Union{Int, AbstractVector, Tuple}; kwargs...)
     return columns
 end
 
+function create_dialog(
+)::ContainerInterface
+    return column(
+        fill_width=true,
+        attributes=Dict("class" => "mg-dialog"),
+    )
+end
+
+function dialog(
+    inner_func      ::Function      =()->()
+)::ContainerInterface
+    task = ensure_app_task_exists()
+    container = create_dialog()
+    push_container(container)
+    inner_func()
+    pop_container()
+    return container
+end
+
+function dialog_fragment(
+    inner_func      ::Function      =()->()
+)::Fragment
+    dlg = dialog()
+    push_container(dlg)
+    frag = fragment(inner_func)
+    pop_container()
+    return frag
+end
+
 function create_sidebar(
     initial_state::String,
     side::String,
