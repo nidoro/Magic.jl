@@ -644,7 +644,7 @@ function createAppElement(parent, props, fragmentId) {
     let newElements = [];
 
     if (props.type == "html") {
-        let hash = quickHash(quickHash(props) + parent.getAttribute("data-mg-id") + parent.children.length);
+        let hash = quickHash(props.tag + props.inner_html + parent.getAttribute("data-mg-id") + parent.children.length);
         let elem = document.querySelector(`[data-mg-id="${hash}"]`);
 
         if (!elem) {
@@ -661,6 +661,18 @@ function createAppElement(parent, props, fragmentId) {
             const creation = parseInt(elem.getAttribute("data-mg-creation"));
             const age = (performance.now() - creation) / 1000;
             elem.style.setProperty("--element-age", `${age}s`);
+
+            if (elem.classList.contains("mg-progress-bar")) {
+                let left = elem.querySelector(".left-bar");
+                const computedStyle = getComputedStyle(left);
+                elem.style.setProperty("--progress", computedStyle.width);
+            }
+
+            requestAnimationFrame(() =>
+                requestAnimationFrame(
+                    () => applyCSS(elem, props.css)
+                )
+            );
         }
 
         newElements.push(elem);
@@ -720,7 +732,12 @@ function createAppElement(parent, props, fragmentId) {
             if (props.icon) iconHTML = `<mg-icon mg-icon="${props.icon}"></mg-icon>`;
 
             elem.innerHTML = `${iconHTML} ${props.label}`;
-            elem.classList.add("mg-button");
+
+            if (props.style == "close_dialog") {
+                elem.classList.add("dd-x");
+            } else {
+                elem.classList.add("mg-button");
+            }
 
             if (props.style) {
                 elem.classList.add(`mg-button-style-${props.style}`);

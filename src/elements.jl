@@ -14,7 +14,7 @@ function create_button(
 
     # Input validation
     #---------------------
-    assert_string_in_list(@named(style), ("primary", "secondary", "naked"))
+    assert_string_in_list(@named(style), ("primary", "secondary", "naked", "close_dialog"))
 
     if !isempty(icon)
         assert_valid_material_icon(@named(icon))
@@ -2798,9 +2798,6 @@ function spinner(size::String="medium")::Nothing
     elseif  size == "large"     size = "75px"
     end
 
-    println(top_container())
-    println()
-
     column(fill_width=true, align_items="center", max_width="calc(var(--spinner-size) * 10)", css=Dict("--spinner-size" => "calc($(size) / 2.5)")) do
         html("dd-spinner", "")
     end
@@ -2808,27 +2805,78 @@ function spinner(size::String="medium")::Nothing
     return nothing
 end
 
-function spinner_dialog(
-    job::Union{AsyncJob, Nothing}
-)::Nothing
+function progress_bar(progress::Real; message::Union{AbstractString, Nothing}=nothing, max_width="100%")::Nothing
+    if isnothing(message)
+        message = "$(ceil(Int, progress*100))%"
+    end
+
+    column(fill_width=true, max_width=max_width, gap="0px") do
+        text(message)
+        column(fill_width=true, css=Dict("position" => "relative", "height" => "13px")) do
+            html("div", """
+                <div class="left-bar"></div>
+            """, attributes=Dict("class" => "mg-progress-bar"), css=Dict("--progress" => "$(Float64(progress) * 100)%"))
+        end
+    end
+    return nothing
+end
+
+function progress_dialog(
+    job::Union{AsyncJob, Nothing};
+    style::String="spinner"
+)::Fragment
+
     frag = dialog_fragment() do
-        h2("Please wait")
-
-        column(fill_width=true, align_items="center") do
-            space(height="1em")
-            spinner("medium")
-            space(height="1em")
-
+        if button("", style="close_dialog")
             if !is_finished(job)
+                job.stop_requested = true
+            end
+            rerun()
+        end
+
+        if isnothing(job.caught_error)
+            h2("Please wait")
+
+            column(fill_width=true, align_items="center") do
                 progress = get_progress(job)
-                text(progress.message)
-            else
+
+                if style == "spinner"
+                    space(height="1em")
+                    spinner()
+                    space(height="1em")
+                    text(progress.message)
+                elseif style == "progress_bar"
+                    space(height="0.5em")
+                    progress_bar(progress.progress)
+                    space(height="1em")
+                end
+            end
+
+            if is_done(job)
                 rerun()
             end
+        else
+            h2("Error")
+
+            column(fill_width=true, align_items="center") do
+                progress = get_last_progress(job)
+
+                if style == "spinner"
+                    space(height="0.5em")
+                    #spinner()
+                    #space(height="1em")
+                    text(progress.message)
+                elseif style == "progress_bar"
+                    space(height="0.5em")
+                    progress_bar(progress.progress)
+                end
+            end
+
+            display_rerun_error(job.caught_error, max_height="300px")
         end
     end
 
     bind_fragment(job, frag)
-    return nothing
+    return frag
 end
 

@@ -150,6 +150,7 @@ struct ProgressSnapshot
 end
 
 @with_kw mutable struct AsyncJob
+    id                  ::String                        = ""
     task                ::Union{Task, Nothing}          = nothing
     func                ::Function                      = ()->()
     result              ::Any                           = missing
@@ -163,6 +164,8 @@ end
     ran_fragments       ::Vector{String}                = String[]
     last_rerun_request  ::Float64                       = 0
     rerun_cooldown      ::Bool                          = false
+    stop_requested      ::Bool                          = false
+    stopped             ::Bool                          = false
 end
 
 # PageConfig
@@ -353,6 +356,7 @@ struct PastStartupCall          <: MagicError func::String; moment::String end
 struct ClientSideError          <: MagicError payload::Dict end
 struct TestFailed               <: MagicError test_id::String; info::String end
 struct IncorrectUsage           <: MagicError func::Union{Function, Nothing} end
+struct JobStopped               <: Exception  job_id::String end
 
 # To be used with InvalidArgument
 macro named(expr)

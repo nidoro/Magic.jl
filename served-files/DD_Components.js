@@ -4933,7 +4933,7 @@ style.textContent = `
         margin-top: 4em;
     }
     
-    dd-x {
+    dd-x, .dd-x {
         box-sizing: border-box;
         display: block;
         position: absolute;
@@ -4949,12 +4949,12 @@ style.textContent = `
         cursor: pointer;
     }
 
-    dd-x::before {
+    dd-x::before, .dd-x::before {
         box-sizing: border-box;
         content: "\\00D7";
     }
 
-    dd-x:hover {
+    dd-x:hover, .dd-x:hover {
         background: rgba(0,0,0,.1);
         opacity: 1;
     }

@@ -357,12 +357,21 @@ function start_app(
                                     task_local_storage("magic_job", job)
                                     job.session = session
                                     job.result = invokelatest(job.func)
+                                    if job.stop_requested
+                                        job.stopped = true
+                                    else
+                                        rerun_fragments(job)
+                                    end
                                     put!(g.internal_events, InternalEvent(InternalEventType_Job, job))
                                     return job.result
                                 catch e
-                                    job.caught_error = get_rerun_error(e)
-                                    print_rerun_error(job.caught_error)
-                                    job.result = e.task.result
+                                    if e isa JobStopped
+                                        job.stopped = true
+                                    else
+                                        job.caught_error = get_rerun_error(e)
+                                        print_rerun_error(job.caught_error)
+                                        rerun_fragments(job)
+                                    end
                                     put!(g.internal_events, InternalEvent(InternalEventType_Job, job))
                                     return e
                                 end
@@ -473,8 +482,8 @@ function print_rerun_error(err::RerunError)::Nothing
     return nothing
 end
 
-function display_rerun_error(err::RerunError)::Nothing
-    column(gap=".3em", padding="1em", margin="0 0 2rem 0", fill_width=true, max_width="100%", css=Dict("font-family" => "monospace", "white-space" => "pre", "background" => "#fdeded", "color" => "#89454a", "overflow-x" => "auto")) do
+function display_rerun_error(err::RerunError; max_height::AbstractString="initial")::Nothing
+    column(gap=".3em", padding="1em", fill_width=true, max_width="100%", max_height=max_height, css=Dict("font-family" => "monospace", "white-space" => "pre", "background" => "#fdeded", "color" => "#89454a", "overflow-x" => "auto")) do
         html("span", err.message)
         html("span", err.stacktrace)
     end
@@ -843,7 +852,11 @@ function is_rerun_request_valid(session::Session, request::RerunRequest)::Bool
     payload = request.payload
     for front_event in payload["events"]
         if front_event["type"] == "rerun_fragment"
-            return true
+            if front_event["fragment_id"] == "" || haskey(session.fragments, front_event["fragment_id"])
+                return true
+            else
+                return false
+            end
         end
         if !haskey(session.widgets, front_event["widget_id"])
             return false
@@ -1187,8 +1200,9 @@ macro fragment(block)
     )
 end
 
-function create_job(func::Function)::AsyncJob
+function create_job(func::Function, id::AbstractString)::AsyncJob
     result = AsyncJob()
+    result.id = id
     result.func = func
     task = ensure_app_task_exists()
     push!(task.session.jobs, result)
@@ -1201,6 +1215,92 @@ macro job(block)
             $(esc(block))
         end)
     )
+end
+
+function job(func::Function, id::Union{AbstractString, Nothing}=nothing; on_progress::Union{AbstractString, Fragment, Nothing}="spinner")::AsyncJob
+    if isnothing(id)
+        id = get_random_string(6)
+    end
+
+    task = ensure_app_task_exists()
+
+    index = get_job_index(id)
+    if index >= 1
+        deleteat!(task.session.jobs, index)
+    end
+
+    result = create_job(func, id)
+    if on_progress == "spinner"
+        progress_dialog(result, style="spinner")
+    elseif on_progress == "progress_bar"
+        progress_dialog(result, style="progress_bar")
+    else
+        bind_fragment(result, "")
+    end
+    return result
+end
+
+function get_job_index(id::AbstractString)::Int
+    task = ensure_app_task_exists()
+    for (i, job) in enumerate(task.session.jobs)
+        if job.id == id
+            return i
+        end
+    end
+    return -1
+end
+
+function get_job(id::AbstractString)::Union{AsyncJob, Missing}
+    task = ensure_app_task_exists()
+    index = get_job_index(id)
+    if index >= 1
+        return task.session.jobs[index]
+    end
+    return missing
+end
+
+function job_exists(id::AbstractString)::Bool
+    return get_job_index(id) >= 1
+end
+
+function is_finished(job::AsyncJob)::Bool
+    return !isnothing(job.task) && istaskdone(job.task)
+end
+
+function is_finished(id::AbstractString)::Bool
+    job = get_job(id)
+    return !ismissing(job) && is_finished(job)
+end
+
+function is_done(job::AsyncJob)::Bool
+    return is_finished(job) && isnothing(job.caught_error)
+end
+
+function is_done(id::AbstractString)::Bool
+    job = get_job(id)
+    return !ismissing(job) && is_done(job)
+end
+
+function is_stopped(job::AsyncJob)::Bool
+    return job.stopped
+end
+
+function is_stopped(id::AbstractString)::Bool
+    job = get_job(id)
+    return !ismissing(job) && is_stopped(job)
+end
+
+function get_result(job::AsyncJob)::Any
+    return job.result
+end
+
+function get_result(id::AbstractString)::Any
+    job = get_job(id)
+    if !ismissing(job)
+        return get_result(job)
+    else
+        return missing
+    end
 end
 
 const DOC_SESSION_PERSISTENT_DATA = """
@@ -2473,11 +2573,9 @@ function rerun_fragments(job::AsyncJob)::Nothing
             rerun_fragments(job.session.client_id, job.fragments)
         elseif !job.rerun_cooldown
             Threads.@spawn begin
-                println("COOLDOWN BEGIN")
                 sleep(0.2 - elapsed_time)
                 rerun_fragments(job)
                 job.rerun_cooldown = false
-                println("COOLDOWN END")
             end
             job.rerun_cooldown = true
         end
@@ -2490,8 +2588,12 @@ function rerun(fragment_id::String="")::Nothing
     return rerun_fragments(task.session.client_id, [fragment_id])
 end
 
-function set_progress(job::AsyncJob, progress::AbstractFloat, message::Union{AbstractString, Nothing}=nothing, data::Any=nothing)::ProgressSnapshot
-    if isnothing(message) message = "$(round(progress*100))%" end
+function set_progress(job::AsyncJob, progress::Real, message::Union{AbstractString, Nothing}=nothing, data::Any=nothing)::ProgressSnapshot
+    if job.stop_requested
+        throw(JobStopped(job.id))
+    end
+
+    if isnothing(message) message = "$(ceil(Int, Float64(progress)*100))%" end
     progress = ProgressSnapshot(progress, message, data)
     push!(job.progress_snapshots, progress)
     rerun_fragments(job)
@@ -2499,7 +2601,7 @@ function set_progress(job::AsyncJob, progress::AbstractFloat, message::Union{Abs
     return progress
 end
 
-function set_progress(progress::AbstractFloat; message::Union{AbstractString, Nothing}=nothing, data::Any=nothing)::ProgressSnapshot
+function set_progress(progress::Real; message::Union{AbstractString, Nothing}=nothing, data::Any=nothing)::ProgressSnapshot
     return set_progress(get_job(), progress, message, data)
 end
 
@@ -2511,12 +2613,8 @@ function get_progress(job::AsyncJob)::ProgressSnapshot
     end
 end
 
-function get_result(job::AsyncJob)::Any
-    return job.result
-end
-
-function is_finished(job::AsyncJob)::Bool
-    return !isnothing(job.task) && istaskdone(job.task)
+function get_last_progress(job::AsyncJob)::ProgressSnapshot
+    return job.progress_snapshots[end]
 end
 
 function save_doc(object::Any, file_path::String, sidebar_position::Union{Integer, Nothing}=nothing)::Nothing
