@@ -672,24 +672,23 @@ function create_dialog(
 end
 
 function dialog(
-    inner_func      ::Function      =()->()
-)::ContainerInterface
+    inner_func      ::Function                  =()->(),
+    id              ::Union{String, Nothing}    =nothing;
+    fragment_wrapper::Bool                      =true
+)::Union{Fragment, Nothing}
     task = ensure_app_task_exists()
-    container = create_dialog()
-    push_container(container)
-    inner_func()
-    pop_container()
-    return container
-end
+    dlg = create_dialog()
 
-function dialog_fragment(
-    inner_func      ::Function      =()->()
-)::Fragment
-    dlg = dialog()
+    result::Union{Fragment, Nothing} = nothing
     push_container(dlg)
-    frag = fragment(inner_func)
+
+    if fragment_wrapper
+        result = fragment(inner_func, id)
+    else
+        inner_func()
+    end
     pop_container()
-    return frag
+    return result
 end
 
 function create_sidebar(

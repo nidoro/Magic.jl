@@ -530,6 +530,8 @@ dd-popup {
     border-radius: 1em;
     max-width: 500px;
     padding: 1em;
+    align-self: flex-start;
+    margin-top: 10em;
 }
 
 /* PROGRESS BAR */

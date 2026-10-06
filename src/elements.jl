@@ -2805,7 +2805,7 @@ function spinner(size::String="medium")::Nothing
     return nothing
 end
 
-function progress_bar(progress::Real; message::Union{AbstractString, Nothing}=nothing, max_width="100%")::Nothing
+function progress_bar(progress::Real; message::Union{AbstractString, Nothing}=nothing, max_width::String="100%")::Nothing
     if isnothing(message)
         message = "$(ceil(Int, progress*100))%"
     end
@@ -2821,31 +2821,60 @@ function progress_bar(progress::Real; message::Union{AbstractString, Nothing}=no
     return nothing
 end
 
+function progress_bar(progress::ProgressSnapshot, max_width::String="100%")::Nothing
+    return progress_bar(progress.progress, message=progress.message, max_width=max_width)
+end
+
+function progress_bar(job_id::String, max_width::String="100%")::Nothing
+    if job_exists(job_id)
+        progress = get_progress(job_id)
+        return progress_bar(progress)
+    else
+        return progress_bar(0, message="&nbsp;")
+    end
+end
+
+function x_button()::Bool
+    result = button("", style="close_dialog")
+    if result
+        rerun()
+    end
+    return result
+end
+
 function progress_dialog(
-    job::Union{AsyncJob, Nothing};
-    style::String="spinner"
+    job::Union{AsyncJob, String};
+    fragment_id::String="magic_spinner",
+    title::Union{String, Nothing}=nothing
 )::Fragment
 
-    frag = dialog_fragment() do
-        if button("", style="close_dialog")
+    if job isa String
+        job = get_job(job)
+    end
+
+    if isnothing(title)
+        title = "Please wait"
+    end
+
+    frag = dialog(fragment_id) do
+        if x_button()
             if !is_finished(job)
-                job.stop_requested = true
+                stop(job)
             end
-            rerun()
         end
 
         if isnothing(job.caught_error)
-            h2("Please wait")
+            h2(title)
 
             column(fill_width=true, align_items="center") do
                 progress = get_progress(job)
 
-                if style == "spinner"
+                if fragment_id == "magic_spinner"
                     space(height="1em")
                     spinner()
                     space(height="1em")
                     text(progress.message)
-                elseif style == "progress_bar"
+                elseif fragment_id == "magic_progress_bar"
                     space(height="0.5em")
                     progress_bar(progress.progress)
                     space(height="1em")
@@ -2861,12 +2890,12 @@ function progress_dialog(
             column(fill_width=true, align_items="center") do
                 progress = get_last_progress(job)
 
-                if style == "spinner"
+                if fragment_id == "magic_spinner"
                     space(height="0.5em")
                     #spinner()
                     #space(height="1em")
                     text(progress.message)
-                elseif style == "progress_bar"
+                elseif fragment_id == "magic_progress_bar"
                     space(height="0.5em")
                     progress_bar(progress.progress)
                 end
@@ -2876,6 +2905,7 @@ function progress_dialog(
         end
     end
 
+    job.fragments = String[]
     bind_fragment(job, frag)
     return frag
 end

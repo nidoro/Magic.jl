@@ -65,7 +65,7 @@ dialog_fragment
 # Interface Elements
 #--------------------
 export html, text, h1, h2, h3, h4, h5, h6, icon, link, space, metric, button,
-download_button, image, dataframe, selectbox, radio, checkbox, checkboxes,
+download_button, x_button, image, dataframe, selectbox, radio, checkbox, checkboxes,
 text_input, number_input, slider, file_uploader, code, color_picker, get_value,
 set_value, get_changes, spinner, progress_dialog, progress_bar
 
@@ -81,7 +81,8 @@ add_css_rule, add_font, begin_page_config, end_page_config, set_title,
 set_description, UploadedFile, get_dot_magic_dir, get_dot_magic_path,
 inject_html, get_url_search, get_query_params, get_server_host, get_server_port,
 get_server_origin, stop_app, make_uploaded_file, @job, job, AsyncJob, bind_fragment,
-get_progress, set_progress, is_done, get_result, job_exists
+get_progress, set_progress, is_done, get_result, job_exists, stop, is_finished,
+rerun
 
 # Includes
 #------------
