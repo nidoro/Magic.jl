@@ -85,9 +85,21 @@ function getLocation() {
 
 function fadeFragment(fragmentId) {
     const fragChildren = document.querySelectorAll(`.mg_fragment_container[data-mg-fragment-id="${fragmentId}"] > *`);
-    for (const child of fragChildren) {
-        child.style.setProperty("--opacity", 0.5);
-        child.style.setProperty("--transition-duration", "0.8s");
+    if (fragChildren.length) {
+        const computedStyle = getComputedStyle(fragChildren[0]);
+
+        for (const child of fragChildren) {
+            child.style.setProperty("--opacity", computedStyle.opacity);
+        }
+
+        requestAnimationFrame(() => {
+            if (g.waitingRerun) {
+                for (const child of fragChildren) {
+                    child.style.setProperty("--opacity", 0.5);
+                    child.style.setProperty("--transition-duration", "0.8s");
+                }
+            }
+        });
     }
 }
 
@@ -669,9 +681,7 @@ function createAppElement(parent, props, fragmentId) {
             }
 
             requestAnimationFrame(() =>
-                requestAnimationFrame(
-                    () => applyCSS(elem, props.css)
-                )
+                applyCSS(elem, props.css)
             );
         }
 

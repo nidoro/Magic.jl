@@ -119,6 +119,7 @@ const CONTAINER_INTERFACE_FUNCS = [
     containers      ::Vector{Union{ContainerInterface, Nothing}} = Vector{Union{ContainerInterface, Nothing}}()
 
     main_area       ::Union{ContainerInterface, Nothing} = nothing
+    top_bar         ::Union{ContainerInterface, Nothing} = nothing
     left_sidebar    ::Union{ContainerInterface, Nothing} = nothing
     right_sidebar   ::Union{ContainerInterface, Nothing} = nothing
 end

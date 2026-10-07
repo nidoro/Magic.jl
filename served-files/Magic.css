@@ -474,6 +474,10 @@ dd-button.mg-button, a.mg-link {
     border-radius: .5em 0 0 .5em;
 }
 
+.mg-page-top-bar.mg-fixed {
+    box-shadow: 0 8px 12px -8px rgba(0, 0, 0, 0.5);
+}
+
 /* FILE UPLOADER */
 /* FILE UPLOADER */
 /* FILE UPLOADER */

@@ -2069,7 +2069,7 @@ function space(; width::String="1px", height::String="1px")::Nothing
 
 Nothing.
 """
-space(; width::String="1px", height::String="1px") = html("div", "", css=Dict("width" => width, "height" => height))
+space(; width::String="1px", height::String="1px") = html("div", "", css=Dict("width" => width, "height" => height, "min-width" => width, "min-height" => height))
 
 # Text, headers and icons
 #-----------------------------
@@ -2798,20 +2798,28 @@ function spinner(size::String="medium")::Nothing
     elseif  size == "large"     size = "75px"
     end
 
-    column(fill_width=true, align_items="center", max_width="calc(var(--spinner-size) * 10)", css=Dict("--spinner-size" => "calc($(size) / 2.5)")) do
+    column(align_items="center", css=Dict("width" => "calc(var(--spinner-size) * 10)", "--spinner-size" => "calc($(size) / 2.5)")) do
         html("dd-spinner", "")
     end
 
     return nothing
 end
 
-function progress_bar(progress::Real; message::Union{AbstractString, Nothing}=nothing, max_width::String="100%")::Nothing
+function progress_bar(
+    progress    ::Real;
+    message     ::Union{AbstractString, Nothing}=nothing,
+    show_label  ::Bool=true,
+    max_width   ::String="100%"
+)::Nothing
+
     if isnothing(message)
         message = "$(ceil(Int, progress*100))%"
     end
 
     column(fill_width=true, max_width=max_width, gap="0px") do
-        text(message)
+        if show_label
+            text(message)
+        end
         column(fill_width=true, css=Dict("position" => "relative", "height" => "13px")) do
             html("div", """
                 <div class="left-bar"></div>
@@ -2821,16 +2829,16 @@ function progress_bar(progress::Real; message::Union{AbstractString, Nothing}=no
     return nothing
 end
 
-function progress_bar(progress::ProgressSnapshot, max_width::String="100%")::Nothing
-    return progress_bar(progress.progress, message=progress.message, max_width=max_width)
+function progress_bar(progress::ProgressSnapshot, show_label::Bool=false, max_width::String="100%")::Nothing
+    return progress_bar(progress.progress, message=progress.message, show_label=show_label, max_width=max_width)
 end
 
-function progress_bar(job_id::String, max_width::String="100%")::Nothing
+function progress_bar(job_id::String, show_label::Bool=false, max_width::String="100%")::Nothing
     if job_exists(job_id)
         progress = get_progress(job_id)
-        return progress_bar(progress)
+        return progress_bar(progress, show_label=show_label, max_width=max_width)
     else
-        return progress_bar(0, message="&nbsp;")
+        return progress_bar(0, message="&nbsp;", show_label=show_label, max_width=max_width)
     end
 end
 

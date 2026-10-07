@@ -814,6 +814,8 @@ function set_page_layout(
     right_sidebar_initial_width ::String                    ="300px",
     right_sidebar_position      ::String                    ="slide-out",
     right_sidebar_toggle_labels ::Tuple{Union{String, Nothing}, Union{String, Nothing}}=(nothing, nothing),
+
+    top_bar                     ::Union{Nothing, String}    =nothing,
 )::Containers
 
     # Input validation
@@ -826,12 +828,12 @@ function set_page_layout(
     #------------------------
     left_sidebar, right_sidebar = nothing, nothing
 
-    @push row(fill_width=true, fill_height=true, gap="0px")
+    @push row(fill_width=true, gap="0px", css=Dict("height" => "100vh"))
         if left_sidebar_initial_state != nothing
             left_sidebar = create_sidebar(left_sidebar_initial_state, "left", left_sidebar_initial_width, left_sidebar_position, left_sidebar_toggle_labels)
         end
 
-        main_area = column(fill_width=true, fill_height=true, max_height="100vh")
+        main_area = column(fill_width=true, fill_height=true, gap="0px", css=Dict("position" => "relative", "overflow" => "auto"))
 
         if right_sidebar_initial_state != nothing
             right_sidebar = create_sidebar(right_sidebar_initial_state, "right", right_sidebar_initial_width, right_sidebar_position, right_sidebar_toggle_labels)
@@ -840,17 +842,31 @@ function set_page_layout(
 
     # Initialize main area
     #-------------------------
+    top_bar_container = nothing
+    top_padding = "3rem"
+    if !isnothing(top_bar)
+        @push main_area
+            padding_left = isnothing(left_sidebar) ? "0.5em" : "2.0em"
+            padding_right = isnothing(right_sidebar) ? "0.5em" : "2.0em"
+            top_bar_container = row(fill_width=true, css=Dict("background" => "white", "position" => top_bar, "top" => "0", "border-radius" => "0", "padding" => ".5em $(padding_right) .5em $(padding_left)"), attributes=Dict("class" => "mg-page-top-bar mg-$(top_bar)"))
+        @pop
+
+        top_padding = "6rem"
+    end
+
     if style == "basic"
-        # Nothing to do
+        @push main_area
+            main_area = column(fill_width=true, fill_height=true)
+        @pop
     elseif style == "centered"
         @push main_area
-            @push column(fill_width=true, fill_height=true, align_items="center", padding="3rem 5px 5px 5px", css=Dict("overflow" => "auto"))
+            @push column(fill_width=true, fill_height=true, align_items="center", padding="$(top_padding) 5px 5px 5px")
                 main_area = column(fill_width=true, fill_height=true, align_items="center", max_width=max_width, css=Dict("align-items" => "center"))
             @pop
         @pop
     elseif style == "wide"
         @push main_area
-            @push column(fill_width=true, fill_height=true, align_items="center", padding="3rem 0 0 0", css=Dict("overflow" => "auto"))
+            @push column(fill_width=true, fill_height=true, align_items="center", padding="$(top_padding) 0 0 0")
                 main_area = column(fill_width=true, fill_height=true, css=Dict("padding" => "0 5%"))
             @pop
         @pop
@@ -861,8 +877,9 @@ function set_page_layout(
     # new root container where top-level elements are placed.
 
     containers = Containers()
-    containers.containers = [main_area, left_sidebar, right_sidebar]
+    containers.containers = [main_area, top_bar_container, left_sidebar, right_sidebar]
     containers.main_area = main_area
+    containers.top_bar = top_bar_container
     containers.left_sidebar = left_sidebar
     containers.right_sidebar = right_sidebar
 
@@ -982,7 +999,7 @@ end
 """
 
 @doc DOC_SIDEBARS
-function left_sidebar(inner_func::Function)::ContainerInterface
+function left_sidebar(inner_func::Function=()->())::ContainerInterface
     task = ensure_app_task_exists()
     if task.layout.left_sidebar == nothing
         throw(ArgumentError(
@@ -997,7 +1014,7 @@ function left_sidebar(inner_func::Function)::ContainerInterface
 end
 
 @doc DOC_SIDEBARS
-function right_sidebar(inner_func::Function)::ContainerInterface
+function right_sidebar(inner_func::Function=()->())::ContainerInterface
     task = ensure_app_task_exists()
     if task.layout.right_sidebar == nothing
         throw(ArgumentError(
@@ -1009,4 +1026,18 @@ function right_sidebar(inner_func::Function)::ContainerInterface
     inner_func()
     pop_container()
     return task.layout.right_sidebar
+end
+
+function top_bar(inner_func::Function=()->())::ContainerInterface
+    task = ensure_app_task_exists()
+    if task.layout.top_bar == nothing
+        throw(ArgumentError(
+            "Your layout does not have a top bar. To create one,\n" *
+            "first call `set_page_layout()` with the desired `top_bar` value."
+        ))
+    end
+    push_container(task.layout.top_bar)
+    inner_func()
+    pop_container()
+    return task.layout.top_bar
 end
