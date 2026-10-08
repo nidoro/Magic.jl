@@ -50,19 +50,28 @@ set_page_layout(
     right_sidebar_toggle_labels=(
         "VIEW SOURCE <lt-icon lt-icon='material/code'></lt-icon>",
         nothing
-    )
+    ),
+    top_bar="fixed"
 )
+
+top_bar() do
+    row(fill_width=true, align_items="center") do
+        image("/Magic.jl/images/magic-logo-and-black-text.svg", max_width="150px")
+        link("Examples", "/", style="naked")
+        link("Getting Started", "/docs/build/docs/getting-started/install", style="naked")
+        link("Documentation", "/docs/build/docs/category/api-reference", style="naked")
+        link("GitHub", "https://github.com/nidoro/Magic.jl", style="naked")
+    end
+end
 
 if is_on_page("/")
     @page_startup begin
-        set_title("Magic Demo Apps | Magic.jl")
-        set_description("Magic Demo Apps | Magic.jl")
+        set_title("Magic Examples | Magic.jl")
+        set_description("Magic Examples | Magic.jl")
     end
 
-    column(fill_width=true, align_items="center") do
-        image("/Magic.jl/images/magic-logo-and-text.svg", css=Dict("max-height" => "100px"))
-
-        h5("Demo Apps")
+    column(fill_width=true) do
+        h1("Examples Gallery")
         text("A few simple apps that showcase Magic.jl features!")
         text("Each one contains its own source code on the right sidebar for you to explore.")
 
@@ -124,16 +133,6 @@ if is_on_page("/")
             text("file_uploader and download_button")
             link("Open", "/image-filters", style="primary")
         end
-
-        space(height="1rem")
-
-        row(css=Dict("opacity" => "0.6")) do
-            link("Getting Started", "/docs/build/docs/getting-started/install", style="naked", new_tab=true)
-            link("API Reference", "/docs/build/docs/category/api-reference", style="naked", new_tab=true)
-            link("GitHub", "https://github.com/nidoro/Magic.jl", style="naked", new_tab=true)
-        end
-
-        space(height="25px")
     end
 else
     include(page_script)
@@ -142,7 +141,7 @@ end
 left_sidebar() do
     column(fill_width=true, gap="0px") do
         space(height="3rem")
-        h5("Magic Demo Apps", css=Dict("margin" => "0 0 .8rem .8rem", "white-space" => "nowrap", "color" => "#444"))
+        h5("Magic Examples", css=Dict("margin" => "0 0 .8rem .8rem", "white-space" => "nowrap", "color" => "#444"))
         link("Overview", "/", style="naked", fill_width=true, css=Dict("justify-content" => "flex-start"))
         link("Counter", "/counter", style="naked", fill_width=true, css=Dict("justify-content" => "flex-start"))
         link("To-Do List", "/todo", style="naked", fill_width=true, css=Dict("justify-content" => "flex-start"))

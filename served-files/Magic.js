@@ -89,7 +89,7 @@ function fadeFragment(fragmentId) {
         const computedStyle = getComputedStyle(fragChildren[0]);
 
         for (const child of fragChildren) {
-            child.style.setProperty("--opacity", computedStyle.opacity);
+            child.style.setProperty("--opacity", parseFloat(computedStyle.opacity));
         }
 
         requestAnimationFrame(() => {
@@ -1562,18 +1562,19 @@ async function displayRerunResponse(msg) {
 
     const oldFragContainer = document.querySelector(`.mg_fragment_container[data-mg-fragment-id="${fragmentId}"]`);
     const computedStyle = getComputedStyle(oldFragContainer.firstElementChild);
+    const oldFragOpacity = parseFloat(computedStyle.opacity);
     oldFragContainer.style.visibility = "hidden";
 
     const newFragWrapper = document.createDocumentFragment();
-
     const newFragContainer = createAppElement(newFragWrapper, msg.root, "");
-    for (const child of newFragContainer.children) {
-        child.style.setProperty("--opacity", computedStyle.opacity);
-        child.style.setProperty("--transition-duration", "0.15s");
-    }
 
     oldFragContainer.parentElement.insertBefore(newFragWrapper, oldFragContainer);
     oldFragContainer.remove();
+
+    for (const child of newFragContainer.children) {
+        child.style.setProperty("--opacity", oldFragOpacity);
+        child.style.setProperty("--transition-duration", "0.15s");
+    }
 
     // Remove checkbox groups that ceased to exist
     //
@@ -1605,7 +1606,7 @@ async function displayRerunResponse(msg) {
     // Initialize opacity transition
     setTimeout(() => {
         for (const child of newFragContainer.children) {
-            child.style.setProperty("--opacity", 1);
+            child.style.setProperty("--opacity", 1.0);
         }
     }, 10);
 
