@@ -2000,6 +2000,28 @@ function html(
     return create_html(top_container(), tag, inner_html, attributes, css)
 end
 
+function commonmark_parser()
+    parser = CommonMark.Parser()
+    CommonMark.enable!(parser, CommonMark.TableRule())
+    CommonMark.enable!(parser, CommonMark.FootnoteRule())
+    # Add other rules you need, e.g. CommonMark.AutolinkRule(), CommonMark.StrikethroughRule()
+    return parser
+end
+
+function markdown(ast::CommonMark.Node)::Nothing
+    return html("div", CommonMark.html(ast), attributes=Dict("class" => "mg-markdown"))
+end
+
+function markdown(markdown_text::AbstractString)::Nothing
+    ast = commonmark_parser()(markdown_text)
+    return markdown(ast)
+end
+
+# Optional: keeps docstrings working, since Base.Docs.doc returns a Markdown.MD
+function markdown(md::Markdown.MD)::Nothing
+    return markdown(Markdown.plain(md))
+end
+
 """
 # link
 

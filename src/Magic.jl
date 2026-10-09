@@ -43,24 +43,25 @@ The default address is http://localhost:3443
 module Magic
 
 using ArgParse
-using Libdl
-using Parameters
-using Sockets
-using Logging
-using JSON
-using SHA
-using Tables
-using DataFrames
-using Random
 using Artifacts
-using TOML
+using CommonMark
+using DataFrames
+using JSON
+using Libdl
+using Logging
+using Markdown
+using Parameters
 using Printf
+using Random
+using SHA
+using Sockets
+using Tables
+using TOML
 
 # Layout Elements
 #-------------------
 export set_page_layout, main_area, top_bar, left_sidebar, right_sidebar, row, column,
-columns, container, @push, @pop, push_container, pop_container, dialog,
-dialog_fragment
+columns, container, @push, @pop, push_container, pop_container, dialog, expander
 
 # Interface Elements
 #--------------------
@@ -83,7 +84,7 @@ inject_html, get_url_search, get_query_params, get_server_host, get_server_port,
 get_server_origin, stop_app, make_uploaded_file, @job, AsyncJob, bind_fragment,
 get_progress, set_progress, get_progress_snapshot, get_progress_message,
 get_progress_data, is_done, get_result, job_exists, stop, is_finished,
-rerun, get_jobs
+rerun, get_jobs, markdown
 
 # Includes
 #------------

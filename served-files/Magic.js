@@ -37,7 +37,16 @@ class MG_Icon extends HTMLElement {
     }
 
     connectedCallback() {
+        if (this.hasAttribute("dd-reconnecting")) {
+            this.removeAttribute("dd-reconnecting");
+            return;
+        }
+
         const iconId = this.getAttribute("mg-icon");
+        this.setIcon(iconId);
+    }
+
+    setIcon(iconId) {
         const iconName = iconId.split("/")[1];
         if (iconName in g.materialIcons) {
             this.innerHTML = `&#x${g.materialIcons[iconName]};`;
@@ -652,11 +661,43 @@ function quickHash(obj) {
     return h.toString(16);
 }
 
+function createCode(code, css, showLineNumbers) {
+    const elem = document.createElement("div");
+    elem.classList.add("mg-code");
+
+    applyCSS(elem, css);
+
+    const textarea = document.createElement("textarea");
+    elem.appendChild(textarea);
+
+    requestAnimationFrame(() => {
+        const cm = CodeMirror.fromTextArea(textarea, {
+            mode: "julia",
+            viewportMargin: Infinity,
+            lineNumbers: showLineNumbers,
+            readOnly: true,
+            indentWithTabs: false,
+            indentUnit: 4,
+            extraKeys: {
+                Tab: function(cm) {
+                    const spaces = Array(cm.getOption("indentUnit") + 1).join(" ");
+                    cm.replaceSelection(spaces, "end");
+                }
+            }
+        });
+
+        cm.on("change", codeChange);
+        cm.setValue(code);
+    });
+
+    return elem;
+}
+
 function createAppElement(parent, props, fragmentId) {
     let newElements = [];
 
     if (props.type == "html") {
-        let hash = quickHash(props.tag + props.inner_html + parent.getAttribute("data-mg-id") + parent.children.length);
+        const hash = quickHash(props.tag + props.inner_html + parent.getAttribute("data-mg-id") + parent.children.length);
         let elem = document.querySelector(`[data-mg-id="${hash}"]`);
 
         if (!elem) {
@@ -669,6 +710,16 @@ function createAppElement(parent, props, fragmentId) {
             applyAttributes(elem, props.attributes);
 
             elem.innerHTML = props.inner_html;
+
+            if (elem.classList.contains("mg-markdown")) {
+                const codes = elem.querySelectorAll("pre");
+                for (let code of codes) {
+                    const cd = code.querySelector("code");
+                    const elem = createCode(cd.innerText.trim(), {}, false);
+                    code.parentElement.insertBefore(elem, code);
+                    code.remove();
+                }
+            }
         } else {
             const creation = parseInt(elem.getAttribute("data-mg-creation"));
             const age = (performance.now() - creation) / 1000;
@@ -729,6 +780,59 @@ function createAppElement(parent, props, fragmentId) {
             popupContainer.appendChild(popup);
             parent = popup;
             requestAnimationFrame(() => DD_Popup.show(`[data-mg-id="${popupId}"]`));
+        }
+
+        // Expander label
+        //------------------
+        if (elem.classList.contains("mg-expander-label")) {
+            elem.onclick = (event) => {
+                parent.classList.toggle("mg-expanded");
+                const icon = elem.querySelector("mg-icon");
+
+                if (parent.classList.contains("mg-expanded")) {
+                    parent.style.setProperty("--expander-height", `${parent.scrollHeight}px`);
+                    icon.setIcon("material/keyboard_arrow_up");
+                } else {
+                    parent.style.setProperty("--expander-height", getComputedStyle(elem).height);
+                    icon.setIcon("material/keyboard_arrow_down");
+                }
+            }
+        }
+
+        // Expander
+        //--------------
+        if (elem.classList.contains("mg-expander")) {
+            let oldElem = document.querySelector(`[data-mg-id="${props.id}"]`);
+            let oldTargetHeight = null;
+            let oldState = null;
+
+            if (oldElem) {
+                const computedStyle = getComputedStyle(oldElem);
+                oldTargetHeight = computedStyle.getPropertyValue("--expander-height");
+                const icon = oldElem.querySelector("mg-icon");
+                icon.setAttribute("dd-reconnecting", "");
+                oldState = oldElem.classList.contains("mg-expanded");
+            }
+
+            requestAnimationFrame(() => {
+                const label = elem.querySelector(".mg-expander-label");
+                const icon = label.querySelector("mg-icon");
+                if (oldTargetHeight == null) {
+                    if (label.getAttribute("data-mg-initial-state") == "closed") {
+                        elem.style.setProperty("--expander-height", getComputedStyle(label).height);
+                        icon.setIcon("material/keyboard_arrow_down");
+                    } else {
+                        elem.style.setProperty("--expander-height", `${elem.scrollHeight}px`);
+                        elem.classList.add("mg-expanded");
+                        icon.setIcon("material/keyboard_arrow_up");
+                    }
+                } else {
+                    elem.style.setProperty("--expander-height", oldTargetHeight);
+                    if (oldState != null && oldState) {
+                        elem.classList.add("mg-expanded");
+                    }
+                }
+            });
         }
 
         newElements.push(elem);
@@ -1443,32 +1547,7 @@ function createAppElement(parent, props, fragmentId) {
 
         newElements.push(elem);
     } else if (props.type == "code") {
-        const elem = document.createElement("div");
-        applyCSS(elem, props.css);
-
-        const textarea = document.createElement("textarea");
-        elem.appendChild(textarea);
-
-        requestAnimationFrame(() => {
-            const cm = CodeMirror.fromTextArea(textarea, {
-                mode: "julia",
-                viewportMargin: Infinity,
-                lineNumbers: props.show_line_numbers,
-                readOnly: true,
-                indentWithTabs: false,
-                indentUnit: 4,
-                extraKeys: {
-                    Tab: function(cm) {
-                        const spaces = Array(cm.getOption("indentUnit") + 1).join(" ");
-                        cm.replaceSelection(spaces, "end");
-                    }
-                }
-            });
-
-            cm.on("change", codeChange);
-            cm.setValue(props.initial_value);
-        });
-
+        const elem = createCode(props.initial_value, props.css, props.show_line_numbers);
         newElements.push(elem);
     } else {
         console.error(`Unknown element type '${props.type}'`);

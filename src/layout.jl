@@ -1041,3 +1041,58 @@ function top_bar(inner_func::Function=()->())::ContainerInterface
     pop_container()
     return task.layout.top_bar
 end
+
+function expander(
+    inner_func::Function,
+    label::AbstractString;
+    initial_state::AbstractString="closed",
+    fill_width::Bool=false,
+    show_border::Bool=false,
+    label_size::String="1rem",
+    label_bold::Bool=false,
+    label_padding::String="0",
+    label_css::Dict=Dict(),
+)::ContainerInterface
+
+    if label_bold
+        set_css_if_not_set(label_css, "font-weight", "bold")
+    end
+
+    set_css_if_not_set(label_css, "font-size", label_size)
+    set_css_if_not_set(label_css, "padding", label_padding)
+
+    @push column(fill_width=fill_width, show_border=show_border, attributes=Dict("class" => "mg-expander"))
+        row(fill_width=true, align_items="center", justify_content="space-between", attributes=Dict("class" => "mg-expander-label", "data-mg-initial-state" => initial_state), css=label_css) do
+            html("div", label)
+            icon("material/keyboard_arrow_down", size="1.5em")
+        end
+
+        result = column(inner_func, fill_width=true)
+    @pop
+    return result
+end
+
+function expander(
+    label::AbstractString;
+    initial_state::AbstractString="closed",
+    fill_width::Bool=false,
+    show_border::Bool=false,
+    label_size::String="1rem",
+    label_bold::Bool=false,
+    label_padding::String="0",
+    label_css::Dict=Dict(),
+)::ContainerInterface
+    return expander(
+        ()->(),
+        label,
+        initial_state=initial_state,
+        fill_width=fill_width,
+        show_border=show_border,
+        label_size=label_size,
+        label_bold=label_bold,
+        label_padding=label_padding,
+        label_css=label_css,
+    )
+end
+
+
