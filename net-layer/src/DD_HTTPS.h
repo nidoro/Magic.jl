@@ -52,7 +52,7 @@
 #define HS__VHostsArrayCap 10
 #define HS__ProtocolsArrayCap 8
 #define HS__HostNameCap 64
-#define HS__URIMapCap 64
+//#define HS__URIMapCap 64
 #define HS__CacheBustCap 48
 #define HS__CacheControlMapCap 32
 #define HS__NeedsSSIParsingCap 32
@@ -266,8 +266,7 @@ struct HS_VHost {
     bool disableFileCache;
     int  memCacheMaxSizeMB;
     
-    HS_URIMapEntry uriMap[HS__URIMapCap];
-    int         uriMapSize;
+    HS_URIMapEntry* uriMap;
     
     HS_CacheControlMapEntry cacheControlMap[HS__CacheControlMapCap];
     int                     cacheControlMapSize;
@@ -1226,7 +1225,7 @@ int HS_Replace(char* outBuffer, char* inBuffer, int inLength, const char* search
 
 void HS_PushURIMapping(HS_Server* server, const char* vhostName, const char* uri, const char* resource) {
     HS_VHost* vhost = HS_GetVHost(server, vhostName);
-    HS_URIMapEntry& entry = vhost->uriMap[vhost->uriMapSize++];
+    HS_URIMapEntry entry = {};
     strcpy(entry.uri, uri);
     entry.uriSize = strlen(uri);
     strcpy(entry.resource, resource);
@@ -1234,11 +1233,13 @@ void HS_PushURIMapping(HS_Server* server, const char* vhostName, const char* uri
     if (HS_StartsWith(entry.resource, "/$lang/") && !vhost->defaultContentLanguage[0]) {
         fprintf(stderr, "[WARN] %s: localized URI mapping is being used, but 'default-content-language' was not set\n", vhostName);
     }
+
+    arradd(vhost->uriMap, entry);
 }
 
 void HS_ClearURIMapping(HS_Server* server, const char* vhostName) {
     HS_VHost* vhost = HS_GetVHost(server, vhostName);
-    vhost->uriMapSize = 0;
+    arrcount(vhost->uriMap) = 0;
 }
 
 struct HS_FileChunk {
@@ -1558,7 +1559,7 @@ int HS_GetFileByURI(HS_CallbackArgs* args) {
         
         // URI processing
         //-----------------
-        for (int i = 0; i < server->uriMapSize; ++i) {
+        for (int i = 0; i < arrcount(server->uriMap); ++i) {
             if (HS_EndsWith(server->uriMap[i].uri, "*")) {
                 if (HS_StartsWith(client->uri, server->uriMap[i].uri, server->uriMap[i].uriSize-1)) {
                     strcpy(client->uri, server->uriMap[i].resource);
@@ -2840,6 +2841,7 @@ int HS_RejectAllEndpoints(HS_CallbackArgs* args) {
 bool HS_AddVHost(HS_Server* server, const char* name) {
     HS_VHost& v = server->vhosts[server->vhostsCount++];
     
+    v.uriMap = arralloc(HS_URIMapEntry, 1);
     strcpy(v.name, name);
     
     v.lwsContextInfo.options = LWS_SERVER_OPTION_DO_SSL_GLOBAL_INIT;
@@ -2996,6 +2998,14 @@ void HS_Stop(HS_Server* server) {
 }
 
 void HS_Destroy(HS_Server* server) {
+    for (int i = 0; i < server->vhostsCount; ++i) {
+        HS_VHost vhost = server->vhosts[i];
+        arrfree(vhost.uriMap);
+
+        if (vhost.jConfig) JS_Free(vhost.jConfig);
+        if (vhost.gkConfig) JS_Free(vhost.gkConfig);
+    }
+
     lws_context_destroy(server->lwsContext);
 }
 
