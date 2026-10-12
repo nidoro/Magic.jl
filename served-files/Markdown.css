@@ -200,3 +200,7 @@
 .mg-markdown .footnote {
   font-size: 0.875rem;
 }
+
+.mg-markdown a.anchor {
+  position: absolute;
+}

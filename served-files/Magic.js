@@ -715,9 +715,12 @@ function createAppElement(parent, props, fragmentId) {
                 const codes = elem.querySelectorAll("pre");
                 for (let code of codes) {
                     const cd = code.querySelector("code");
-                    const elem = createCode(cd.innerText.trim(), {}, false);
-                    code.parentElement.insertBefore(elem, code);
-                    code.remove();
+                    if (cd) {
+                        const content = cd.innerHTML.replaceAll("<br/>", "\n").replaceAll("<br>", "\n").replaceAll("&gt;", ">").trim()
+                        const elem = createCode(content, {}, false);
+                        code.parentElement.insertBefore(elem, code);
+                        code.remove();
+                    }
                 }
             }
         } else {
@@ -739,6 +742,7 @@ function createAppElement(parent, props, fragmentId) {
         newElements.push(elem);
     } else if (props.type == "container") {
         const elem = document.createElement("div");
+        let oldElem = null;
 
         elem.setAttribute("data-mg-id", props.id);
         applyCSS(elem, props.css);
@@ -753,7 +757,7 @@ function createAppElement(parent, props, fragmentId) {
         //---------
         if (elem.classList.contains("mg-sidebar")) {
             let state = elem.classList.contains("mg-show") ? "open" : "closed";
-            const oldElem = document.querySelector(`.mg-sidebar[data-mg-id="${props.id}"]`);
+            oldElem = document.querySelector(`.mg-sidebar[data-mg-id="${props.id}"]`);
 
             if (oldElem) {
                 if (oldElem.classList.contains("mg-show")) {
@@ -789,20 +793,24 @@ function createAppElement(parent, props, fragmentId) {
                 parent.classList.toggle("mg-expanded");
                 const icon = elem.querySelector("mg-icon");
 
-                if (parent.classList.contains("mg-expanded")) {
-                    parent.style.setProperty("--expander-height", `${parent.scrollHeight}px`);
-                    icon.setIcon("material/keyboard_arrow_up");
-                } else {
-                    parent.style.setProperty("--expander-height", getComputedStyle(elem).height);
-                    icon.setIcon("material/keyboard_arrow_down");
-                }
+                parent.style.setProperty("--expander-height", getComputedStyle(parent).height);
+
+                requestAnimationFrame(() => {
+                    if (parent.classList.contains("mg-expanded")) {
+                        parent.style.setProperty("--expander-height", `${parent.scrollHeight}px`);
+                        icon.setIcon("material/keyboard_arrow_down");
+                    } else {
+                        parent.style.setProperty("--expander-height", getComputedStyle(elem).height);
+                        icon.setIcon("material/keyboard_arrow_right");
+                    }
+                });
             }
         }
 
         // Expander
         //--------------
         if (elem.classList.contains("mg-expander")) {
-            let oldElem = document.querySelector(`[data-mg-id="${props.id}"]`);
+            oldElem = document.querySelector(`[data-mg-id="${props.id}"]`);
             let oldTargetHeight = null;
             let oldState = null;
 
@@ -820,11 +828,11 @@ function createAppElement(parent, props, fragmentId) {
                 if (oldTargetHeight == null) {
                     if (label.getAttribute("data-mg-initial-state") == "closed") {
                         elem.style.setProperty("--expander-height", getComputedStyle(label).height);
-                        icon.setIcon("material/keyboard_arrow_down");
+                        icon.setIcon("material/keyboard_arrow_right");
                     } else {
-                        elem.style.setProperty("--expander-height", `${elem.scrollHeight}px`);
+                        elem.style.setProperty("--expander-height", `auto`);
                         elem.classList.add("mg-expanded");
-                        icon.setIcon("material/keyboard_arrow_up");
+                        icon.setIcon("material/keyboard_arrow_down");
                     }
                 } else {
                     elem.style.setProperty("--expander-height", oldTargetHeight);
@@ -832,6 +840,26 @@ function createAppElement(parent, props, fragmentId) {
                         elem.classList.add("mg-expanded");
                     }
                 }
+            });
+
+            elem.addEventListener('transitionend', (event) => {
+                const el = event.target;
+
+                if (event.propertyName == "height" && el.classList.contains("mg-expanded")) {
+                    el.style.setProperty("--expander-height", `auto`);
+                }
+            });
+        }
+
+        // Scroll height
+        //----------------
+        oldElem = document.querySelector(`[data-mg-id="${props.id}"]`);
+        if (oldElem) {
+            let scrollTop = oldElem.scrollTop;
+            let scrollLeft = oldElem.scrollLeft;
+            requestAnimationFrame(() => {
+                elem.scrollTop = scrollTop;
+                elem.scrollLeft = scrollLeft;
             });
         }
 
@@ -841,6 +869,8 @@ function createAppElement(parent, props, fragmentId) {
 
         if (!elem) {
             elem = document.createElement("dd-button");
+
+            applyCSS(elem, props.css);
 
             let iconHTML = "";
             if (props.icon) iconHTML = `<mg-icon mg-icon="${props.icon}"></mg-icon>`;
@@ -1647,6 +1677,21 @@ async function displayRerunResponse(msg) {
     const newFragWrapper = document.createDocumentFragment();
     const newFragContainer = createAppElement(newFragWrapper, msg.root, "");
 
+    const headings = newFragContainer.querySelectorAll("h1, h2, h3, h4, h5, h6");
+    for (let heading of headings) {
+        const url = location.href.split("#")[0] + "#" + heading.id;
+
+        const icon = document.createElement("a");
+        icon.innerHTML = `&#x${g.materialIcons["link"]};`;
+        icon.classList.add("mg-header-link");
+        icon.setAttribute("title", "Copy Link");
+        icon.setAttribute("href", url);
+
+        icon.onclick = () => navigator.clipboard.writeText(url);
+
+        heading.appendChild(icon);
+    }
+
     oldFragContainer.parentElement.insertBefore(newFragWrapper, oldFragContainer);
     oldFragContainer.remove();
 
@@ -1727,8 +1772,17 @@ async function wsOnMessage(event) {
         let rerun = g.reruns;
 
         requestAnimationFrame(()=>{
-            if (g.reruns == 1) {
+            if (rerun == 1) {
                 magic.eventListener({type: "first_run_complete"});
+
+                if (location.hash) {
+                    requestAnimationFrame(()=>{
+                        const elem = document.querySelector(location.hash);
+                        if (elem) {
+                            elem.scrollIntoView();
+                        }
+                    });
+                }
             }
 
             magic.eventListener({type: "rerun_complete", rerun});

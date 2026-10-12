@@ -315,6 +315,7 @@ end
     fd_write            ::Int32                     = -1
     internal_events     ::Channel{InternalEvent}    = Channel{InternalEvent}(1024)
     user_app_data       ::Any                       = nothing
+    user_app_dict       ::Dict                      = Dict()
     first_pass          ::Bool                      = true
     base_page_config    ::PageConfig                = PageConfig()
     pages               ::Vector{PageConfig}        = Vector{PageConfig}()
@@ -333,9 +334,8 @@ end
     callback            ::Union{Function, Nothing}  = nothing
     MAGIC_SO            ::String                    = ""
     LIBMAGIC            ::Any                       = nothing
+    USER_TYPES          ::Dict{Symbol,DataType}     = Dict{Symbol,DataType}() # DEPRECATED: for usage with @once
 end
-
-# USER_TYPES  = Dict{Symbol,DataType}() # DEPRECATED: for usage with @once
 
 # File uploader
 #-----------------

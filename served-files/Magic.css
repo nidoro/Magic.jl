@@ -114,6 +114,8 @@ h1, h2, h3, h4, h5, h6 {
     display: flex;
     align-items: center;
     gap: .4em;
+    position: relative;
+    display: inline-block;
 }
 
 h1 { font-size: 2.5rem;  }
@@ -164,10 +166,35 @@ input[type="color"]::-webkit-color-swatch {
 /* ICON */
 /* ICON */
 
-mg-icon {
+mg-icon, a.mg-header-link {
     font-family: "MaterialSymbolsOutlined";
     font-style: normal;
     line-height: 1;
+    text-decoration: none !important;
+}
+
+a.mg-header-link {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translateX(100%) translateY(-50%);
+    padding: 0 .4em;
+    opacity: 0;
+    cursor: pointer;
+    display: block;
+}
+
+h1:hover a.mg-header-link,
+h2:hover a.mg-header-link,
+h3:hover a.mg-header-link,
+h4:hover a.mg-header-link,
+h5:hover a.mg-header-link,
+h6:hover a.mg-header-link {
+    opacity: 0.5;
+}
+
+a.mg-header-link:hover {
+    opacity: 1 !important;
 }
 
 /* IMAGE */
@@ -365,6 +392,11 @@ dd-button.mg-button, a.mg-link {
     line-height: 0.85;
 }
 
+.mg-sidebar .dd-button {
+    --button-hover-bg: #ddd;
+    --button-white-space: nowrap;
+}
+
 .mg-button .mg-material-icon, .mg-link .mg-material-icon {
     font-style: normal;
     font-size: 1.2em;
@@ -412,6 +444,7 @@ dd-button.mg-button, a.mg-link {
     min-width: var(--max-width) !important;
     transition: max-width 0.3s ease-out, min-width 0.3s ease-out;
     height: 100vh;
+    white-space: nowrap;
 }
 
 .mg-sidebar.mg-right {
@@ -476,6 +509,7 @@ dd-button.mg-button, a.mg-link {
 
 .mg-page-top-bar.mg-fixed {
     box-shadow: 0 12px 12px -12px rgba(0, 0, 0, 0.5);
+    z-index: 2;
 }
 
 /* FILE UPLOADER */
@@ -571,4 +605,8 @@ dd-popup {
 
 .mg-expander-label {
     cursor: pointer;
+}
+
+code {
+    white-space: pre;
 }

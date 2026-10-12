@@ -52,7 +52,7 @@
 #define HS__VHostsArrayCap 10
 #define HS__ProtocolsArrayCap 8
 #define HS__HostNameCap 64
-#define HS__URIMapCap 32
+#define HS__URIMapCap 64
 #define HS__CacheBustCap 48
 #define HS__CacheControlMapCap 32
 #define HS__NeedsSSIParsingCap 32

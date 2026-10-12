@@ -57,6 +57,7 @@ using SHA
 using Sockets
 using Tables
 using TOML
+using Unicode
 
 # Layout Elements
 #-------------------

@@ -1,0 +1,10 @@
+name = "MagicDocs"
+uuid = "d1072b91-40a7-4e10-ace6-f5db5ea416c3"
+
+[deps]
+CommonMark = "a80b9123-70ca-4bc0-993e-6e3bcb318db6"
+Magic = "938144cb-3a24-4977-a248-a12dea9dd101"
+TOML = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
+
+[sources.Magic]
+path = ".."

@@ -9,7 +9,8 @@ function create_button(
     onclick::Function,
     args::Union{Vector, Tuple},
     download_path::Union{String, Nothing},
-    download_name::Union{String, Nothing}
+    download_name::Union{String, Nothing},
+    css::Dict,
 )::Bool
 
     # Input validation
@@ -48,6 +49,7 @@ function create_button(
         "label" => label,
         "style" => style,
         "icon" => icon,
+        "css" => css,
     )
 
     props["local_id"] = bytes2hex(sha256(JSON.json(props)))
@@ -110,16 +112,47 @@ function button(
 `true` if the button was clicked, `false` otherwise.
 """
 function button(
-    label   ::String                ="";
-    style   ::String                ="secondary",
-    icon    ::String                ="",
-    onclick ::Function              =()->(),
-    args    ::Union{Vector, Tuple}  =Vector()
+    label           ::String                    ="";
+    style           ::String                    ="secondary",
+    icon            ::String                    ="",
+    fill_width      ::Bool                      =false,
+    font_weight     ::Union{String, Nothing}    =nothing,
+    padding         ::Union{String, Nothing}    =nothing,
+    justify_content ::Union{String, Nothing}    =nothing,
+    background      ::Union{String, Nothing}    =nothing,
+    hover_background::Union{String, Nothing}    =nothing,
+    onclick         ::Function                  =()->(),
+    args            ::Union{Vector, Tuple}      =Vector(),
+    css             ::Dict                      =Dict()
 )::Bool
 
     task = ensure_app_task_exists()
     widgets = task.session.widgets
-    return create_button(widgets, top_container(), label, style, icon, onclick, args, nothing, nothing)
+    parent = top_container()
+
+    set_css_to_achieve_layout(css, parent, fill_width, false)
+
+    if !isnothing(padding)
+        set_css_if_not_set(css, "padding", padding)
+    end
+
+    if !isnothing(justify_content)
+        set_css_if_not_set(css, "justify-content", justify_content)
+    end
+
+    if !isnothing(background)
+        set_css_if_not_set(css, "--button-bg", background)
+    end
+
+    if !isnothing(hover_background)
+        set_css_if_not_set(css, "--button-hover-bg", hover_background)
+    end
+
+    if !isnothing(font_weight)
+        set_css_if_not_set(css, "font-weight", font_weight)
+    end
+
+    return create_button(widgets, parent, label, style, icon, onclick, args, nothing, nothing, css)
 end
 
 # Download Button
@@ -2002,8 +2035,7 @@ end
 
 function commonmark_parser()
     parser = CommonMark.Parser()
-    CommonMark.enable!(parser, CommonMark.TableRule())
-    CommonMark.enable!(parser, CommonMark.FootnoteRule())
+    CommonMark.enable!(parser, [AutoIdentifierRule(), TableRule(), FootnoteRule()])
     # Add other rules you need, e.g. CommonMark.AutolinkRule(), CommonMark.StrikethroughRule()
     return parser
 end
@@ -2012,12 +2044,14 @@ function markdown(ast::CommonMark.Node)::Nothing
     return html("div", CommonMark.html(ast), attributes=Dict("class" => "mg-markdown"))
 end
 
-function markdown(markdown_text::AbstractString)::Nothing
+function markdown(markdown_text::AbstractString=""; file::Union{AbstractString, Nothing}=nothing)::Nothing
+    if !isnothing(file)
+        markdown_text = assert_valid_utf8_file(@named(file))
+    end
     ast = commonmark_parser()(markdown_text)
     return markdown(ast)
 end
 
-# Optional: keeps docstrings working, since Base.Docs.doc returns a Markdown.MD
 function markdown(md::Markdown.MD)::Nothing
     return markdown(Markdown.plain(md))
 end
@@ -2053,14 +2087,47 @@ function link(
 
 Nothing.
 """
-function link(label::String, url::String; style::String="secondary", fill_width=false, new_tab::Bool=false, css::Dict=Dict())::Nothing
+function link(
+    label           ::String,
+    url             ::String;
+    style           ::String                    ="secondary",
+    new_tab         ::Bool                      =false,
+    icon            ::String                    ="",
+    fill_width      ::Bool                      =false,
+    font_weight     ::Union{String, Nothing}    =nothing,
+    padding         ::Union{String, Nothing}    =nothing,
+    justify_content ::Union{String, Nothing}    =nothing,
+    background      ::Union{String, Nothing}    =nothing,
+    hover_background::Union{String, Nothing}    =nothing,
+    css             ::Dict                      =Dict()
+)::Nothing
+
     # Input validation
     #---------------------
     assert_string_in_list(@named(style), ("primary", "secondary", "naked"))
 
-    icon = ""
-    if new_tab
+    if icon == "" && new_tab
         icon = "<mg-icon mg-icon='material/open_in_new'></mg-icon>"
+    end
+
+    if !isnothing(font_weight)
+        set_css_if_not_set(css, "font-weight", font_weight)
+    end
+
+    if !isnothing(background)
+        set_css_if_not_set(css, "--button-bg", background)
+    end
+
+    if !isnothing(padding)
+        set_css_if_not_set(css, "padding", padding)
+    end
+
+    if !isnothing(justify_content)
+        set_css_if_not_set(css, "justify-content", justify_content)
+    end
+
+    if !isnothing(hover_background)
+        set_css_if_not_set(css, "--button-hover-bg", hover_background)
     end
 
     combined_css = Dict("white-space" => "nowrap")
@@ -2109,6 +2176,16 @@ function maybe_prepend_icon(text::String, icon::String, icon_color::String)::Str
     return text
 end
 
+function slugify(s::AbstractString)
+    # Generated by Claude
+    s = Unicode.normalize(s, :NFKD)          # split accents from base letters
+    s = replace(s, r"\p{Mn}" => "")          # drop combining marks (é -> e)
+    s = lowercase(s)
+    s = replace(s, r"[^a-z0-9\s-]" => "")    # drop punctuation and symbols
+    s = replace(s, r"[\s-]+" => "-")         # collapse spaces/hyphens into one hyphen
+    return strip(s, '-')                     # no leading/trailing hyphens
+end
+
 """
 # headers
 
@@ -2138,22 +2215,27 @@ function h1(
 
 Nothing.
 """
-h1(text::String; icon::String="", icon_color::String="", css=Dict()) = html("h1", maybe_prepend_icon(text, icon, icon_color), css=css)
+function header(tag::AbstractString, text::AbstractString, icon::AbstractString, icon_color::AbstractString, css::Dict)::Nothing
+    return html(tag, maybe_prepend_icon(text, icon, icon_color), attributes=Dict("id" => slugify(text)), css=css)
+end
 
-@doc @doc(h1) h2
-h2(text::String; icon::String="", icon_color::String="", css=Dict()) = html("h2", maybe_prepend_icon(text, icon, icon_color), css=css)
+@doc @doc(header) h1
+h1(text::String; icon::String="", icon_color::String="", css=Dict()) = header("h1", text, icon, icon_color, css)
 
-@doc @doc(h1) h3
-h3(text::String; icon::String="", icon_color::String="", css=Dict()) = html("h3", maybe_prepend_icon(text, icon, icon_color), css=css)
+@doc @doc(header) h2
+h2(text::String; icon::String="", icon_color::String="", css=Dict()) = header("h2", text, icon, icon_color, css)
 
-@doc @doc(h1) h4
-h4(text::String; icon::String="", icon_color::String="", css=Dict()) = html("h4", maybe_prepend_icon(text, icon, icon_color), css=css)
+@doc @doc(header) h3
+h3(text::String; icon::String="", icon_color::String="", css=Dict()) = header("h3", text, icon, icon_color, css)
 
-@doc @doc(h1) h5
-h5(text::String; icon::String="", icon_color::String="", css=Dict()) = html("h5", maybe_prepend_icon(text, icon, icon_color), css=css)
+@doc @doc(header) h4
+h4(text::String; icon::String="", icon_color::String="", css=Dict()) = header("h4", text, icon, icon_color, css)
 
-@doc @doc(h1) h6
-h6(text::String; icon::String="", icon_color::String="", css=Dict()) = html("h6", maybe_prepend_icon(text, icon, icon_color), css=css)
+@doc @doc(header) h5
+h5(text::String; icon::String="", icon_color::String="", css=Dict()) = header("h5", text, icon, icon_color, css)
+
+@doc @doc(header) h6
+h6(text::String; icon::String="", icon_color::String="", css=Dict()) = header("h6", text, icon, icon_color, css)
 
 """
 # icon

@@ -1048,21 +1048,29 @@ function expander(
     initial_state::AbstractString="closed",
     fill_width::Bool=false,
     show_border::Bool=false,
+    gap::String=".8rem",
     label_size::String="1rem",
-    label_bold::Bool=false,
+    label_color::Union{String, Nothing}=nothing,
+    label_weight::String="normal",
     label_padding::String="0",
+    label_hover_background::Union{String, Nothing}=nothing,
     label_css::Dict=Dict(),
 )::ContainerInterface
 
-    if label_bold
-        set_css_if_not_set(label_css, "font-weight", "bold")
-    end
-
+    set_css_if_not_set(label_css, "font-weight", label_weight)
     set_css_if_not_set(label_css, "font-size", label_size)
     set_css_if_not_set(label_css, "padding", label_padding)
 
-    @push column(fill_width=fill_width, show_border=show_border, attributes=Dict("class" => "mg-expander"))
-        row(fill_width=true, align_items="center", justify_content="space-between", attributes=Dict("class" => "mg-expander-label", "data-mg-initial-state" => initial_state), css=label_css) do
+    if !isnothing(label_color)
+        set_css_if_not_set(label_css, "color", label_color)
+    end
+
+    if !isnothing(label_hover_background)
+        set_css_if_not_set(label_css, "--button-hover-bg", label_hover_background)
+    end
+
+    @push column(fill_width=fill_width, show_border=show_border, gap=gap, attributes=Dict("class" => "mg-expander"))
+        row(fill_width=true, align_items="center", justify_content="space-between", attributes=Dict("class" => "mg-expander-label dd-button", "data-mg-initial-state" => initial_state), css=label_css) do
             html("div", label)
             icon("material/keyboard_arrow_down", size="1.5em")
         end
@@ -1077,9 +1085,12 @@ function expander(
     initial_state::AbstractString="closed",
     fill_width::Bool=false,
     show_border::Bool=false,
+    gap::String=".8rem",
     label_size::String="1rem",
-    label_bold::Bool=false,
+    label_color::Union{String, Nothing}=nothing,
+    label_weight::String="normal",
     label_padding::String="0",
+    label_hover_background::Union{String, Nothing}=nothing,
     label_css::Dict=Dict(),
 )::ContainerInterface
     return expander(
@@ -1088,9 +1099,12 @@ function expander(
         initial_state=initial_state,
         fill_width=fill_width,
         show_border=show_border,
+        gap=gap,
         label_size=label_size,
-        label_bold=label_bold,
+        label_color=label_color,
+        label_weight=label_weight,
         label_padding=label_padding,
+        label_hover_background=label_hover_background,
         label_css=label_css,
     )
 end

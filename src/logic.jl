@@ -2227,13 +2227,24 @@ function get_app_data()::Any
 """
 
 @doc DOC_APP_PERSISTENT_DATA
-function get_app_data()::Any
-    return g.user_app_data
+function get_app_data(key::Union{AbstractString, Nothing} = nothing)::Any
+    if isnothing(key)
+        return g.user_app_data
+    elseif haskey(g.user_app_dict, key)
+        return g.user_app_dict[key]
+    else
+        return missing
+    end
 end
 
 @doc DOC_APP_PERSISTENT_DATA
 function set_app_data(app_data::Any)::Nothing
     g.user_app_data = app_data
+    return nothing
+end
+
+function set_app_data(key::AbstractString, value::Any)::Nothing
+    g.user_app_dict[key] = value
     return nothing
 end
 
@@ -2545,12 +2556,12 @@ macro once(def)
     struct_name = def.args[2]
 
     return esc(quote
-        if haskey(Magic.USER_TYPES, $(QuoteNode(struct_name)))
-            global $struct_name = Magic.USER_TYPES[$(QuoteNode(struct_name))]
+        if haskey(Magic.g.USER_TYPES, $(QuoteNode(struct_name)))
+            global $struct_name = Magic.g.USER_TYPES[$(QuoteNode(struct_name))]
         else
             $def
 
-            Magic.USER_TYPES[$(QuoteNode(struct_name))] = $struct_name
+            Magic.g.USER_TYPES[$(QuoteNode(struct_name))] = $struct_name
         end
     end)
 end
@@ -2766,6 +2777,48 @@ function gen_docs()::Nothing
 
     for (i, object) in enumerate(objects)
         save_doc(getfield(Magic, object), joinpath(doc_interface_dir, "$(object)-func.md"), i)
+    end
+
+    return nothing
+end
+
+function gen_docs2()::Nothing
+    doc_layout_dir      = mkpath(joinpath(pkgdir(Magic), "docs/api-reference/layout-elements"))
+    doc_interface_dir   = mkpath(joinpath(pkgdir(Magic), "docs/api-reference/interface-elements"))
+    doc_logic_dir       = mkpath(joinpath(pkgdir(Magic), "docs/api-reference/application-logic"))
+
+    # Layout API
+    #-------------
+    objects = [:set_page_layout, :column, :columns, :row, :container,
+               :main_area, :push_container, :left_sidebar]
+
+    for (i, object) in enumerate(objects)
+        save_doc(getfield(Magic, object), joinpath(doc_layout_dir, "$(object).md"))
+    end
+
+    # Logic API
+    #-------------
+    objects = [:start_app, Symbol("@app_startup"), Symbol("@page_startup"),
+               Symbol("@session_startup"), Symbol("@fragment"), :set_app_data,
+               :set_page_data, :set_session_data, :gen_serveable_path,
+               :make_serveable_copy, :move_to_serveable_dir, :get_dot_magic_path,
+               :get_dot_magic_dir, :is_on_page, :is_app_first_pass, :set_title,
+               :get_url_path, :get_url_search, :get_query_params, :get_server_host,
+               :get_server_port, :get_server_origin]
+
+    for (i, object) in enumerate(objects)
+        save_doc(getfield(Magic, object), joinpath(doc_logic_dir, "$(object).md"))
+    end
+
+    # Interface API
+    #----------------
+    objects = [:button, :selectbox, :checkbox, :checkboxes, :radio, :text_input,
+               :number_input, :slider, :dataframe, :file_uploader,
+               :download_button, :link, :color_picker, :image, :text, :h1,
+               :metric, :code, :icon, :space, :html, :get_value]
+
+    for (i, object) in enumerate(objects)
+        save_doc(getfield(Magic, object), joinpath(doc_interface_dir, "$(object).md"))
     end
 
     return nothing
