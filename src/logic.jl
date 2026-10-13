@@ -1399,25 +1399,32 @@ function get_session_data()::Any
 ```
 """
 
-@doc DOC_SESSION_PERSISTENT_DATA
-function get_session_data()::Any
-    task = ensure_app_task_exists()
-    return task.session.user_session_data
-end
-
 function get_session(client_id::Cint)::Session
     return g.sessions[client_id]
 end
 
-function get_session_data(client_id::Cint)::Any
-    session = get_session(client_id)
-    return session.user_session_data
+@doc DOC_SESSION_PERSISTENT_DATA
+function get_session_data(key::Union{AbstractString, Nothing} = nothing)::Any
+    task = ensure_app_task_exists()
+    if isnothing(key)
+        return task.session.user_session_data
+    elseif haskey(task.session.user_session_dict, key)
+        return task.session.user_session_dict[key]
+    else
+        return missing
+    end
 end
 
 @doc DOC_SESSION_PERSISTENT_DATA
 function set_session_data(session_data::Any)::Nothing
     task = ensure_app_task_exists()
     task.session.user_session_data = session_data
+    return nothing
+end
+
+function set_session_data(key::AbstractString, value::Any)::Nothing
+    task = ensure_app_task_exists()
+    task.session.user_session_dict[key] = value
     return nothing
 end
 

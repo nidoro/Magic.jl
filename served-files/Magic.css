@@ -105,7 +105,7 @@ p {
 a, a:hover, a:visited {
     text-decoration: none;
     color: inherit;
-    line-height: 1;
+    /*line-height: 1;*/
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -115,7 +115,8 @@ h1, h2, h3, h4, h5, h6 {
     align-items: center;
     gap: .4em;
     position: relative;
-    display: inline-block;
+    display: block;
+    max-width: max-content;
 }
 
 h1 { font-size: 2.5rem;  }

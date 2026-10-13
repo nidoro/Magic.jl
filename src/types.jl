@@ -288,6 +288,7 @@ end
     fragments                   ::Dict{String, Fragment}    = Dict{String, Fragment}()
     location                    ::Dict                      = Dict()
     user_session_data           ::Any                       = nothing
+    user_session_dict           ::Dict                      = Dict()
     first_pass                  ::Bool                      = true
     widget_defaults             ::Dict{String, Any}         = Dict{String, Any}()
     rerun_task                  ::Union{Task, Nothing}      = nothing

@@ -2215,27 +2215,31 @@ function h1(
 
 Nothing.
 """
-function header(tag::AbstractString, text::AbstractString, icon::AbstractString, icon_color::AbstractString, css::Dict)::Nothing
-    return html(tag, maybe_prepend_icon(text, icon, icon_color), attributes=Dict("id" => slugify(text)), css=css)
+function header(tag::AbstractString, text::AbstractString, icon::AbstractString, icon_color::AbstractString, show_anchor_link::Bool, css::Dict)::Nothing
+    attributes = Dict()
+    if show_anchor_link
+        attributes["id"] = slugify(text)
+    end
+    return html(tag, maybe_prepend_icon(text, icon, icon_color), attributes=attributes, css=css)
 end
 
 @doc @doc(header) h1
-h1(text::String; icon::String="", icon_color::String="", css=Dict()) = header("h1", text, icon, icon_color, css)
+h1(text::String; icon::String="", icon_color::String="", show_anchor_link::Bool=true, css::Dict=Dict()) = header("h1", text, icon, icon_color, show_anchor_link, css)
 
 @doc @doc(header) h2
-h2(text::String; icon::String="", icon_color::String="", css=Dict()) = header("h2", text, icon, icon_color, css)
+h2(text::String; icon::String="", icon_color::String="", show_anchor_link::Bool=true, css::Dict=Dict()) = header("h2", text, icon, icon_color, show_anchor_link, css)
 
 @doc @doc(header) h3
-h3(text::String; icon::String="", icon_color::String="", css=Dict()) = header("h3", text, icon, icon_color, css)
+h3(text::String; icon::String="", icon_color::String="", show_anchor_link::Bool=true, css::Dict=Dict()) = header("h3", text, icon, icon_color, show_anchor_link, css)
 
 @doc @doc(header) h4
-h4(text::String; icon::String="", icon_color::String="", css=Dict()) = header("h4", text, icon, icon_color, css)
+h4(text::String; icon::String="", icon_color::String="", show_anchor_link::Bool=true, css::Dict=Dict()) = header("h4", text, icon, icon_color, show_anchor_link, css)
 
 @doc @doc(header) h5
-h5(text::String; icon::String="", icon_color::String="", css=Dict()) = header("h5", text, icon, icon_color, css)
+h5(text::String; icon::String="", icon_color::String="", show_anchor_link::Bool=true, css::Dict=Dict()) = header("h5", text, icon, icon_color, show_anchor_link, css)
 
 @doc @doc(header) h6
-h6(text::String; icon::String="", icon_color::String="", css=Dict()) = header("h6", text, icon, icon_color, css)
+h6(text::String; icon::String="", icon_color::String="", show_anchor_link::Bool=true, css::Dict=Dict()) = header("h6", text, icon, icon_color, show_anchor_link, css)
 
 """
 # icon

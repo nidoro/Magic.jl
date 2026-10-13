@@ -112,6 +112,12 @@ function fadeFragment(fragmentId) {
     }
 }
 
+function hasVerticalScrollbar(el) {
+    const { overflowY } = getComputedStyle(el);
+    const scrollable = overflowY === "auto" || overflowY === "scroll";
+    return scrollable && el.scrollHeight > el.clientHeight;
+}
+
 function requestUpdate(events) {
     if (events.length) {
         const fragmentId = events[0].fragment_id;
@@ -741,7 +747,12 @@ function createAppElement(parent, props, fragmentId) {
 
         newElements.push(elem);
     } else if (props.type == "container") {
-        const elem = document.createElement("div");
+        let tagName = "div";
+        if ("href" in props.attributes) {
+            tagName = "a";
+        }
+
+        const elem = document.createElement(tagName);
         let oldElem = null;
 
         elem.setAttribute("data-mg-id", props.id);
@@ -848,18 +859,6 @@ function createAppElement(parent, props, fragmentId) {
                 if (event.propertyName == "height" && el.classList.contains("mg-expanded")) {
                     el.style.setProperty("--expander-height", `auto`);
                 }
-            });
-        }
-
-        // Scroll height
-        //----------------
-        oldElem = document.querySelector(`[data-mg-id="${props.id}"]`);
-        if (oldElem) {
-            let scrollTop = oldElem.scrollTop;
-            let scrollLeft = oldElem.scrollLeft;
-            requestAnimationFrame(() => {
-                elem.scrollTop = scrollTop;
-                elem.scrollLeft = scrollLeft;
             });
         }
 
@@ -1590,8 +1589,37 @@ function createAppElement(parent, props, fragmentId) {
         }
 
         if (props.type == "container") {
+            oldElem = document.querySelector(`[data-mg-id="${props.id}"]`);
+            let scrolled = false;
+            let scrollTop = null;
+            let scrollHeight = null;
+            if (oldElem) {
+                scrolled = hasVerticalScrollbar(oldElem);
+                scrollTop = oldElem.scrollTop;
+                scrollHeight = oldElem.scrollHeight;
+            }
+
             for (const child of props.children) {
                 createAppElement(newElements[0], child, fragmentId);
+            }
+
+            // Scroll top
+            //----------------
+            if (scrolled) {
+                let elem = newElements[0];
+                const foo = document.createElement("div");
+                foo.style.width = "1px";
+                foo.style.minHeight = `${scrollHeight}vh`;
+                elem.appendChild(foo);
+                elem.scrollTop = scrollTop;
+
+                requestAnimationFrame(() => {
+                    elem.scrollTop = scrollTop;
+                    requestAnimationFrame(() => {
+                        elem.scrollTop = scrollTop;
+                        foo.remove();
+                    });
+                });
             }
         }
 
@@ -1679,6 +1707,8 @@ async function displayRerunResponse(msg) {
 
     const headings = newFragContainer.querySelectorAll("h1, h2, h3, h4, h5, h6");
     for (let heading of headings) {
+        if (!heading.hasAttribute("id")) continue;
+
         const url = location.href.split("#")[0] + "#" + heading.id;
 
         const icon = document.createElement("a");

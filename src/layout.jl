@@ -296,12 +296,14 @@ function set_css_to_achieve_layout(css::Dict, parent::Dict, fill_width::Bool, fi
     width = nothing
     height = nothing
     flex_basis = nothing
+    flex_shrink = nothing
 
     if fill_width
         if get_css_value(parent, "flex-direction") == "row"
             flex_grow = "1"
             min_width = "0"
-            flex_basis = "0"
+            flex_basis = "auto"
+            flex_shrink = "0"
         else
             width = "100%"
         end
@@ -313,11 +315,13 @@ function set_css_to_achieve_layout(css::Dict, parent::Dict, fill_width::Bool, fi
         else
             flex_grow = "1"
             min_height = "0"
-            flex_basis = "0"
+            flex_basis = "auto"
+            flex_shrink = "0"
         end
     end
 
     if flex_grow !== nothing css["flex-grow"] = flex_grow end
+    if flex_shrink !== nothing css["flex-shrink"] = flex_shrink end
     if flex_basis !== nothing css["flex-basis"] = flex_basis end
     if min_width !== nothing css["min-width"] = min_width end
     if min_height !== nothing css["min-height"] = min_height end
@@ -395,20 +399,21 @@ end
 ```
 """
 function column(
-    inner_func      ::Function      =()->();
-    fill_width      ::Bool          =false,
-    fill_height     ::Bool          =false,
-    align_items     ::String        ="flex-start",
-    justify_content ::String        ="flex-start",
-    gap             ::String        =".8rem",
-    max_width       ::String        ="100%",
-    max_height      ::String        ="initial",
-    show_border     ::Bool          =false,
-    border          ::String        ="1px solid #d6d6d6",
-    padding         ::String        ="none",
-    margin          ::String        ="none",
-    css             ::AbstractDict  =Dict(),
-    attributes      ::AbstractDict  =Dict()
+    inner_func      ::Function                  =()->();
+    fill_width      ::Bool                      =false,
+    fill_height     ::Bool                      =false,
+    align_items     ::String                    ="flex-start",
+    justify_content ::String                    ="flex-start",
+    gap             ::String                    =".8rem",
+    max_width       ::String                    ="100%",
+    max_height      ::String                    ="initial",
+    show_border     ::Bool                      =false,
+    border          ::String                    ="1px solid #d6d6d6",
+    padding         ::String                    ="none",
+    margin          ::String                    ="none",
+    link            ::Union{String, Nothing}    =nothing,
+    css             ::AbstractDict              =Dict(),
+    attributes      ::AbstractDict              =Dict()
 )::ContainerInterface
 
     # Validate input
@@ -433,6 +438,10 @@ function column(
     set_css_to_achieve_layout(combined_css, top_container(), fill_width, fill_height)
     set_css_if_not_set(css_norm, "max-height", max_height)
     merge!(combined_css, css_norm)
+
+    if !isnothing(link)
+        attributes["href"] = link
+    end
 
     return container(inner_func, css=combined_css, attributes=attributes)
 end
@@ -833,7 +842,7 @@ function set_page_layout(
             left_sidebar = create_sidebar(left_sidebar_initial_state, "left", left_sidebar_initial_width, left_sidebar_position, left_sidebar_toggle_labels)
         end
 
-        main_area = column(fill_width=true, fill_height=true, gap="0px", css=Dict("position" => "relative", "overflow" => "auto"))
+        main_area = column(fill_width=true, fill_height=true, gap="0px", css=Dict("position" => "relative", "overflow" => "auto", "height" => "100vh", "flex-shrink" => "1"))
 
         if right_sidebar_initial_state != nothing
             right_sidebar = create_sidebar(right_sidebar_initial_state, "right", right_sidebar_initial_width, right_sidebar_position, right_sidebar_toggle_labels)
@@ -848,7 +857,7 @@ function set_page_layout(
         @push main_area
             padding_left = isnothing(left_sidebar) ? "0.5em" : "2.0em"
             padding_right = isnothing(right_sidebar) ? "0.5em" : "2.0em"
-            top_bar_container = row(fill_width=true, css=Dict("background" => "white", "position" => top_bar, "top" => "0", "border-radius" => "0", "padding" => ".5em $(padding_right) .5em $(padding_left)"), attributes=Dict("class" => "mg-page-top-bar mg-$(top_bar)"))
+            top_bar_container = row(fill_width=true, css=Dict("background" => "white", "position" => top_bar, "top" => "0", "border-radius" => "0", "padding" => ".5em $(padding_right) .5em $(padding_left)", "overflow-x" => "auto"), attributes=Dict("class" => "mg-page-top-bar mg-$(top_bar)"))
         @pop
 
         top_padding = "6rem"
