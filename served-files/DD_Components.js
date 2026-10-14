@@ -4488,7 +4488,7 @@ style.textContent = `
         align-items: center;
         max-width: var(--input-max-width, none);
         min-width: var(--input-min-width, none);
-        width: var(--input-width, 100%);
+        width: var(--input-width, initial);
         background-color: var(--input-bg, #ffffff);
         cursor: text;
     }

@@ -96,6 +96,7 @@ end
     radio           ::Function = (args...; kwargs...)->()
     file_uploader   ::Function = (args...; kwargs...)->()
     text_input      ::Function = (args...; kwargs...)->()
+    number_input    ::Function = (args...; kwargs...)->()
     link            ::Function = (args...; kwargs...)->()
     color_picker    ::Function = (args...; kwargs...)->()
     text            ::Function = (args...; kwargs...)->()
@@ -104,6 +105,8 @@ end
     icon            ::Function = (args...; kwargs...)->()
     space           ::Function = (args...; kwargs...)->()
     slider          ::Function = (args...; kwargs...)->()
+    markdown        ::Function = (args...; kwargs...)->()
+    expander        ::Function = (args...; kwargs...)->()
 end
 
 const ShallowSimpleDict = Dict{String, Union{String, Real}}
@@ -112,7 +115,7 @@ const CONTAINER_INTERFACE_FUNCS = [
     :columns, :column, :row, :button, :download_button, :image, :html, :radio, :selectbox,
     :h1, :h2, :h3, :h4, :h5, :h6, :dataframe, :checkbox, :checkboxes,
     :file_uploader, :text_input, :link, :color_picker, :text, :metric, :code,
-    :icon, :space, :slider
+    :icon, :space, :slider, :markdown, :number_input, :expander
 ]
 
 @with_kw mutable struct Containers

@@ -919,6 +919,7 @@ function createAppElement(parent, props, fragmentId) {
         if (!elem) {
             elem = document.createElement("dd-input");
             elem.classList.add("mg-text-input");
+            applyCSS(elem, props.css);
 
             elem.setAttribute("data-mg-id", props.id);
 
@@ -951,6 +952,7 @@ function createAppElement(parent, props, fragmentId) {
 
         if (!elem) {
             elem = document.createElement("dd-input");
+            applyCSS(elem, props.css);
             elem.setAttribute("type", "number");
             elem.setAttribute("dd-decimal-separator", props.decimal_separator);
             elem.setAttribute("dd-thousands-separator", props.thousands_separator);
@@ -992,6 +994,8 @@ function createAppElement(parent, props, fragmentId) {
 
         if (!elem) {
             elem = document.createElement("dd-slider");
+            applyCSS(elem, props.css);
+
             elem.setAttribute("dd-decimal-separator", props.decimal_separator);
             elem.setAttribute("dd-thousands-separator", props.thousands_separator);
             elem.setAttribute("dd-precision", props.precision);
@@ -1030,10 +1034,7 @@ function createAppElement(parent, props, fragmentId) {
         if (!inpElem) {
             inpElem = document.createElement("dd-input");
             inpElem.classList.add("mg-selectbox");
-
-            for (const [key, value] of Object.entries(props.css)) {
-                inpElem.style[key] = value;
-            }
+            applyCSS(inpElem, props.css);
 
             slcElem = document.createElement("dd-select");
             slcElem.classList.add("mg-selectbox");

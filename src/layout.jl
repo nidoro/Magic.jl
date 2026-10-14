@@ -303,7 +303,7 @@ function set_css_to_achieve_layout(css::Dict, parent::Dict, fill_width::Bool, fi
             flex_grow = "1"
             min_width = "0"
             flex_basis = "auto"
-            flex_shrink = "0"
+            flex_shrink = "1"
         else
             width = "100%"
         end
@@ -316,7 +316,7 @@ function set_css_to_achieve_layout(css::Dict, parent::Dict, fill_width::Bool, fi
             flex_grow = "1"
             min_height = "0"
             flex_basis = "auto"
-            flex_shrink = "0"
+            flex_shrink = "1"
         end
     end
 
@@ -639,7 +639,7 @@ function columns(amount_or_widths::Union{Int, AbstractVector, Tuple}; kwargs...)
 
     columns = Containers()
 
-    @push row(fill_width=true)
+    @push row(fill_width=true, fill_height=haskey(kwargs, :fill_height) && kwargs[:fill_height])
         if amount_or_widths isa Int
             w = 1.0/amount_or_widths
             css = ShallowSimpleDict("flex" => "$w", "align-self" => "stretch")

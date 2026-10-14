@@ -47,10 +47,10 @@
 
 .mg-markdown h1 { font-size: 3rem; margin-bottom: calc(var(--mg-leading) * 1.25); }
 .mg-markdown h2 { font-size: 2rem;    margin: calc(var(--mg-leading) * 2.5) 0 calc(var(--mg-leading) * 1.25); }
-.mg-markdown h3 { font-size: 1.5rem;  margin: calc(var(--mg-leading) * 2) 0 calc(var(--mg-leading) * 1.25); }
-.mg-markdown h4 { font-size: 1.25rem; margin: calc(var(--mg-leading) * 1.5) 0 var(--mg-leading); }
-.mg-markdown h5 { font-size: 1rem;    margin: var(--mg-leading) 0 var(--mg-spacing); }
-.mg-markdown h6 { font-size: 0.875rem; margin: var(--mg-leading) 0 var(--mg-spacing); }
+.mg-markdown h3 { font-size: 1.75rem;  margin: calc(var(--mg-leading) * 2) 0 calc(var(--mg-leading) * 1.25); }
+.mg-markdown h4 { font-size: 1.5rem; margin: calc(var(--mg-leading) * 1.5) 0 var(--mg-leading); }
+.mg-markdown h5 { font-size: 1.25rem;    margin: var(--mg-leading) 0 var(--mg-spacing); }
+.mg-markdown h6 { font-size: 1rem; margin: var(--mg-leading) 0 var(--mg-spacing); }
 
 /* No extra top margin on a heading that opens the container */
 .mg-markdown > h1:first-child,

@@ -236,7 +236,7 @@ function download_button(
     if file_name === nothing
         file_name = basename(file_path)
     end
-    return create_button(widgets, top_container(), label, style, icon, onclick, args, file_path, file_name)
+    return create_button(widgets, top_container(), label, style, icon, onclick, args, file_path, file_name, Dict())
 end
 
 # Text Input
@@ -359,9 +359,9 @@ function text_input(
         col = column(gap="0.3em", css=container_css)
         col.html("label", label, css=Dict("font-size" => "0.9rem"))
         parent = col.container
-    else
-        merge!(css, container_css)
     end
+
+    merge!(css, container_css)
 
     return create_text_input(widgets, parent, id, label, initial_value, placeholder, css)
 end
@@ -563,9 +563,9 @@ function number_input(
         col = column(gap="0.3em", css=container_css)
         col.html("label", label, css=Dict("font-size" => "0.9rem"))
         parent = col.container
-    else
-        merge!(css, container_css)
     end
+
+    merge!(css, container_css)
 
     return create_number_input(widgets, parent, id, label, initial_value, placeholder, num_type, precision, min, max, step, decimal_separator, thousands_separator, css)
 end
@@ -749,11 +749,11 @@ function slider(
     container_css = Dict()
     set_css_to_achieve_layout(container_css, parent, fill_width, false)
 
-    if !isempty(label) && show_label
-        if !fill_width
-            container_css["width"] = "200px"
-        end
+    if !fill_width
+        container_css["width"] = "200px"
+    end
 
+    if !isempty(label) && show_label
         col = column(gap="0.3em", css=container_css)
         col.html("label", label, css=Dict("font-size" => "0.9rem"))
         parent = col.container
@@ -968,9 +968,9 @@ function selectbox(
         col = column(gap="0.3em", css=container_css)
         col.html("label", label, css=Dict("font-size" => "0.9rem"))
         parent = col.container
-    else
-        merge!(css, container_css)
     end
+
+    merge!(css, container_css)
 
     return create_selectbox(widgets, parent, id, label, options, initial_value, multiple, placeholder, onchange, args, css)
 end
@@ -1685,6 +1685,7 @@ dataframe(
 function dataframe(
     data                ::DataFrame;
     column_config       ::Dict                      =Dict(),
+    editable            ::Bool                      =false,
     fill_height         ::Bool                      =false,
     height              ::Union{String, Nothing}    =nothing,
     max_height          ::Union{String, Nothing}    =nothing,
@@ -1704,6 +1705,7 @@ function dataframe(
     for column_name in names(data)
         cc[column_name] = Dict()
         cc[column_name]["name"] = column_name
+        cc[column_name]["editable"] = editable
 
         if column_name in keys(column_config)
             merge!(cc[column_name], column_config[column_name])
@@ -2983,7 +2985,7 @@ function progress_dialog(
             h2(title)
 
             column(fill_width=true, align_items="center") do
-                progress = get_progress(job)
+                progress = get_progress_snapshot(job)
 
                 if fragment_id == "magic_spinner"
                     space(height="1em")
@@ -3004,7 +3006,7 @@ function progress_dialog(
             h2("Error")
 
             column(fill_width=true, align_items="center") do
-                progress = get_last_progress(job)
+                progress = get_last_progress_snapshot(job)
 
                 if fragment_id == "magic_spinner"
                     space(height="0.5em")
