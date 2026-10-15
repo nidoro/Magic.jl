@@ -1,8 +1,6 @@
-using CommonMark
+import CommonMark
 using Magic
 using TOML
-
-markdown = Magic.markdown
 
 mutable struct Page
     url_path::String
@@ -25,7 +23,7 @@ function node_text(node)
 end
 
 function first_heading_and_paragraph(source::AbstractString)
-    ast = Parser()(source)
+    ast = CommonMark.Parser()(source)
     heading = nothing
     paragraph = nothing
     for (node, entering) in ast
@@ -53,12 +51,12 @@ function directory_tree(root::AbstractString, path::AbstractString)::Union{Dict,
     return tree
 end
 
-function recursive_add_page(pages::Dict, dt::Dict, parent::AbstractString, root::AbstractString)::Nothing
+function recursive_add_page(pages::Dict, dt::Dict, parent::AbstractString, root::AbstractString, url_prefix::AbstractString)::Nothing
     for (key, value) in dt
         dir_path = joinpath(parent, key)
         if value isa AbstractString && endswith(value, ".md")
             file_path = joinpath(root, lstrip(value, '/'))
-            url_path = replace(file_path, root => "", ".md" => "")
+            url_path = joinpath(url_prefix, lstrip(replace(file_path, root => "", ".md" => ""), '/'))
             add_page(url_path)
             md = read(file_path, String)
             heading, paragraph = first_heading_and_paragraph(md)
@@ -66,13 +64,12 @@ function recursive_add_page(pages::Dict, dt::Dict, parent::AbstractString, root:
         elseif value isa Dict
             file_path = joinpath(root, lstrip(dir_path, '/'), "index.toml")
             if isfile(file_path)
-                add_page(dir_path)
+                url_path = joinpath(url_prefix, lstrip(dir_path, '/'))
+                add_page(url_path)
                 config = TOML.parsefile(file_path)
-                display(dir_path)
-                display(config)
-                pages[dir_path] = Page(dir_path, file_path, config["title"], config["description"], config["subpages"])
+                pages[url_path] = Page(url_path, file_path, config["title"], config["description"], config["subpages"])
             end
-            recursive_add_page(pages, value, dir_path, root)
+            recursive_add_page(pages, value, dir_path, root, url_prefix)
         end
     end
     return nothing
@@ -80,7 +77,7 @@ end
 
 function sidebar_links(section::AbstractString="/", section_title::AbstractString="", level::Int=0)
     current_path = get_url_path()
-    expander_state = startswith(current_path, section) ? "expanded" : "closed"
+    expander_state = startswith(current_path, section) || section_title == "API Reference" ? "expanded" : "closed"
 
     cnt = level == 0 ?
           column(fill_width=true) :
@@ -124,51 +121,78 @@ end
     dir_tree = directory_tree(root, root)
     pages = Dict()
 
-    add_page("/")
-    recursive_add_page(pages, dir_tree, "/", root)
+    add_page("/docs")
+    recursive_add_page(pages, dir_tree, "/", root, "/docs")
 
     set_app_data("pages", pages)
     set_app_data("dir_tree", dir_tree)
-
-    display(pages)
 end
 
-set_page_layout("wide", left_sidebar_initial_state="open", top_bar="static")
+function doc_section(title::AbstractString, url_prefix::AbstractString)
+    h2(title)
+    category = get_page(url_prefix)
+    subpages = category.subpages
+    pairs = [i < length(subpages) ? (subpages[i], subpages[i+1]) : (subpages[i],) for i in 1:2:length(subpages)]
 
-if is_on_page("/")
-    pages = get_app_data("pages")
-    for (url_path, page) in pages
-        text(url_path)
-        text(page)
-    end
-else
-    page = get_page(get_url_path())
-
-    if !ismissing(page)
-        @page_startup begin
-            set_title(page.title * " | Magic Documentation")
-            set_description(page.description * " | Magic Documentation")
-        end
-
-        left_sidebar() do
-            column(fill_width=true, padding="4rem 0 0 0") do
-                h6("Documentation", css=Dict("padding-left" => ".8em"))
-                sidebar_links("/version/latest")
+    for pair in pairs
+        cols = columns(2, show_border=true, padding=".8rem", justify_content="space-between")
+        cols(1) do
+            url_path = joinpath(url_prefix, splitext(pair[1])[1])
+            page = get_page(url_path)
+            column(fill_width=true, fill_height=true, link=url_path) do
+                h3(page.title, show_anchor_link=false)
+                text(page.description)
             end
         end
 
-        column(fill_width=true, max_width="958px") do
-            markdown(file=page.file_path)
+        if length(pair) > 1
+            cols(2) do
+                url_path = joinpath(url_prefix, splitext(pair[2])[1])
+                page = get_page(url_path)
+                column(fill_width=true, fill_height=true, link=url_path) do
+                    h3(page.title, show_anchor_link=false)
+                    text(page.description)
+                end
+            end
+        else
+            cols[2].container["css"]["visibility"] = "hidden"
         end
     end
+    space(height="3rem")
 end
 
-top_bar() do
-    row(fill_width=true, align_items="center") do
-        image("/Magic.jl/images/magic-logo-and-black-text.svg", max_width="150px")
-        link("Examples", "/", style="naked")
-        link("Getting Started", "/docs/build/docs/getting-started/install", style="naked")
-        link("Documentation", "/docs/build/docs/category/api-reference", style="naked")
-        link("GitHub", "https://github.com/nidoro/Magic.jl", style="naked")
+if startswith(get_url_path(), "/docs")
+    set_page_layout("wide", left_sidebar_initial_state="open", top_bar="fixed")
+
+    if is_on_page("/docs")
+        column(fill_width=true, max_width="958px", padding="0 0 3rem 0") do
+            h1("API Reference", show_anchor_link=false)
+
+            doc_section("Interface Elements", "/docs/version/latest/api-reference/interface-elements")
+            doc_section("Layout Elements", "/docs/version/latest/api-reference/layout-elements")
+            doc_section("App Logic", "/docs/version/latest/api-reference/application-logic")
+        end
+    else
+        page = get_page(get_url_path())
+
+        if !ismissing(page)
+            @page_startup begin
+                set_title(page.title * " | Magic Documentation")
+                set_description(page.description * " | Magic Documentation")
+            end
+
+            column(fill_width=true, max_width="958px", padding="0 0 3rem 0") do
+                markdown(file=page.file_path)
+            end
+        end
     end
+
+    left_sidebar() do
+        column(fill_width=true, padding="4rem 0 0 0") do
+            h6("Documentation", show_anchor_link=false, css=Dict("padding-left" => ".8em"))
+            sidebar_links("/docs/version/latest")
+        end
+    end
+
+    include(joinpath(@__DIR__, "../examples/top-bar.jl"))
 end

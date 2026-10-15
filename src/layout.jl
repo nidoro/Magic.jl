@@ -516,20 +516,21 @@ end
 ```
 """
 function row(
-    inner_func      ::Function      =()->();
-    fill_width      ::Bool          =false,
-    fill_height     ::Bool          =false,
-    align_items     ::String        ="flex-start",
-    justify_content ::String        ="flex-start",
-    gap             ::String        ="0.8rem",
-    max_width       ::String        ="initial",
-    max_height      ::String        ="none",
-    show_border     ::Bool          =false,
-    border          ::String        ="1px solid #d6d6d6",
-    padding         ::String        ="none",
-    margin          ::String        ="none",
-    css             ::AbstractDict  =Dict(),
-    attributes      ::AbstractDict  =Dict()
+    inner_func      ::Function                  =()->();
+    fill_width      ::Bool                      =false,
+    fill_height     ::Bool                      =false,
+    align_items     ::String                    ="flex-start",
+    justify_content ::String                    ="flex-start",
+    gap             ::String                    ="0.8rem",
+    max_width       ::String                    ="initial",
+    max_height      ::String                    ="none",
+    show_border     ::Bool                      =false,
+    border          ::String                    ="1px solid #d6d6d6",
+    padding         ::String                    ="none",
+    margin          ::String                    ="none",
+    link            ::Union{String, Nothing}    =nothing,
+    css             ::AbstractDict              =Dict(),
+    attributes      ::AbstractDict              =Dict()
 )::ContainerInterface
 
     # Validate input
@@ -556,6 +557,10 @@ function row(
     set_css_to_achieve_layout(combined_css, top_container(), fill_width, fill_height)
     set_css_if_not_set(css_norm, "max-width", max_width)
     merge!(combined_css, css_norm)
+
+    if !isnothing(link)
+        attributes["href"] = link
+    end
 
     return container(inner_func, css=combined_css, attributes=attributes)
 end

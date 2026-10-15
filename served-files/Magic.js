@@ -289,7 +289,7 @@ function btnClick(event) {
 
     if (elem.hasAttribute("data-mg-download")) {
         const a = document.createElement("a");
-        a.href = `/.Magic/served-files/.download/${g.sessionId}?request_id=${g.nextRequestId++}&fragment_id=${fragmentId}&widget_id=${widgetId}`;
+        a.href = `/.Magic/served-files/.download/${g.sessionId}?request_id=${g.nextRequestId++}&fragment_id=${encodeURIComponent(fragmentId)}&widget_id=${widgetId}`;
         a.download = elem.getAttribute("data-mg-download");
         a.click();
 
