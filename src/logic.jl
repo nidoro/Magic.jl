@@ -1160,9 +1160,15 @@ the `Inside Button` is clicked, only the `session.fragment_reruns` counter is
 incremented.
 """
 
+function default_fragment_id(func::Function)
+    m = first(methods(func))
+    file = replace(String(m.file), r"[^A-Za-z0-9]" => "_")
+    return string("fragment_", file, "_", m.line)
+end
+
 @doc DOC_FRAGMENT
 function fragment(func::Function, id::Union{String, Nothing}=nothing)::Fragment
-    if isnothing(id) id = String(nameof(func)) end
+    if isnothing(id) id = default_fragment_id(func) end
     task = ensure_app_task_exists()
 
     parent = top_container()
@@ -1293,6 +1299,14 @@ function get_job(id::AbstractString)::Union{AsyncJob, Missing}
         return task.session.jobs[index]
     end
     return missing
+end
+
+function ensure_job_exists(args::Tuple)::AsyncJob
+    job = get_job(args[2])
+    if ismissing(job)
+        throw(InvalidArgument(args[1], "No job with id '$(args[2])' was found."))
+    end
+    return job
 end
 
 function job_exists(id::AbstractString)::Bool
@@ -2583,7 +2597,7 @@ function bind_fragment(job::AsyncJob, frag::Fragment)::Nothing
 end
 
 function bind_fragment(job_id::String, fragment_id::String)::Nothing
-    job = get_job(job_id)
+    job = ensure_job_exists(@named(job_id))
     return bind_fragment(job, fragment_id)
 end
 
@@ -2592,7 +2606,7 @@ function set_job_data(job::AsyncJob, data::Any)::Nothing
     return nothing
 end
 
-function get_job()::Union{AsyncJob, Nothing}
+function get_current_job()::Union{AsyncJob, Nothing}
     if haskey(task_local_storage(), "magic_job")
         job = task_local_storage("magic_job")
         if job isa AsyncJob
@@ -2603,8 +2617,8 @@ function get_job()::Union{AsyncJob, Nothing}
 end
 
 function set_job_data(data::Any)::Nothing
-    job = get_job()
-    return set_job_data(get_job(), data)
+    job = get_current_job()
+    return set_job_data(job, data)
 end
 
 function get_job_data(job::AsyncJob)::Any
@@ -2661,7 +2675,7 @@ function set_progress(job::AsyncJob, progress::Real, message::Union{AbstractStri
 end
 
 function set_progress(progress::Real; message::Union{AbstractString, Nothing}=nothing, data::Any=nothing)::ProgressSnapshot
-    return set_progress(get_job(), progress, message, data)
+    return set_progress(get_current_job(), progress, message, data)
 end
 
 function get_progress_snapshot(job::AsyncJob)::ProgressSnapshot
@@ -2687,7 +2701,7 @@ function get_progress(job::AsyncJob)::Float64
 end
 
 function get_progress(job_id::String)::Float64
-    job = get_job(job_id)
+    job = ensure_job_exists(@named(job_id))
     return get_progress(job)
 end
 
@@ -2697,7 +2711,7 @@ function get_last_progress(job::AsyncJob)::Float64
 end
 
 function get_last_progress(job_id::String)::Float64
-    job = get_job(job_id)
+    job = ensure_job_exists(@named(job_id))
     return get_last_progress(job)
 end
 
@@ -2707,7 +2721,7 @@ function get_progress_message(job::AsyncJob)::String
 end
 
 function get_progress_message(job_id::String)::String
-    job = get_job(job_id)
+    job = ensure_job_exists(@named(job_id))
     return get_progress_message(job)
 end
 
@@ -2717,7 +2731,7 @@ function get_progress_data(job::AsyncJob)::String
 end
 
 function get_progress_data(job_id::String)::Any
-    job = get_job(job_id)
+    job = ensure_job_exists(@named(job_id))
     return get_progress_data(job)
 end
 
@@ -2727,7 +2741,7 @@ function stop(job::AsyncJob)::Nothing
 end
 
 function stop(job_id::String)::Nothing
-    job = get_job(job_id)
+    job = ensure_job_exists(@named(job_id))
     return stop(job)
 end
 
