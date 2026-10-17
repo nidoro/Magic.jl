@@ -1835,13 +1835,42 @@ the page, and include things like the page title and description.
 Example:
 
 ```julia
-@page_startup begin
-    set_title("My Magic App")
-    set_description("An awesome app built with Magic.jl")
+@app_startup begin
+    add_page("/my-app")
+end
+
+if is_on_page("/my-app")
+    @page_startup begin
+        set_title("My Magic App")
+        set_description("An awesome app built with Magic.jl")
+    end
 end
 ```
 
 See below what functions to use to customize different page static settings.
+
+## add_page
+
+Registers a new page in the app, associating it with one or more URL paths.
+Unlike the other functions in this section, `add_page()` can only be called at
+the app's dry-run, inside `@app_startup` code blocks.
+
+### Function Signature
+
+function add_page(
+    uri         ::Union{AbstractString, AbstractVector, Tuple};
+    title       ::String            ="",
+    description ::String            =""
+)
+```
+
+Argument        | Description
+:---------------- |:-------------
+ `uri`          | Either a `String` with the URL path of the page, or a `Vector` or `Tuple` of `String`s with all the URL paths that should be associated with the page. A leading `/` is added to each path if missing.
+ `title`        | `String`. Title to be assigned to the page. If empty (default), the app's default title is used.
+ `description`  | `String`. Description to be assigned to the page. If empty (default), the app's default description is used.
+
+```
 
 ## set_title
 
@@ -1942,6 +1971,8 @@ Argument        | Description
  `file_path`   | `String` specifying the file containing the HTML that should be injected into the page. If this is provided, the `html` argument is ignored.
  `location`   | `String` specifying the location *in the HTML page* where the provided HTML should be injected. Possible values: `"body_bottom"` (default, injects near the bottom of the HTML body), `"body_top"` (injects near the top of the HTML body), `"head_bottom"` (injects near the bottom of the HTML head), `"head_top"` (injects near the top of the HTML head).
 """
+
+@doc DOC_PAGE_STATIC_SETTINGS add_page
 
 function set_title(page::PageConfig, title::String)::Nothing
     ensure_app_task_exists()
