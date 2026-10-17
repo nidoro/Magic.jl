@@ -1116,13 +1116,17 @@ Turns a function into a fragment.
 #### Function Signature
 
 ```julia
-function fragment(func::Function; id::String=String(nameof(func)))
+function fragment(func::Function, id::Union{String, Nothing}=nothing)::Fragment
 ```
 
  Argument  | Description
 :---------- |:-------------
  `func`   | The `Function` that will be isolated from the rest of the app.
- `id`   | A `String` to uniquely identify the fragment.
+ `id`   | An optional `String` to uniquely identify the fragment. If `nothing` (default), an id is generated from the file and line where `func` is defined.
+
+#### Return Value
+
+The `Fragment` object registered for `func`.
 
 ## Example
 
@@ -1423,11 +1427,14 @@ Stores session persistent data.
 
 ```julia
 function set_session_data(session_data::Any)::Nothing
+function set_session_data(key::AbstractString, value::Any)::Nothing
 ```
 
  Argument  | Description
 :---------- |:-------------
  `session_data` | Data of `Any` type.
+ `key` | A `String` identifying a keyed entry of the session persistent data. Keyed entries are stored separately from the data set with `set_session_data(session_data)`, so both can be used at the same time.
+ `value` | Data of `Any` type to be stored under `key`.
 
 ## `get_session_data()`
 
@@ -1436,8 +1443,12 @@ Retrieves the previously stored session persistent data.
 ### Function Signature
 
 ```julia
-function get_session_data()::Any
+function get_session_data(key::Union{AbstractString, Nothing}=nothing)::Any
 ```
+
+ Argument  | Description
+:---------- |:-------------
+ `key` | An optional `String`. If `nothing` (default), returns the data stored with `set_session_data(session_data)`. Otherwise, returns the data stored under `key` with `set_session_data(key, value)`, or `missing` if no data has been stored under `key`.
 """
 
 function get_session(client_id::Cint)::Session
@@ -2262,11 +2273,14 @@ Stores app persistent data.
 
 ```julia
 function set_app_data(app_data::Any)::Nothing
+function set_app_data(key::AbstractString, value::Any)::Nothing
 ```
 
  Argument  | Description
 :---------- |:-------------
  `app_data` | Data of `Any` type.
+ `key` | A `String` identifying a keyed entry of the app persistent data. Keyed entries are stored separately from the data set with `set_app_data(app_data)`, so both can be used at the same time.
+ `value` | Data of `Any` type to be stored under `key`.
 
 ## `get_app_data()`
 
@@ -2275,8 +2289,12 @@ Retrieves the previously stored app persistent data.
 ### Function Signature
 
 ```julia
-function get_app_data()::Any
+function get_app_data(key::Union{AbstractString, Nothing}=nothing)::Any
 ```
+
+ Argument  | Description
+:---------- |:-------------
+ `key` | An optional `String`. If `nothing` (default), returns the data stored with `set_app_data(app_data)`. Otherwise, returns the data stored under `key` with `set_app_data(key, value)`, or `missing` if no data has been stored under `key`.
 """
 
 @doc DOC_APP_PERSISTENT_DATA
@@ -2437,12 +2455,12 @@ prevents that from happening.
 ### Function Signature
 
 ```julia
-function gen_serveable_path(extension::String; lifetime::String="session")::String
+function gen_serveable_path(extension::String=""; lifetime::String="session")::String
 ```
 
  Argument  | Description
 :---------- |:-------------
- `extension` | File extension `String` to be appended to the randomly generated path.
+ `extension` | File extension `String` to be appended to the randomly generated path. A leading `.` is added if missing. If empty (default), no extension is appended.
  `lifetime` | A `String` indicating the lifetime of the resource. Possible values: `"session"` (default) or `"app"`. If `"session"` is provided, the file will become unavailable after the session is ended. If `"app"` is provided, the file will become unavailable after the app is stopped.
 
 ### Return Value
