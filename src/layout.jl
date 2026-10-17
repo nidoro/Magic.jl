@@ -1229,7 +1229,7 @@ function expander(
     label_css::Dict=Dict(),
 )::ContainerInterface
 
-    assert_string_in_list(initial_state, ["closed", "expanded"])
+    assert_string_in_list(@named(initial_state), ["closed", "expanded"])
 
     set_css_if_not_set(label_css, "font-weight", label_weight)
     set_css_if_not_set(label_css, "font-size", label_size)

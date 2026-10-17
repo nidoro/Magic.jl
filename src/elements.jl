@@ -2068,6 +2068,53 @@ function commonmark_parser()
     return parser
 end
 
+"""
+# markdown
+
+Renders Markdown content as HTML.
+
+The Markdown is parsed with [CommonMark.jl](https://github.com/MichaelHatherly/CommonMark.jl),
+with support for tables and footnotes. Headings are automatically given an `id`
+based on their text, so they can be linked to with a URL fragment.
+
+### Function Signature
+
+```julia
+function markdown(
+    markdown_text   ::AbstractString                ="";
+    file            ::Union{AbstractString, Nothing}=nothing
+)::Nothing
+
+function markdown(md::Markdown.MD)::Nothing
+
+function markdown(ast::CommonMark.Node)::Nothing
+```
+
+ Argument         | Description
+:---------------- |:-----------
+ `markdown_text`  | A `String` containing the Markdown to be rendered.
+ `file`           | An optional `String` with the path of a UTF-8 Markdown file to be rendered. If provided, `markdown_text` is ignored.
+ `md`             | A `Markdown.MD` object, such as the ones created with the `md"..."` string macro from Julia's `Markdown` standard library.
+ `ast`            | A `CommonMark.Node` with an already parsed Markdown document.
+
+### Return Value
+
+Nothing.
+
+### Example
+
+```julia
+markdown(\"""
+## Title
+
+Some **bold** text and a [link](https://github.com/nidoro/Magic.jl).
+
+---
+\""")
+
+markdown(file="README.md")
+```
+"""
 function markdown(ast::CommonMark.Node)::Nothing
     return html("div", CommonMark.html(ast), attributes=Dict("class" => "mg-markdown"))
 end
@@ -2933,6 +2980,44 @@ function get_widget_value(client_id::Cint, user_id::String)::Any
     return get_widget_value(session, user_id)
 end
 
+"""
+# get\\_changes
+
+Retrieves the cell edits made by the user on a uniquely identified `dataframe()`
+widget.
+
+### Function Signature
+
+```julia
+function get_changes(id::String)::Union{Dict{Int, Dict{String, Any}}, Missing}
+```
+
+ Argument  | Description
+:---------- |:-------------
+ `id` | User-defined widget id, as passed to `dataframe()`.
+
+### Return Value
+
+If no widget with the passed id exists, returns `missing`.
+
+Otherwise, returns a `Dict` mapping each edited row index in the current rerun
+to a `Dict` that maps each edited column name in that row to its new value.
+
+### Example
+
+```julia
+function change_callback()
+    changes = get_changes("my_df")
+    for (row, cols) in changes
+        for (col, value) in cols
+            println("Row \$row, column \$col: \$value")
+        end
+    end
+end
+
+dataframe(df, editable=true, id="my_df", onchange=change_callback)
+```
+"""
 function get_changes(user_id::String)::Union{Missing, Dict{Int, Dict{String, Any}}}
     task = ensure_app_task_exists()
     widget = get_widget_by_user_id(task.session.widgets, user_id)
@@ -2942,6 +3027,25 @@ function get_changes(user_id::String)::Union{Missing, Dict{Int, Dict{String, Any
     return widget.changes
 end
 
+"""
+# spinner
+
+Displays an animated loading spinner.
+
+### Function Signature
+
+```julia
+function spinner(size::String="medium")::Nothing
+```
+
+ Argument  | Description
+:---------- |:-------------
+ `size`    | A `String` specifying the size of the spinner. Possible values: `"small"`, `"medium"` (default), `"large"`, or any CSS length value (for example, `"40px"`).
+
+### Return Value
+
+Nothing.
+"""
 function spinner(size::String="medium")::Nothing
     if      size == "small"     size = "25px"
     elseif  size == "medium"    size = "50px"
@@ -2955,6 +3059,53 @@ function spinner(size::String="medium")::Nothing
     return nothing
 end
 
+"""
+# progress\\_bar
+
+Displays a progress bar.
+
+### Function Signatures
+
+```julia
+function progress_bar(
+    progress    ::Real;
+    message     ::Union{AbstractString, Nothing}=nothing,
+    show_label  ::Bool                          =true,
+    max_width   ::String                        ="100%"
+)::Nothing
+
+function progress_bar(
+    progress    ::ProgressSnapshot,
+    show_label  ::Bool      =true,
+    max_width   ::String    ="100%"
+)::Nothing
+
+function progress_bar(
+    job_id      ::String,
+    show_label  ::Bool      =true,
+    max_width   ::String    ="100%"
+)::Nothing
+```
+
+ Argument      | Description
+:------------- |:-------------
+ `progress`    | Either a `Real` between `0` and `1` specifying the progress to be displayed, or a `ProgressSnapshot`, as returned by `get_progress_snapshot()`, whose progress and message are displayed.
+ `job_id`      | A `String` with the id of a job created with `@job`. The current progress of the job is displayed. If the job does not exist, an empty progress bar is displayed.
+ `message`     | An optional `String` displayed above the bar. If `nothing` (default), the progress percentage is displayed (for example, `"42%"`).
+ `show_label`  | A `Bool` indicating whether the message should be displayed above the bar. Default: `true`.
+ `max_width`   | A `String` specifying the maximum width of the progress bar using a CSS value. Default: `"100%"`.
+
+### Return Value
+
+Nothing.
+
+### Examples
+
+```julia
+progress_bar(0.42)
+progress_bar(0.75, message="Loading data...")
+```
+"""
 function progress_bar(
     progress    ::Real;
     message     ::Union{AbstractString, Nothing}=nothing,
@@ -2979,11 +3130,11 @@ function progress_bar(
     return nothing
 end
 
-function progress_bar(progress::ProgressSnapshot, show_label::Bool=false, max_width::String="100%")::Nothing
+function progress_bar(progress::ProgressSnapshot, show_label::Bool=true, max_width::String="100%")::Nothing
     return progress_bar(progress.progress, message=progress.message, show_label=show_label, max_width=max_width)
 end
 
-function progress_bar(job_id::String, show_label::Bool=false, max_width::String="100%")::Nothing
+function progress_bar(job_id::String, show_label::Bool=true, max_width::String="100%")::Nothing
     if job_exists(job_id)
         progress = get_progress(job_id)
         return progress_bar(progress, show_label=show_label, max_width=max_width)
@@ -2992,6 +3143,36 @@ function progress_bar(job_id::String, show_label::Bool=false, max_width::String=
     end
 end
 
+"""
+# x\\_button
+
+Special button to be used within a `dialog()`. Displays a close button
+(an "X" icon) in the top-right of the dialog.
+When clicked, the entire app is rerun, which closes the dialog unless the app
+calls `dialog()` again.
+
+### Function Signature
+
+```julia
+function x_button()::Bool
+```
+
+### Return Value
+
+`true` if the button was clicked, `false` otherwise.
+
+### Example
+
+```julia
+if button("Open Dialog")
+    dialog() do
+        x_button()
+        h2("Dialog")
+        text("Click the X to close this dialog.")
+    end
+end
+```
+"""
 function x_button()::Bool
     result = button("", style="close_dialog")
     if result
@@ -3005,6 +3186,8 @@ function progress_dialog(
     fragment_id::String="magic_spinner",
     title::Union{String, Nothing}=nothing
 )::Fragment
+
+    assert_string_in_list(@named(fragment_id), ["magic_spinner", "magic_progress_bar"])
 
     if job isa AbstractString
         job = get_job(job)

@@ -773,6 +773,14 @@ function rerun_app(client_id::Cint, payload::Dict)::Task
                 Base.invokelatest(g.callback, CallbackReason_AfterSessionFirstPass, client_id, session.session_id)
             end
 
+            # Clear dataframe.changes
+            #---------------------------
+            for widget in values(session.widgets)
+                if widget.kind == WidgetKind_DataFrame
+                    widget.changes = Dict{Int, Dict{String, Any}}()
+                end
+            end
+
             # Update jobs
             #----------------
             for job in session.jobs
@@ -2792,7 +2800,7 @@ end
 
 function get_progress_snapshot(job_id::String)::ProgressSnapshot
     job = get_job(job_id)
-    return get_progress(job)
+    return get_progress_snapshot(job)
 end
 
 function get_last_progress_snapshot(job::AsyncJob)::ProgressSnapshot
