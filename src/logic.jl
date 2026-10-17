@@ -1963,8 +1963,8 @@ function create_page_html(page::PageConfig, output_path::String)::Nothing
 
     page_html = replace(
         template,
-        "<title>Magic App</title>" => "<title>$(title)</title>",
-        "<meta property=\"og:description\" content=\"Web app made with Magic.jl\">" => "<meta property=\"og:description\" content=\"$(description)\">",
+        "<title>Magic App</title>" => "<title>$(escape_html(title))</title>",
+        "<meta property=\"og:description\" content=\"Web app made with Magic.jl\">" => "<meta property=\"og:description\" content=\"$(escape_html(description))\">",
         "<!-- MAGIC PAGE STYLE -->" => "<style>$(page.style)</style>",
         "<!-- HTML HEAD TOP INJECTION -->" => page.html_injection["head_top"],
         "<!-- HTML HEAD BOTTOM INJECTION -->" => page.html_injection["head_bottom"],
@@ -1985,8 +1985,8 @@ function create_404_html(output_path::String)::Nothing
 
     page_html = replace(
         template,
-        "<title>Magic App</title>" => "<title>$(title)</title>",
-        "<meta property=\"og:description\" content=\"Web app made with Magic.jl\">" => "<meta property=\"og:description\" content=\"$(description)\">",
+        "<title>Magic App</title>" => "<title>$(escape_html(title))</title>",
+        "<meta property=\"og:description\" content=\"Web app made with Magic.jl\">" => "<meta property=\"og:description\" content=\"$(escape_html(description))\">",
     )
 
     write(output_path, page_html)

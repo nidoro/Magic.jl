@@ -305,6 +305,10 @@ function normalize_shallow_simple_dict(d::AbstractDict)::Dict{String, Union{Stri
     return result
 end
 
+function escape_html(s::AbstractString)::String
+    return replace(s, "&" => "&amp;", "<" => "&lt;", ">" => "&gt;", "\"" => "&quot;", "'" => "&#39;")
+end
+
 function maybe_prepend(str::AbstractString, prefix::String)::String
     return startswith(str, prefix) ? str : prefix * str
 end
