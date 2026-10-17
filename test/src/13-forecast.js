@@ -56,16 +56,6 @@ function dispatchMouseEventAtRelativePosition(element, type, xRel, yRel) {
   );
 }
 
-function slideSlider(elem, a, b) {
-    dispatchMouseEventAtRelativePosition(elem, "mousedown", a, 0.5);
-    requestAnimationFrame(() => {
-        dispatchMouseEventAtRelativePosition(elem, "mousemove", b, 0.5);
-        requestAnimationFrame(() => {
-            dispatchMouseEventAtRelativePosition(elem, "mouseup", b, 0.5);
-        });
-    });
-}
-
 function eventListener(event) {
     const params = new URLSearchParams(window.location.search);
 
