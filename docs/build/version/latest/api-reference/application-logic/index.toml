@@ -2,10 +2,12 @@ title = "App Logic"
 description = "App Logic"
 subpages = [
     "start_app.md",
+    "stop_app.md",
     "@app_startup.md",
     "@page_startup.md",
     "@session_startup.md",
     "@fragment.md",
+    "rerun.md",
     "set_app_data.md",
     "set_page_data.md",
     "set_session_data.md",
@@ -15,6 +17,7 @@ subpages = [
     "get_dot_magic_path.md",
     "get_dot_magic_dir.md",
     "is_on_page.md",
+    "get_current_page.md",
     "is_app_first_pass.md",
     "set_title.md",
     "get_url_path.md",

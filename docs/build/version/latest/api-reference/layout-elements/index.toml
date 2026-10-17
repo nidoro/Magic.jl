@@ -6,7 +6,10 @@ subpages = [
     "columns.md",
     "row.md",
     "container.md",
+    "expander.md",
+    "dialog.md",
     "main_area.md",
     "push_container.md",
     "left_sidebar.md",
+    "top_bar.md",
 ]
