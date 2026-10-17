@@ -68,17 +68,17 @@ specializations of `container()`.
 
 ```julia
 function container(
-    inner_func  ::Function =()->();
-    css         ::Dict     =Dict(),
-    attributes  ::Dict     =Dict()
+    inner_func  ::Function      =()->();
+    css         ::AbstractDict  =Dict(),
+    attributes  ::AbstractDict  =Dict()
 )::ContainerInterface
 ```
 
  Argument        | Description
 :---------------- |:-------------
  `inner_func`   | An optional do-block `Function`, so you can define a container and its children like this: <pre>container() do<br/>  # children here<br/>end</pre> which is basically the same as: <pre>@push container()<br/># children here<br/>@pop</pre>In both cases, elements created inside the `do-end`/`push-pop` blocks will be placed inside the container returned by `container()`, with the difference that `push-pop` does not define a new scope, and thus variables created inside that block can be accessed after `@pop`.
- `css`          | A `Dict` of CSS properties to apply to the container.
- `attributes`   | A `Dict` of additional HTML attributes to attach to the container.
+ `css`          | An `AbstractDict` of CSS properties to apply to the container.
+ `attributes`   | An `AbstractDict` of additional HTML attributes to attach to the container.
 
 ### Return Value
 
@@ -352,9 +352,10 @@ function column(
     show_border     ::Bool     =false,
     border          ::String   ="1px solid #d6d6d6",
     padding         ::String   ="none",
-    margin          ::String   ="none",
-    css             ::Dict     =Dict(),
-    attributes      ::Dict     =Dict()
+    margin          ::String                    ="none",
+    link            ::Union{String, Nothing}    =nothing,
+    css             ::AbstractDict              =Dict(),
+    attributes      ::AbstractDict              =Dict()
 )::ContainerInterface
 ```
 
@@ -372,6 +373,7 @@ function column(
  `border`            | A `String` defining the CSS border style used when `show_border` is `true`. Corresponds to the CSS `border` property.
  `padding`           | A `String` defining the CSS padding of the column. Corresponds to the CSS `padding` property.
  `margin`            | A `String` defining the CSS margin of the column. Corresponds to the CSS `margin` property.
+ `link`              | An optional `String` with a URL. If provided, the column becomes a clickable link (an HTML `<a>` element) pointing to that URL.
  `css`               | A `Dict` of additional CSS properties to apply to the column.
  `attributes`        | A `Dict` of additional HTML attributes to attach to the column container.
 
@@ -470,6 +472,7 @@ function row(
     border          ::String        ="1px solid #d6d6d6",
     padding         ::String        ="none",
     margin          ::String        ="none",
+    link            ::Union{String, Nothing}=nothing,
     css             ::AbstractDict  =Dict(),
     attributes      ::AbstractDict  =Dict()
 )::ContainerInterface
@@ -489,6 +492,7 @@ function row(
  `border`            | A `String` defining the CSS border style used when `show_border` is `true`. Corresponds to the CSS `border` property.
  `padding`           | A `String` defining the CSS padding of the column. Corresponds to the CSS `padding` property.
  `margin`            | A `String` defining the CSS margin of the row. Corresponds to the CSS `margin` property.
+ `link`              | An optional `String` with a URL. If provided, the row becomes a clickable link (an HTML `<a>` element) pointing to that URL.
  `css`               | A `Dict` of additional CSS properties to apply to the row.
  `attributes`        | A `Dict` of additional HTML attributes to attach to the column container.
 
@@ -578,14 +582,14 @@ used to insert child elements independently into each column.
 
 ```julia
 function columns(
-    amount_or_widths ::Union{Int, Vector};
+    amount_or_widths ::Union{Int, AbstractVector, Tuple};
     kwargs...
 )::Containers
 ```
 
  Argument              | Description
 :--------------------- |:-------------
- `amount_or_widths` | Either an `Int`, specifying the number of equally sized columns to create, or a `Vector{Number}` specifying the width of each column relative to eachother.<br/><br/>For `Vector{Number}`, the width of a column is calculated based on the available space on the parent container and the proportion of its width relative to the sum of all relative widths. For instance, `columns([70,30])` will return two columns: the first one with width `70/100 = 0.7`, taking 70% of the available space, and the second with width `30/100 = 0.3`, taking 30% of the available space.
+ `amount_or_widths` | Either an `Int`, specifying the number of equally sized columns to create, or a `Vector` or `Tuple` of `Number`s specifying the width of each column relative to eachother.<br/><br/>For a `Vector` or `Tuple`, the width of a column is calculated based on the available space on the parent container and the proportion of its width relative to the sum of all relative widths. For instance, `columns([70,30])` will return two columns: the first one with width `70/100 = 0.7`, taking 70% of the available space, and the second with width `30/100 = 0.3`, taking 30% of the available space.
  `kwargs`              | Keyword arguments forwarded to each individual column container. These correspond to the keyword arguments accepted by `column()`, such as alignment, spacing, borders, CSS, and attributes.
 
 ### Return Value
@@ -766,6 +770,8 @@ function set_page_layout(
     right_sidebar_initial_width   ::String                 ="300px",
     right_sidebar_position        ::String                 ="slide-out",
     right_sidebar_toggle_labels   ::Tuple{Union{String, Nothing}, Union{String, Nothing}} =(nothing, nothing),
+
+    top_bar                       ::Union{Nothing, String} =nothing,
 )::Containers
 ```
 
@@ -781,6 +787,7 @@ function set_page_layout(
  `right_sidebar_initial_width`   | A `String` specifying the initial width of the right sidebar.
  `right_sidebar_position`         | A `String` specifying how the right sidebar is positioned relative to the main content (`"slide-out"` or `"overlay"`).
  `right_sidebar_toggle_labels`   | A `Tuple` of two optional `String` values defining the labels for opening and closing the right sidebar toggle button.
+ `top_bar`                       | Either `nothing` (default) or a `String` specifying the top bar style. Possible values: `"fixed"` or `"sticky"`. If `nothing`, the top bar is disabled. Its container can be accessed via `top_bar()`.
 
 ### Return Value
 

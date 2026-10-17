@@ -2250,7 +2250,7 @@ function h1(
  `text`         | A `String` containing the heading text. It can contain HTML.
  `icon`    | A `String` in the format `material/icon_name`. Example: `material/thumb_up`.<br/><br/>Check out https://fonts.google.com/icons?icon.set=Material+Icons to learn the icon names.
  `icon_color`   | An optional `String` specifying the color of the icon using a CSS color value.
- `show_anchor_link` | A `Bool`. If `true`, the heading gets an `id` attribute derived from its text, so it can be linked to directly with a URL fragment (for example, `#my-heading`). Default: `true`.
+ `show_anchor_link` | A `Bool`. If `true`, the heading gets an `id` attribute derived from its text, so it can be linked to directly with a URL fragment (for example, `#my-heading`), and a link icon is shown next to it that copies this URL to the clipboard when clicked. Default: `true`.
  `css`          | A `Dict` of additional CSS properties applied to the heading element.
 
 ### Return Value
