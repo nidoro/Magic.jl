@@ -633,12 +633,15 @@ function rerun_app(client_id::Cint, payload::Dict)::Task
         else
             # Handle events
             #------------------
+            # NOTE: widgets of nested fragments are also marked as dead, so they
+            # get removed if their fragment is not rendered anymore.
+            rerun_fragment_ids = get_fragment_and_descendant_ids(session, fragment_id)
             for widget in values(session.widgets)
                 widget.clicked = false
                 if widget.kind == WidgetKind_Button
                     widget.value = false
                 end
-                if widget.fragment_id == fragment_id
+                if widget.fragment_id in rerun_fragment_ids
                     widget.alive = false
                 end
             end
@@ -1107,6 +1110,23 @@ function top_fragment()::Fragment
     return task.fragment_stack[end]
 end
 
+function get_fragment_and_descendant_ids(session::Session, fragment_id::String)::Set{String}
+    result = Set{String}([fragment_id])
+    for (id, frag) in session.fragments
+        parent_id = frag.parent_id
+        steps = 0 # NOTE: guards against parent cycles
+        while !isnothing(parent_id) && steps < length(session.fragments)
+            if parent_id == fragment_id
+                push!(result, id)
+                break
+            end
+            parent_id = haskey(session.fragments, parent_id) ? session.fragments[parent_id].parent_id : nothing
+            steps += 1
+        end
+    end
+    return result
+end
+
 const DOC_FRAGMENT = """
 # Fragments
 
@@ -1213,6 +1233,7 @@ function fragment(func::Function, id::Union{String, Nothing}=nothing)::Fragment
 
     frag = Fragment()
     frag.id = id
+    frag.parent_id = top_fragment().id
     frag.func = func
     frag.container_props = wrapper.container
 

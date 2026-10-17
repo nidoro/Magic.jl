@@ -140,9 +140,10 @@ end
 # Fragment
 #-----------------------
 @with_kw mutable struct Fragment
-    id              ::String    = ""
-    func            ::Function  = ()->()
-    container_props ::Dict      = Dict()
+    id              ::String                    = ""
+    parent_id       ::Union{String, Nothing}    = nothing
+    func            ::Function                  = ()->()
+    container_props ::Dict                      = Dict()
 end
 
 # AsyncJob
