@@ -55,7 +55,7 @@ column(fill_width=true, align_items="center") do
                     end
                 end
 
-                link("Learn more", "google.com", new_tab=true)
+                link("Learn more", "/docs/version/latest/api-reference/interface-elements/button", new_tab=true)
             end
 
             markdown("---")
@@ -79,7 +79,7 @@ column(fill_width=true, align_items="center") do
                             # option = $(repr(option))
                             """)
 
-                link("Learn more", "google.com", new_tab=true)
+                link("Learn more", "/docs/version/latest/api-reference/interface-elements/selectbox", new_tab=true)
             end
 
             markdown("---")
@@ -93,7 +93,7 @@ column(fill_width=true, align_items="center") do
                             # checked = $(checked)
                             """)
 
-                link("Learn more", "google.com", new_tab=true)
+                link("Learn more", "/docs/version/latest/api-reference/interface-elements/checkbox", new_tab=true)
             end
 
             markdown("---")
@@ -106,7 +106,7 @@ column(fill_width=true, align_items="center") do
                             # option = $(repr(option))
                             """)
 
-                link("Learn more", "google.com", new_tab=true)
+                link("Learn more", "/docs/version/latest/api-reference/interface-elements/radio", new_tab=true)
             end
 
             markdown("---")
@@ -127,7 +127,7 @@ column(fill_width=true, align_items="center") do
                             # text = $(repr(txt))
                             """)
 
-                link("Learn more", "google.com", new_tab=true)
+                link("Learn more", "/docs/version/latest/api-reference/interface-elements/text_input", new_tab=true)
             end
 
             markdown("---")
@@ -150,7 +150,7 @@ column(fill_width=true, align_items="center") do
                             # number = $(repr(number))
                             """)
 
-                link("Learn more", "google.com", new_tab=true)
+                link("Learn more", "/docs/version/latest/api-reference/interface-elements/number_input", new_tab=true)
             end
 
             markdown("---")
@@ -173,7 +173,7 @@ column(fill_width=true, align_items="center") do
                             # number = $(repr(number))
                             """)
 
-                link("Learn more", "google.com", new_tab=true)
+                link("Learn more", "/docs/version/latest/api-reference/interface-elements/slider", new_tab=true)
             end
 
             markdown("---")
@@ -194,7 +194,7 @@ column(fill_width=true, align_items="center") do
                             # color = $(repr(color))
                             """)
 
-                link("Learn more", "google.com", new_tab=true)
+                link("Learn more", "/docs/version/latest/api-reference/interface-elements/color_picker", new_tab=true)
             end
 
             markdown("---")
@@ -213,7 +213,7 @@ column(fill_width=true, align_items="center") do
                                 # color = $(repr(color))
                                 """)
 
-                link("Learn more", "google.com", new_tab=true)
+                link("Learn more", "/docs/version/latest/api-reference/interface-elements/link", new_tab=true)
             end
         end
 
@@ -252,7 +252,7 @@ column(fill_width=true, align_items="center") do
                                 dataframe(df$(optional_code))
                                 """)
 
-                link("Learn more", "google.com", new_tab=true)
+                link("Learn more", "/docs/version/latest/api-reference/interface-elements/dataframe", new_tab=true)
             end
         end
 
@@ -275,7 +275,7 @@ column(fill_width=true, align_items="center") do
                                 # file = $(comment_lines(repr(uploaded_file)))
                                 """)
 
-                link("Learn more", "google.com", new_tab=true)
+                link("Learn more", "/docs/version/latest/api-reference/interface-elements/file_uploader", new_tab=true)
             end
 
             markdown("---")
@@ -294,7 +294,7 @@ column(fill_width=true, align_items="center") do
                                 download_button("Download", file_path$(optional_code))
                                 """)
 
-            link("Learn more", "google.com", new_tab=true)
+            link("Learn more", "/docs/version/latest/api-reference/interface-elements/download_button", new_tab=true)
             end
         end
 
@@ -316,7 +316,7 @@ column(fill_width=true, align_items="center") do
                         image(file_path$(optional_code))
                         """)
 
-            link("Learn more", "google.com", new_tab=true)
+            link("Learn more", "/docs/version/latest/api-reference/interface-elements/image", new_tab=true)
         end
 
         section_separator()
@@ -342,7 +342,7 @@ column(fill_width=true, align_items="center") do
                         h6("Heading")
                         """)
 
-            link("Learn more", "google.com", new_tab=true)
+            link("Learn more", "/docs/version/latest/api-reference/interface-elements/h1", new_tab=true)
         end
 
         markdown("---")
@@ -353,7 +353,7 @@ column(fill_width=true, align_items="center") do
             cols[1].text("Regular text")
             cols[2].code("""text("Regular text")""")
 
-            link("Learn more", "google.com", new_tab=true)
+            link("Learn more", "/docs/version/latest/api-reference/interface-elements/text", new_tab=true)
         end
 
         markdown("---")
@@ -383,7 +383,7 @@ column(fill_width=true, align_items="center") do
                         \""")
                         """)
 
-            link("Learn more", "google.com", new_tab=true)
+            link("Learn more", "/docs/version/latest/api-reference/interface-elements/markdown", new_tab=true)
         end
 
         section_separator()
@@ -435,7 +435,7 @@ column(fill_width=true, align_items="center") do
                             end
                             """)
 
-                link("Learn more", "google.com", new_tab=true)
+                link("Learn more", "/docs/version/latest/api-reference/layout-elements/$(selected_container)", new_tab=true)
             end
 
             markdown("---")
@@ -472,7 +472,7 @@ column(fill_width=true, align_items="center") do
                                 """)
                 end
 
-                link("Learn more", "google.com", new_tab=true)
+                link("Learn more", "/docs/version/latest/api-reference/layout-elements/columns", new_tab=true)
             end
         end
 
@@ -497,7 +497,7 @@ column(fill_width=true, align_items="center") do
                                 end
                                 """)
 
-                link("Learn more", "google.com", new_tab=true)
+                link("Learn more", "/docs/version/latest/api-reference/layout-elements/expander", new_tab=true)
             end
         end
 
@@ -531,7 +531,7 @@ column(fill_width=true, align_items="center") do
                             # get_value("name") = $(repr(get_value("name")))
                             """)
 
-                link("Learn more", "google.com", new_tab=true)
+                link("Learn more", "/docs/version/latest/api-reference/layout-elements/dialog", new_tab=true)
             end
         end
 
@@ -559,7 +559,7 @@ column(fill_width=true, align_items="center") do
                             # get_result("heavy_work") = $(repr(get_result("heavy_work")))
                             """)
 
-                link("Learn more", "google.com", new_tab=true)
+                link("Learn more", "/docs/version/latest/api-reference/jobs/@job", new_tab=true)
             end
         end
 
@@ -611,7 +611,7 @@ column(fill_width=true, align_items="center") do
                             end
                             """)
 
-            link("Learn more", "google.com", new_tab=true)
+            link("Learn more", "/docs/version/latest/api-reference/application-logic/@fragment", new_tab=true)
         end
 
         section_separator()
@@ -636,7 +636,7 @@ column(fill_width=true, align_items="center") do
                             )
                             """)
 
-            link("Learn more", "google.com", new_tab=true)
+            link("Learn more", "/docs/version/latest/api-reference/interface-elements/html", new_tab=true)
         end
 
         markdown("---")

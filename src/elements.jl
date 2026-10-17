@@ -175,7 +175,7 @@ end
 # download_button
 
 Creates a download button widget. It behaves similarly to
-[`button()`](/docs/build/docs/api-reference/interface-elements/button-func),
+[`button()`](/docs/version/latest/api-reference/interface-elements/button),
 but with the additional effect of starting a download.
 
 ### Function Signature
@@ -195,7 +195,7 @@ function download_button(
  Argument     | Description
 :------------------ |:-----------
  `label`   | A `String` to be displayed inside the button. It can contain HTML.
- `file_path`    | A `String` specifying the file to be downloaded. The file must live inside `.Magic/served-files/` somewhere. See [`.Magic` directory](/docs/build/docs/getting-started/basic-concepts#the-magic-directory) to learn more.
+ `file_path`    | A `String` specifying the file to be downloaded. The file must live inside `.Magic/served-files/` somewhere. See [`.Magic` directory](/docs/version/latest/getting-started/basic-concepts#the-magic-directory) to learn more.
  `file_name`    | A `String` specifying the name with which the file should be saved in the client side.
  `style`   | A `String`. Should be either `primary`, `secondary`, or `naked`. Default: `secondary`.
  `icon`    | A `String` in the format `material/icon_name`. Example: `material/thumb_up`.<br/><br/>Check out https://fonts.google.com/icons?icon.set=Material+Icons to learn the icon names.
@@ -232,7 +232,7 @@ download_button("Download", serveable_path, onclick=gen_file, args=[serveable_pa
 
 ### Example
 
-See [Image Filters Demo](https://magic.coisasdodavi.net/image-filters) for a
+See [Image Filters Demo](https://magic.coisasdodavi.net/examples/image-filters) for a
 `download_button` usage example.
 """
 function download_button(
@@ -337,10 +337,10 @@ function text_input(
  Argument           | Description
 :------------------ |:-----------
  `label`            | A `String` to be displayed as the label for the text input. It can contain HTML.
- `id`              | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like `get_value()` and `set_value()`.
+ `id`              | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like [`get_value()`](/docs/version/latest/api-reference/interface-elements/get_value) and [`set_value()`](/docs/version/latest/api-reference/interface-elements/get_value#setvalue).
  `show_label`       | A `Bool` indicating whether the label should be displayed. Default: `true`.
  `fill_width`       | A `Bool` indicating whether the text input should expand to fill the available horizontal space. Default: `false`.
- `initial_value`    | Either a `String` specifying the initial text value of the input, or `nothing` (default). If `nothing` is provided, the initial value will be the default value previously set with `set_default_value()` if any; otherwise, the widget will be initialized with value `nothing`.
+ `initial_value`    | Either a `String` specifying the initial text value of the input, or `nothing` (default). If `nothing` is provided, the initial value will be the default value previously set with [`set_default_value()`](/docs/version/latest/api-reference/interface-elements/get_value#setdefaultvalue) if any; otherwise, the widget will be initialized with value `nothing`.
  `placeholder`      | A `String` shown as placeholder text when the widget's value is `nothing`.
  `css`               | A `Dict` of additional CSS properties applied to the text input element.
 
@@ -350,7 +350,7 @@ The `String` value of the text input, if any. Otherwise, `nothing` is returned.
 
 ### Example
 
-See [To-do list](https://magic.coisasdodavi.net/todo).
+See [To-do list](https://magic.coisasdodavi.net/examples/todo).
 """
 function text_input(
     label           ::String;
@@ -526,7 +526,7 @@ function number_input(
  Argument           | Description
 :------------------ |:-----------
  `label`            | A `String` to be displayed as the label for the text input. It can contain HTML.
- `initial_value`    | Either a `Real` specifying the initial value of the input, or `nothing` (default). If `nothing`, the initial value will be the default value previously set with `set_default_value()` if any; otherwise, the widget will be initialized with value `nothing`.
+ `initial_value`    | Either a `Real` specifying the initial value of the input, or `nothing` (default). If `nothing`, the initial value will be the default value previously set with [`set_default_value()`](/docs/version/latest/api-reference/interface-elements/get_value#setdefaultvalue) if any; otherwise, the widget will be initialized with value `nothing`.
  `placeholder`      | A `String` shown as placeholder when the widget's value is `nothing`. Default: `nothing`.
  `num_type`       | A subtype of `Real` indicating the concrete type to which the widget parameters should be converted. If `nothing`, the concrete type is infered from the parameters of the widget, prioritizing `AbstractFloat` subtypes over `Integer`.
  `precision`       | An `Integer` specifying how many decimal places should be displayed by the widget. If `num_type` is an `Integer`, this parameter is ignored.
@@ -537,7 +537,7 @@ function number_input(
  `thousands_separator`       | A `String` specifying the character that should be used as thousands separator. Default: `""`.
  `show_label`       | A `Bool` indicating whether the label should be displayed. Default: `true`.
  `fill_width`       | A `Bool` indicating whether the text input should expand to fill the available horizontal space. Default: `false`.
- `id`              | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like `get_value()` and `set_value()`.
+ `id`              | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like [`get_value()`](/docs/version/latest/api-reference/interface-elements/get_value) and [`set_value()`](/docs/version/latest/api-reference/interface-elements/get_value#setvalue).
  `css`               | A `Dict` of additional CSS properties applied to the input element.
 
 ### Return Value
@@ -547,7 +547,7 @@ The current value of the number input converted to the provided or infered
 
 ### Example
 
-See [Probability Viewer](https://magic.coisasdodavi.net/probability-density).
+See [Probability Viewer](https://magic.coisasdodavi.net/examples/probability-density).
 """
 function number_input(
     label               ::String;
@@ -719,7 +719,7 @@ function slider(
  Argument           | Description
 :------------------ |:-----------
  `label`            | A `String` to be displayed as the label for the slider. It can contain HTML.
- `initial_value`    | Either a `Real` specifying the initial value of the slider, or `nothing` (default). If `nothing`, the initial value will be the default value previously set with `set_default_value()` if any; otherwise, the widget will be initialized with the provided `min`.
+ `initial_value`    | Either a `Real` specifying the initial value of the slider, or `nothing` (default). If `nothing`, the initial value will be the default value previously set with [`set_default_value()`](/docs/version/latest/api-reference/interface-elements/get_value#setdefaultvalue) if any; otherwise, the widget will be initialized with the provided `min`.
  `min`              | A `Real` specifying the minimum value of the slider range. Default: `0.0`.
  `max`              | A `Real` specifying the maximum value of the slider range. Default: `1.0`.
  `step`       | A `Real` specifying the size of the increment/decrement when moving the slider, or `nothing` indicating that no fixed step is set, unless `num_type` turns out to be an `Integer`, in which case the step will be automatically set to `1`.
@@ -729,7 +729,7 @@ function slider(
  `thousands_separator` | A `String` specifying the character that should be used as thousands separator. Default: `","`.
  `show_label`       | A `Bool` indicating whether the label should be displayed. Default: `true`.
  `fill_width`       | A `Bool` indicating whether the slider should expand to fill the available horizontal space. Default: `false`.
- `id`               | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like `get_value()` and `set_value()`.
+ `id`               | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like [`get_value()`](/docs/version/latest/api-reference/interface-elements/get_value) and [`set_value()`](/docs/version/latest/api-reference/interface-elements/get_value#setvalue).
  `css`              | A `Dict` of additional CSS properties applied to the slider element.
 
 ### Return Value
@@ -738,7 +738,7 @@ The current `Real` value of the slider.
 
 ### Example
 
-See [Sliding Curves](https://magic.coisasdodavi.net/curves).
+See [Sliding Curves](https://magic.coisasdodavi.net/examples/curves).
 """
 function slider(
     label               ::String;
@@ -941,7 +941,7 @@ function selectbox(
  `label`        | A `String` to be displayed as the label for the select box. It can contain HTML.
  `options`      | A `Vector` or `Tuple` of selectable options. Each selectable option should be either a `String` or a `Real`, and will be displayed using its `String` representation.
  `initial_value`| The value(s) that should be initially selected. If `multiple` is `false` (default), this should be a `String` or `Number` in `options`. Otherwise, the value should be a `Vector` or `Tuple` of `String`s or `Number`s in `options`.
- `id`           | An optional `String` identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like `get_value()` and `set_value()`.
+ `id`           | An optional `String` identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like [`get_value()`](/docs/version/latest/api-reference/interface-elements/get_value) and [`set_value()`](/docs/version/latest/api-reference/interface-elements/get_value#setvalue).
  `multiple`     | A `Bool` indicating whether multiple options can be selected. Default: `false`.
  `show_label`   | A `Bool` indicating whether the label should be displayed. Default: `true`.
  `placeholder`  | A `String` shown as placeholder text when the selectbox is empty.
@@ -955,8 +955,8 @@ The currently selected value(s). If `multiple` is `false`, this is either a `Str
 
 ### Example
 
-See [Avatar Creator](https://magic.coisasdodavi.net/avatar) and
-[Probability Viewer](https://magic.coisasdodavi.net/probability-density).
+See [Avatar Creator](https://magic.coisasdodavi.net/examples/avatar) and
+[Probability Viewer](https://magic.coisasdodavi.net/examples/probability-density).
 """
 function selectbox(
     label        ::String,
@@ -1086,8 +1086,8 @@ function color_picker(
  Argument        | Description
 :---------------- |:-------------
  `label`       | A `String` used as the label for the color picker.
- `initial_value`    | Either a `String` specifying the initial hexadecimal color value of the input, or `nothing` (default). If `nothing` is provided, the initial value will be the default value previously set with `set_default_value()`, if any. Otherwise, the widget will be initialized with black ("#000000").
- `id`          | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like `get_value()` and `set_value()`.
+ `initial_value`    | Either a `String` specifying the initial hexadecimal color value of the input, or `nothing` (default). If `nothing` is provided, the initial value will be the default value previously set with [`set_default_value()`](/docs/version/latest/api-reference/interface-elements/get_value#setdefaultvalue), if any. Otherwise, the widget will be initialized with black ("#000000").
+ `id`          | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like [`get_value()`](/docs/version/latest/api-reference/interface-elements/get_value) and [`set_value()`](/docs/version/latest/api-reference/interface-elements/get_value#setvalue).
  `show_label`   | A `Bool` indicating whether the label should be displayed. Default: `true`.
  `fill_width`   | A `Bool` indicating whether the select box should expand to fill the available horizontal space. Default: `false`.
  `onchange`     | A callback `Function`. This function is called when the selected color changes, before the app script is rerun.
@@ -1100,7 +1100,7 @@ such as `"#ff0000"`.
 
 ### Examples
 
-See [Avatar Creator](https://magic.coisasdodavi.net/avatar).
+See [Avatar Creator](https://magic.coisasdodavi.net/examples/avatar).
 """
 function color_picker(
     label           ::String;
@@ -1274,8 +1274,8 @@ function checkbox(
  Argument          | Description
 :------------------ |:-----------
  `label`           | A `String` to be displayed next to the checkbox. It can contain HTML.
- `id`              | An optional identifier for the checkbox. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like `get_value()` and `set_value()`.
- `initial_value`   | The checkbox initial value. If `nothing`, the default value set with `set_default_value()` will be used, if any; otherwise, the initial value will be `false`.
+ `id`              | An optional identifier for the checkbox. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like [`get_value()`](/docs/version/latest/api-reference/interface-elements/get_value) and [`set_value()`](/docs/version/latest/api-reference/interface-elements/get_value#setvalue).
+ `initial_value`   | The checkbox initial value. If `nothing`, the default value set with [`set_default_value()`](/docs/version/latest/api-reference/interface-elements/get_value#setdefaultvalue) will be used, if any; otherwise, the initial value will be `false`.
  `onchange`        | A callback `Function`. This function is called when the checkbox value changes, before the app script is rerun.
  `args`            | A `Vector` of arguments that will be passed to the `onchange` callback function.
 
@@ -1285,7 +1285,7 @@ The current value of the checkbox (`true` if checked, `false` otherwise).
 
 ### Example
 
-See [To-do list](https://magic.coisasdodavi.net/todo).
+See [To-do list](https://magic.coisasdodavi.net/examples/todo).
 """
 function checkbox(
     label        ::String;
@@ -1329,8 +1329,8 @@ function checkboxes(
 :------------------ |:-----------
  `label`           | A `String` to be displayed next to the checkbox. It can contain HTML.
  `options`         | A `Vector` or `Tuple` of selectable options. Each selectable option should be either a `String` or a `Real`, and will be displayed using its `String` representation.
- `id`              | An optional identifier for the checkbox. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like `get_value()` and `set_value()`.
- `initial_value`   | Either a `Vector`/`Tuple` indicating which options in `options` should be initially checked, or `nothing`. If `nothing`, the default value set with `set_default_value()` will be used, if any; otherwise, the initial value will be an empty `Vector`.
+ `id`              | An optional identifier for the checkbox. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like [`get_value()`](/docs/version/latest/api-reference/interface-elements/get_value) and [`set_value()`](/docs/version/latest/api-reference/interface-elements/get_value#setvalue).
+ `initial_value`   | Either a `Vector`/`Tuple` indicating which options in `options` should be initially checked, or `nothing`. If `nothing`, the default value set with [`set_default_value()`](/docs/version/latest/api-reference/interface-elements/get_value#setdefaultvalue) will be used, if any; otherwise, the initial value will be an empty `Vector`.
  `onchange`        | A callback `Function`. This function is called when the checkbox value changes, before the app script is rerun.
  `args`            | A `Vector` of arguments that will be passed to the `onchange` callback function.
 
@@ -1340,7 +1340,7 @@ A `Vector`/`Tuple` indicating which options in `options` are checked.
 
 ### Example
 
-See [Seattle Weather](https://magic.coisasdodavi.net/seattle-weather).
+See [Seattle Weather](https://magic.coisasdodavi.net/examples/seattle-weather).
 """
 function checkboxes(
     label        ::String,
@@ -1452,8 +1452,8 @@ function radio(
 :------------------  |:-----------
  `label`            | A `String` to be displayed as the label for the radio button group. It can contain HTML.
  `options`          | An `AbstractVector` or `Tuple` of selectable values. Each element represents one radio option and will be displayed using its string representation.
- `id`              | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like `get_value()` and `set_value()`.
- `initial_value`    | The value that should be initially selected. If provided, it should match one of the values in `options`. If `nothing` (default), the default value set with `set_default_value()` will be selected if one was provided. Otherwise, first option in `options` will be selected.
+ `id`              | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like [`get_value()`](/docs/version/latest/api-reference/interface-elements/get_value) and [`set_value()`](/docs/version/latest/api-reference/interface-elements/get_value#setvalue).
+ `initial_value`    | The value that should be initially selected. If provided, it should match one of the values in `options`. If `nothing` (default), the default value set with [`set_default_value()`](/docs/version/latest/api-reference/interface-elements/get_value#setdefaultvalue) will be selected if one was provided. Otherwise, first option in `options` will be selected.
 
 ### Return Value
 
@@ -1548,7 +1548,7 @@ A `String` containing the rendered HTML for the image.
 
 ### Examples
 
-See [Image Filters](https://magic.coisasdodavi.net/image-filters).
+See [Image Filters](https://magic.coisasdodavi.net/examples/image-filters).
 """
 function image(
     src_or_path ::String;
@@ -1682,7 +1682,7 @@ function dataframe(
  `precision` | An `Int` specifying how many decimal places should be displayed in floating point columns. Can be overridden per column through the `"precision"` option of `column_config`. Default: `1`.
  `decimal_separator` | A `String` specifying the character that should be used as decimal separator. Default: `"."`.
  `thousands_separator` | A `String` specifying the character that should be used as thousands separator. Default: `""`.
- `id`              | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like `get_value()` and `set_value()`.
+ `id`              | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like [`get_value()`](/docs/version/latest/api-reference/interface-elements/get_value) and [`set_value()`](/docs/version/latest/api-reference/interface-elements/get_value#setvalue).
  `onchange`        | A callback `Function`. This function is called when any cell value changes, before the app script is rerun.
  `args`            | A `Vector` of arguments that should be passed to the `onchange` callback function.
 
@@ -1903,11 +1903,11 @@ function file_uploader(
  `label`        | A `String` to be displayed as the label for the file uploader. It can contain HTML.
  `types`        | A `Vector{String}` containing a list of acceptable file extensions and/or mimetypes. Example: `[".png", ".jpg", "application/pdf"]`. Tip: use `*` wildcard to accept all mimetypes begining with a prefix, e.g. `"image/*"`.
  `multiple`     | A `Bool` indicating wether to accept multiple files or not. Default `false`.
- `max_file_size`| An optional `Int` specifying the maximum file size accepted by the widget. If `nothing` (default), the limit set to the default value provided as argument of `start_app()`.
+ `max_file_size`| An optional `Int` specifying the maximum file size accepted by the widget. If `nothing` (default), the limit set to the default value provided as argument of [`start_app()`](/docs/version/latest/api-reference/application-logic/start_app).
  `max_files`    | An optional `Int` specifying the maximum number of file accepted by the widget. If `nothing` (default), the limit set to the default value provided as argument of `start_app()`.
  `fill_width`   | A `Bool` indicating whether the widget should expand to fill the available horizontal space. Default: `false`.
  `show_label`   | A `Bool` indicating whether the label should be displayed. Default: `true`.
- `id`              | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like `get_value()` and `set_value()`.
+ `id`              | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like [`get_value()`](/docs/version/latest/api-reference/interface-elements/get_value) and [`set_value()`](/docs/version/latest/api-reference/interface-elements/get_value#setvalue).
  `onchange`        | A callback `Function`. This function is called when any cell value changes, before the app script is rerun.
  `args`            | A `Vector` of arguments that should be passed to the `onchange` callback function.
  `css`          | A `Dict` of additional CSS properties applied to the widget element.
@@ -1934,7 +1934,7 @@ end
 
 ### Example
 
-See [Image Filters Demo](https://magic.coisasdodavi.net/image-filters) for a
+See [Image Filters Demo](https://magic.coisasdodavi.net/examples/image-filters) for a
 `file_uploader()` example.
 """
 function file_uploader(
@@ -1976,8 +1976,8 @@ end
 """
 # make\\_uploaded\\_file
 
-Creates an [`UploadedFile`](#uploadedfile) from a local file, so it can be
-handled with the same code that handles files provided via `file_uploader()`.
+Creates an [`UploadedFile`](/docs/version/latest/api-reference/interface-elements/file_uploader#uploadedfile) from a local file, so it can be
+handled with the same code that handles files provided via [`file_uploader()`](/docs/version/latest/api-reference/interface-elements/file_uploader).
 
 ### Function Signature
 
@@ -2593,7 +2593,7 @@ Nothing.
 
 ### Examples
 
-See [Seattle Weather](https://magic.coisasdodavi.net/seattle-weather).
+See [Seattle Weather](https://magic.coisasdodavi.net/examples/seattle-weather).
 """
 function metric(
     label               ::String,
@@ -2683,7 +2683,7 @@ DOC_WIDGET_VALUE = """
 # Widget Value
 
 You can get and set the value of uniquely identified widgets via the
-[`get_value()`](#get_value) and [`set_value()`](#set_value) functions.
+[`get_value()`](#getvalue) and [`set_value()`](#setvalue) functions.
 
 All widget creation functions accept a user-defined `id` as an argument.
 A widget is uniquely identified if, at the moment of its creation, a user
@@ -2697,7 +2697,7 @@ value = get_value("my_selectbox") # value = "B"
 
 `get_value()` can be called even before the creation of a widget, in which case
 it will return either `missing` or, if the widget has a default value previously
-set with [`set_default_value()`](#set_default_value), its default value. So, as you might have
+set with [`set_default_value()`](#setdefaultvalue), its default value. So, as you might have
 guessed, `set_default_value()` can also be called before the creation of a
 widget. Example:
 
@@ -3012,7 +3012,7 @@ end
 """
 # get\\_changes
 
-Retrieves the cell edits made by the user on a uniquely identified `dataframe()`
+Retrieves the cell edits made by the user on a uniquely identified [`dataframe()`](/docs/version/latest/api-reference/interface-elements/dataframe)
 widget.
 
 ### Function Signature
@@ -3118,8 +3118,8 @@ function progress_bar(
 
  Argument      | Description
 :------------- |:-------------
- `progress`    | Either a `Real` between `0` and `1` specifying the progress to be displayed, or a `ProgressSnapshot`, as returned by `get_progress_snapshot()`, whose progress and message are displayed.
- `job_id`      | A `String` with the id of a job created with `@job`. The current progress of the job is displayed. If the job does not exist, an empty progress bar is displayed.
+ `progress`    | Either a `Real` between `0` and `1` specifying the progress to be displayed, or a `ProgressSnapshot`, as returned by [`get_progress_snapshot()`](/docs/version/latest/api-reference/jobs/get_progress), whose progress and message are displayed.
+ `job_id`      | A `String` with the id of a job created with [`@job`](/docs/version/latest/api-reference/jobs/@job). The current progress of the job is displayed. If the job does not exist, an empty progress bar is displayed.
  `message`     | An optional `String` displayed above the bar. If `nothing` (default), the progress percentage is displayed (for example, `"42%"`).
  `show_label`  | A `Bool` indicating whether the message should be displayed above the bar. Default: `true`.
  `max_width`   | A `String` specifying the maximum width of the progress bar using a CSS value. Default: `"100%"`.
@@ -3175,7 +3175,7 @@ end
 """
 # x\\_button
 
-Special button to be used within a `dialog()`. Displays a close button
+Special button to be used within a [`dialog()`](/docs/version/latest/api-reference/layout-elements/dialog). Displays a close button
 (an "X" icon) in the top-right of the dialog.
 When clicked, the entire app is rerun, which closes the dialog unless the app
 calls `dialog()` again.

@@ -24,7 +24,7 @@ function start_app(
  `port`        | An `Int` specifying the port number on which the server will listen. Default is `3443`.
  `upload_max_size` | An `Int` specifying the maximum file size acceptable by `file_uploader` widgets. Default is 25 MiB.
  `upload_max_files` | An `Int` specifying the maximum number of file acceptable by `file_uploader` widgets. Default is 10.
- `dot_magic_dir` | A `String` specifying the [`.Magic` directory](/docs/build/docs/getting-started/basic-concepts#the-magic-directory) location. If `nothing` (default), the current working directory will be used.
+ `dot_magic_dir` | A `String` specifying the [`.Magic` directory](/docs/version/latest/getting-started/basic-concepts#the-magic-directory) location. If `nothing` (default), the current working directory will be used.
  `open_browser`    | A `Bool` indicating whether the default system browser should be open in the web app or not.
  * | Other arguments have been ommited here because they are for developers only.
 
@@ -988,7 +988,7 @@ end
 # stop\\_app
 
 Requests the application server to stop. Once the server stops, the call to
-`start_app()` that started it returns.
+[`start_app()`](/docs/version/latest/api-reference/application-logic/start_app) that started it returns.
 
 The request is asynchronous: `stop_app()` returns immediately, before the
 server has actually stopped.
@@ -1011,11 +1011,11 @@ const DOC_FIRST_PASS = """
 Family of `Bool` returning functions:
 
 - `is_app_first_pass()`: returns `true` it is the first time the app is being
-run, and `false` otherwise. See also: [`@app_startup`](/docs/build/docs/api-reference/application-logic/@app_startup-func).
+run, and `false` otherwise. See also: [`@app_startup`](/docs/version/latest/api-reference/application-logic/@app_startup).
 - `is_page_first_pass()`: returns `true` it is the first time the current page
-is being run, and `false` otherwise. See also: [`@page_startup`](/docs/build/docs/api-reference/application-logic/@page_startup-func).
+is being run, and `false` otherwise. See also: [`@page_startup`](/docs/version/latest/api-reference/application-logic/@page_startup).
 - `is_session_first_pass()`: returns `true` it is the first time the session
-is being run, and `false` otherwise. See also: [`@session_startup`](/docs/build/docs/api-reference/application-logic/@session_startup-func).
+is being run, and `false` otherwise. See also: [`@session_startup`](/docs/version/latest/api-reference/application-logic/@session_startup).
 """
 
 @doc DOC_FIRST_PASS
@@ -1036,7 +1036,7 @@ end
 ```
 
 Internally, this macro is implemented by checking the result of
-[`is_app_first_pass()`](/docs/build/docs/api-reference/application-logic/is_app_first_pass-func)
+[`is_app_first_pass()`](/docs/version/latest/api-reference/application-logic/is_app_first_pass)
 and running the `@app_startup` code block only if it returns `true`.
 
 ## Usage
@@ -1063,26 +1063,26 @@ end
 ```
 
 After creating the pages in an `@app_startup` block, you can configure each
-page in a `@page_startup` block. See [`@page_startup`](/docs/build/docs/api-reference/application-logic/set_title-func)
+page in a `@page_startup` block. See [`@page_startup`](/docs/version/latest/api-reference/application-logic/@page_startup)
 to learn more.
 
 ### 2. Initialization of app persistent data
 
 App persistent data is an user defined data whose lifetime is the lifetime of
 the app, meaning that as long as the app is running the data will persist. App
-persistent data can be retrieved at any moment using `get_app_data()` and is
+persistent data can be retrieved at any moment using [`get_app_data()`](/docs/version/latest/api-reference/application-logic/set_app_data#getappdata) and is
 shared accross sessions.
 
 You can store data that you want to be globally available through all of your
-app's pages and sessions via the `set_app_data()` function, and retrieve it
+app's pages and sessions via the [`set_app_data()`](/docs/version/latest/api-reference/application-logic/set_app_data) function, and retrieve it
 using the `get_app_data()` function.
-See [App persistent data](/docs/build/docs/api-reference/application-logic/set_app_data-func)
+See [App persistent data](/docs/version/latest/api-reference/application-logic/set_app_data)
 to learn more.
 
 ## See also
 
-- [`@page_startup`](/docs/build/docs/api-reference/application-logic/@page_startup-func)
-- [`@session_startup`](/docs/build/docs/api-reference/application-logic/@session_startup-func)
+- [`@page_startup`](/docs/version/latest/api-reference/application-logic/@page_startup)
+- [`@session_startup`](/docs/version/latest/api-reference/application-logic/@session_startup)
 """
 macro app_startup(block)
     return :(
@@ -1173,7 +1173,7 @@ The `Fragment` object registered for `func`.
 
 ## Example
 
-[Live example here](https://magic.coisasdodavi.net/fragment-example).
+[Live example here](https://magic.coisasdodavi.net/examples/fragment-example).
 
 ```julia
 using Magic
@@ -1381,7 +1381,7 @@ end
 ```
 
 Internally, this macro is implemented by checking the result of
-[`is_session_first_pass()`](/docs/build/docs/api-reference/application-logic/is_app_first_pass-func)
+[`is_session_first_pass()`](/docs/version/latest/api-reference/application-logic/is_app_first_pass)
 and running the `@session_startup` code block only if it returns `true`.
 
 ## Usage
@@ -1400,17 +1400,17 @@ blocks.
 Session persistent data is a user defined data that is bound to a session and
 whose lifetime is the lifetime of the session, meaning that as long as the session
 is alive the data will persist. Session persistent data can be retrieved at any
-moment using `get_page_data()`.
+moment using [`get_page_data()`](/docs/version/latest/api-reference/application-logic/set_page_data#getpagedata).
 
 You can store data that you want to be available within a session via the
-`set_session_data()` function, and retrieve it using the `get_session_data()`
-function. See [Session persistent data](/docs/build/docs/api-reference/application-logic/set_session_data-func)
+[`set_session_data()`](/docs/version/latest/api-reference/application-logic/set_session_data) function, and retrieve it using the [`get_session_data()`](/docs/version/latest/api-reference/application-logic/set_session_data#getsessiondata)
+function. See [Session persistent data](/docs/version/latest/api-reference/application-logic/set_session_data)
 to learn more.
 
 ## See also
 
-- [`@app_startup`](/docs/build/docs/api-reference/application-logic/@app_startup-func)
-- [`@page_startup`](/docs/build/docs/api-reference/application-logic/@page_startup-func)
+- [`@app_startup`](/docs/version/latest/api-reference/application-logic/@app_startup)
+- [`@page_startup`](/docs/version/latest/api-reference/application-logic/@page_startup)
 """
 macro session_startup(block)
     return :(
@@ -1433,8 +1433,8 @@ function get_url_path()::String
 
 ## See also
 
-- [`get_url_search`](/docs/build/docs/api-reference/application-logic/get_url_search-func)
-- [`get_query_params`](/docs/build/docs/api-reference/application-logic/get_query_params-func)
+- [`get_url_search`](/docs/version/latest/api-reference/application-logic/get_url_search)
+- [`get_query_params`](/docs/version/latest/api-reference/application-logic/get_query_params)
 """
 function get_url_path()::String
     task = ensure_app_task_exists()
@@ -1492,10 +1492,10 @@ function get_url_search()::String
 
 ## See also
 
-- [`get_server_host`](/docs/build/docs/api-reference/application-logic/get_server_host-func)
-- [`get_server_port`](/docs/build/docs/api-reference/application-logic/get_server_port-func)
-- [`get_server_origin`](/docs/build/docs/api-reference/application-logic/get_server_origin-func)
-- [`get_query_params`](/docs/build/docs/api-reference/application-logic/get_query_params-func)
+- [`get_server_host`](/docs/version/latest/api-reference/application-logic/get_server_host)
+- [`get_server_port`](/docs/version/latest/api-reference/application-logic/get_server_port)
+- [`get_server_origin`](/docs/version/latest/api-reference/application-logic/get_server_origin)
+- [`get_query_params`](/docs/version/latest/api-reference/application-logic/get_query_params)
 """
 function get_url_search()::String
     task = ensure_app_task_exists()
@@ -1521,10 +1521,10 @@ function get_query_params()::Dict
 
 ## See also
 
-- [`get_server_host`](/docs/build/docs/api-reference/application-logic/get_server_host-func)
-- [`get_server_port`](/docs/build/docs/api-reference/application-logic/get_server_port-func)
-- [`get_server_origin`](/docs/build/docs/api-reference/application-logic/get_server_origin-func)
-- [`get_url_search`](/docs/build/docs/api-reference/application-logic/get_url_search-func)
+- [`get_server_host`](/docs/version/latest/api-reference/application-logic/get_server_host)
+- [`get_server_port`](/docs/version/latest/api-reference/application-logic/get_server_port)
+- [`get_server_origin`](/docs/version/latest/api-reference/application-logic/get_server_origin)
+- [`get_url_search`](/docs/version/latest/api-reference/application-logic/get_url_search)
 """
 function get_query_params()::Dict
     return parse_query(get_url_search())
@@ -1706,7 +1706,7 @@ DOC_PAGE_STATIC_SETTINGS = """
 # Page static settings
 
 Page static settings are persistent page settings. These can only be defined
-at the page's dry-run, inside `@page_startup` code blocks. The page static
+at the page's dry-run, inside [`@page_startup`](/docs/version/latest/api-reference/application-logic/@page_startup) code blocks. The page static
 settings are used to build the static HTML that is served when a user accesses
 the page, and include things like the page title and description.
 
@@ -1731,7 +1731,7 @@ See below what functions to use to customize different page static settings.
 
 Registers a new page in the app, associating it with one or more URL paths.
 Unlike the other functions in this section, `add_page()` can only be called at
-the app's dry-run, inside `@app_startup` code blocks.
+the app's dry-run, inside [`@app_startup`](/docs/version/latest/api-reference/application-logic/@app_startup) code blocks.
 
 ### Function Signature
 
@@ -2015,7 +2015,7 @@ end
 ```
 
 Internally, this macro is implemented by checking the result of
-[`is_page_first_pass()`](/docs/build/docs/api-reference/application-logic/is_app_first_pass-func)
+[`is_page_first_pass()`](/docs/version/latest/api-reference/application-logic/is_app_first_pass)
 and running the `@page_startup` code block only if it returns `true`.
 
 ## Usage
@@ -2037,7 +2037,7 @@ include, among other things, the page title and description. The static settings
 related functions can only be called inside `@page_startup` blocks.
 Internally, these static settings are used to build the static HTML that is
 served when a user accesses the page's URL. See
-[Page static settings](/docs/build/docs/api-reference/application-logic/set_title-func)
+[Page static settings](/docs/version/latest/api-reference/application-logic/set_title)
 to learn more.
 
 Example:
@@ -2060,11 +2060,11 @@ end
 Page persistent data is a user defined data that is bound to a page and
 whose lifetime is the lifetime of the app, meaning tht as long as the app is running
 the data will persist. Page persistent data can be retrieved at any moment using
-`get_page_data()` and is shared accross sessions.
+[`get_page_data()`](/docs/version/latest/api-reference/application-logic/set_page_data#getpagedata) and is shared accross sessions.
 
 You can store data that you want to be available to all the sessions of a page
-via the `set_page_data()` function, and retrieve it using the `get_page_data()`
-function. See [Page persistent data](/docs/build/docs/api-reference/application-logic/set_page_data-func)
+via the [`set_page_data()`](/docs/version/latest/api-reference/application-logic/set_page_data) function, and retrieve it using the `get_page_data()`
+function. See [Page persistent data](/docs/version/latest/api-reference/application-logic/set_page_data)
 to learn more.
 
 Example:
@@ -2088,8 +2088,8 @@ end
 
 ## See also
 
-- [`@app_startup`](/docs/build/docs/api-reference/application-logic/@app_startup-func)
-- [`@session_startup`](/docs/build/docs/api-reference/application-logic/@session_startup-func)
+- [`@app_startup`](/docs/version/latest/api-reference/application-logic/@app_startup)
+- [`@session_startup`](/docs/version/latest/api-reference/application-logic/@session_startup)
 """
 macro page_startup(block)
     return :(
@@ -2139,7 +2139,7 @@ Argument        | Description
 `true` if the current page is the page associated with `path`.
 
 The current page is the page associated with the URL path returned by
-`get_url_path()`. `is_on_page()` will return `true` if `path` is any of the
+[`get_url_path()`](/docs/version/latest/api-reference/application-logic/get_url_path). `is_on_page()` will return `true` if `path` is any of the
 paths associated with the current page, regardless of which URL path the user
 used to reach the page.
 
@@ -2283,10 +2283,10 @@ function get_server_host()::String
 
 ## See also
 
-- [`get_server_port`](/docs/build/docs/api-reference/application-logic/get_server_port-func)
-- [`get_server_origin`](/docs/build/docs/api-reference/application-logic/get_server_origin-func)
-- [`get_url_search`](/docs/build/docs/api-reference/application-logic/get_url_search-func)
-- [`get_query_params`](/docs/build/docs/api-reference/application-logic/get_query_params-func)
+- [`get_server_port`](/docs/version/latest/api-reference/application-logic/get_server_port)
+- [`get_server_origin`](/docs/version/latest/api-reference/application-logic/get_server_origin)
+- [`get_url_search`](/docs/version/latest/api-reference/application-logic/get_url_search)
+- [`get_query_params`](/docs/version/latest/api-reference/application-logic/get_query_params)
 """
 function get_server_host()::String
     return "$(g.host_name):$(g.port)"
@@ -2305,10 +2305,10 @@ function get_server_origin()::String
 
 ## See also
 
-- [`get_server_host`](/docs/build/docs/api-reference/application-logic/get_server_host-func)
-- [`get_server_port`](/docs/build/docs/api-reference/application-logic/get_server_port-func)
-- [`get_url_search`](/docs/build/docs/api-reference/application-logic/get_url_search-func)
-- [`get_query_params`](/docs/build/docs/api-reference/application-logic/get_query_params-func)
+- [`get_server_host`](/docs/version/latest/api-reference/application-logic/get_server_host)
+- [`get_server_port`](/docs/version/latest/api-reference/application-logic/get_server_port)
+- [`get_url_search`](/docs/version/latest/api-reference/application-logic/get_url_search)
+- [`get_query_params`](/docs/version/latest/api-reference/application-logic/get_query_params)
 """
 function get_server_origin()::String
     return "http$(is_https_enabled() ? "s" : "")://$(get_server_host())"
@@ -2317,9 +2317,9 @@ end
 """
 # get\\_dot\\_magic\\_dir
 
-Returns the location of the app's [`.Magic` directory](/docs/build/docs/getting-started/basic-concepts#the-magic-directory).
+Returns the location of the app's [`.Magic` directory](/docs/version/latest/getting-started/basic-concepts#the-magic-directory).
 By default, the .Magic directory is created in the process working directory,
-but this can be changed in the call to `start_app()` or via the command line.
+but this can be changed in the call to [`start_app()`](/docs/version/latest/api-reference/application-logic/start_app) or via the command line.
 
 ### Function Signature
 
@@ -2334,7 +2334,7 @@ end
 """
 # get\\_dot\\_magic\\_path
 
-Returns the app's [`.Magic` directory](/docs/build/docs/getting-started/basic-concepts#the-magic-directory) path.
+Returns the app's [`.Magic` directory](/docs/version/latest/getting-started/basic-concepts#the-magic-directory) path.
 This is equivalent to calling `joinpath(get_dot_magic_dir(), ".Magic")`
 
 ### Function Signature
@@ -2362,7 +2362,7 @@ Generates a file path where you can save a file to be served in your app.
 ### 1. Generate a serveable path
 
 Some widgets serve files to the client, such as
-[`image`](/docs/build/docs/api-reference/interface-elements/image-func),
+[`image`](/docs/version/latest/api-reference/interface-elements/image),
 which serves an image in a given system path. Such widgets can only serve
 files that live inside your project's `.Magic/served-files/` directory and
 subdirectories.
@@ -2444,13 +2444,13 @@ end
 # make\\_serveable\\_copy
 
 Saves a serveable copy of a file inside `.Magic/served-files/`. This is a
-convenience function that calls `gen_serveable_path()` and `cp()` to create a
+convenience function that calls [`gen_serveable_path()`](/docs/version/latest/api-reference/application-logic/gen_serveable_path) and `cp()` to create a
 serveable copy of a file. If you want to move the file to make it serveable
 instead of creating a serveable copy, use
-[`move_to_serveable_dir()`](/docs/build/docs/api-reference/application-logic/move_to_serveable_dir-func)
+[`move_to_serveable_dir()`](/docs/version/latest/api-reference/application-logic/move_to_serveable_dir)
 instead.
 
-See [`gen_serveable_path()`](/docs/build/docs/api-reference/application-logic/gen_serveable_path-func)
+See [`gen_serveable_path()`](/docs/version/latest/api-reference/application-logic/gen_serveable_path)
 to learn more.
 
 ### Function Signature
@@ -2483,13 +2483,13 @@ end
 # move\\_to\\_serveable\\_dir
 
 Moves a file to somewhere inside `.Magic/served-files/`. This is a
-convenience function that calls `gen_serveable_path()` and `mv()` to move the
+convenience function that calls [`gen_serveable_path()`](/docs/version/latest/api-reference/application-logic/gen_serveable_path) and `mv()` to move the
 file to the app's serveable directory. If you want to create a serveable copy
 of the file instead of moving the file itself, call
-[`make_serveable_copy()`](/docs/build/docs/api-reference/application-logic/make_serveable_copy-func)
+[`make_serveable_copy()`](/docs/version/latest/api-reference/application-logic/make_serveable_copy)
 instead.
 
-See [`gen_serveable_path()`](/docs/build/docs/api-reference/application-logic/gen_serveable_path-func)
+See [`gen_serveable_path()`](/docs/version/latest/api-reference/application-logic/gen_serveable_path)
 to learn more.
 
 ### Function Signature

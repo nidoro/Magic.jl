@@ -64,10 +64,10 @@ function get_server_port()::Int
 
 ## See also
 
-- [`get_server_host`](/docs/build/docs/api-reference/application-logic/get_server_host-func)
-- [`get_server_origin`](/docs/build/docs/api-reference/application-logic/get_server_origin-func)
-- [`get_url_search`](/docs/build/docs/api-reference/application-logic/get_url_search-func)
-- [`get_query_params`](/docs/build/docs/api-reference/application-logic/get_query_params-func)
+- [`get_server_host`](/docs/version/latest/api-reference/application-logic/get_server_host)
+- [`get_server_origin`](/docs/version/latest/api-reference/application-logic/get_server_origin)
+- [`get_url_search`](/docs/version/latest/api-reference/application-logic/get_url_search)
+- [`get_query_params`](/docs/version/latest/api-reference/application-logic/get_query_params)
 """
 function get_server_port()::Int
     return ccall(get_net_layer_func(:MG_GetServerPort), Cint, ())

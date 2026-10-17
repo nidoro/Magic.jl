@@ -61,7 +61,7 @@ Insert a generic container.
 
 `container()` imposes minimal layout behavior by default. It can be styled
 and customized using CSS properties and HTML attributes, and can be used as a
-building block for more specialized layouts. `column()` and `row()` are
+building block for more specialized layouts. [`column()`](/docs/version/latest/api-reference/layout-elements/column) and [`row()`](/docs/version/latest/api-reference/layout-elements/row) are
 specializations of `container()`.
 
 ### Function Signature
@@ -76,7 +76,7 @@ function container(
 
  Argument        | Description
 :---------------- |:-------------
- `inner_func`   | An optional do-block `Function`, so you can define a container and its children like this: <pre>container() do<br/>  # children here<br/>end</pre> which is basically the same as: <pre>@push container()<br/># children here<br/>@pop</pre>In both cases, elements created inside the `do-end`/`push-pop` blocks will be placed inside the container returned by `container()`, with the difference that `push-pop` does not define a new scope, and thus variables created inside that block can be accessed after `@pop`.
+ `inner_func`   | An optional do-block `Function`, so you can define a container and its children like this: <pre>container() do<br/>  # children here<br/>end</pre> which is basically the same as: <pre>@push container()<br/># children here<br/>@pop</pre>In both cases, elements created inside the `do-end`/`push-pop` blocks will be placed inside the container returned by `container()`, with the difference that `push-pop` does not define a new scope, and thus variables created inside that block can be accessed after [`@pop`](/docs/version/latest/api-reference/layout-elements/push_container#the-push-and-pop-macros).
  `css`          | An `AbstractDict` of CSS properties to apply to the container.
  `attributes`   | An `AbstractDict` of additional HTML attributes to attach to the container.
 
@@ -334,7 +334,7 @@ end
 
 Insert a container that stacks its children vertically.
 
-See also [`row()`](/docs/build/docs/api-reference/layout-elements/row-func),
+See also [`row()`](/docs/version/latest/api-reference/layout-elements/row),
 which returns a container that stacks its children horizontally.
 
 ### Function Signature
@@ -361,7 +361,7 @@ function column(
 
  Argument        | Description
 :---------------- |:-------------
- `inner_func`        | An optional do-block `Function`, so you can define a column and its children like this: <pre>column() do<br/>  # children here<br/>end</pre> which is basically the same as: <pre>@push column()<br/># children here<br/>@pop</pre>In both cases, elements created inside the `do-end`/`push-pop` blocks will be placed inside the column returned by `column()`, with the difference that `push-pop` does not define a new scope, and thus variables created inside that block can be accessed after `@pop`.
+ `inner_func`        | An optional do-block `Function`, so you can define a column and its children like this: <pre>column() do<br/>  # children here<br/>end</pre> which is basically the same as: <pre>@push column()<br/># children here<br/>@pop</pre>In both cases, elements created inside the `do-end`/`push-pop` blocks will be placed inside the column returned by `column()`, with the difference that `push-pop` does not define a new scope, and thus variables created inside that block can be accessed after [`@pop`](/docs/version/latest/api-reference/layout-elements/push_container#the-push-and-pop-macros).
  `fill_width`        | A `Bool`. If `true`, the column expands to fill the available horizontal space.
  `fill_height`       | A `Bool`. If `true`, the column expands to fill the available vertical space.
  `align_items`       | A `String` controlling horizontal alignment of children. Corresponds to the CSS `align-items` property. Example values: `flex-start`, `center`, `flex-end`.
@@ -453,7 +453,7 @@ end
 
 Insert a container that stacks its children horizontally.
 
-See also [`column()`](/docs/build/docs/api-reference/layout-elements/column-func),
+See also [`column()`](/docs/version/latest/api-reference/layout-elements/column),
 which returns a container that stacks its children vertically.
 
 ### Function Signature
@@ -480,7 +480,7 @@ function row(
 
  Argument        | Description
 :---------------- |:-------------
- `inner_func`        | An optional do-block `Function`, so you can define a row and its children like this: <pre>row() do<br/>  # children here<br/>end</pre> which is basically the same as: <pre>@push row()<br/># children here<br/>@pop</pre>In both cases, elements created inside the `do-end`/`push-pop` blocks will be placed inside the row returned by `row()`, with the difference that `push-pop` does not define a new scope, and thus variables created inside that block can be accessed after `@pop`.
+ `inner_func`        | An optional do-block `Function`, so you can define a row and its children like this: <pre>row() do<br/>  # children here<br/>end</pre> which is basically the same as: <pre>@push row()<br/># children here<br/>@pop</pre>In both cases, elements created inside the `do-end`/`push-pop` blocks will be placed inside the row returned by `row()`, with the difference that `push-pop` does not define a new scope, and thus variables created inside that block can be accessed after [`@pop`](/docs/version/latest/api-reference/layout-elements/push_container#the-push-and-pop-macros).
  `fill_width`        | A `Bool`. If `true`, the row expands to fill the available horizontal space.
  `fill_height`       | A `Bool`. If `true`, the row expands to fill the available vertical space.
  `align_items`       | A `String` controlling vertical alignment of children. Corresponds to the CSS `align-items` property. Example values: `flex-start`, `center`, `flex-end`.
@@ -590,7 +590,7 @@ function columns(
  Argument              | Description
 :--------------------- |:-------------
  `amount_or_widths` | Either an `Int`, specifying the number of equally sized columns to create, or a `Vector` or `Tuple` of `Number`s specifying the width of each column relative to eachother.<br/><br/>For a `Vector` or `Tuple`, the width of a column is calculated based on the available space on the parent container and the proportion of its width relative to the sum of all relative widths. For instance, `columns([70,30])` will return two columns: the first one with width `70/100 = 0.7`, taking 70% of the available space, and the second with width `30/100 = 0.3`, taking 30% of the available space.
- `kwargs`              | Keyword arguments forwarded to each individual column container. These correspond to the keyword arguments accepted by `column()`, such as alignment, spacing, borders, CSS, and attributes.
+ `kwargs`              | Keyword arguments forwarded to each individual column container. These correspond to the keyword arguments accepted by [`column()`](/docs/version/latest/api-reference/layout-elements/column), such as alignment, spacing, borders, CSS, and attributes.
 
 ### Return Value
 
@@ -696,7 +696,7 @@ Displays a dialog, that is, a popup window shown in front of everything.
 
 The dialog stays open for as long as `dialog()` keeps being called on each
 rerun, which usually means as long as the user don't interact with a button
-that reruns the entire script, like `x_button()`.
+that reruns the entire script, like [`x_button()`](/docs/version/latest/api-reference/interface-elements/x_button).
 
 Once a rerun no longer calls it, the dialog is closed. Only one dialog
 can be open at a time.
@@ -715,7 +715,7 @@ function dialog(
 :------------------- |:-------------
  `inner_func`        | A do-block `Function` defining the content of the dialog: <pre>dialog() do<br/>  # dialog content<br/>end</pre>
  `id`                | An optional `String` used as the id of the fragment that wraps the dialog content. If `nothing` (default), an id is generated from the file and line where `inner_func` is defined. Ignored if `fragment_wrapper` is `false`.
- `fragment_wrapper`  | A `Bool`. If `true` (default), the dialog content is wrapped in a fragment (see `fragment()`), so interacting with widgets inside the dialog reruns only the dialog instead of the entire app.
+ `fragment_wrapper`  | A `Bool`. If `true` (default), the dialog content is wrapped in a fragment (see [`fragment()`](/docs/version/latest/api-reference/application-logic/@fragment#the-fragment-function)), so interacting with widgets inside the dialog reruns only the dialog instead of the entire app.
 
 ### Return Value
 
@@ -803,8 +803,8 @@ Configure the overall page layout.
 
 This function defines the global layout of the page, including the main content
 area and optional left and right sidebars. The containers corresponding to each
-of these regions can be accessed via the API functions `main_area()`,
-`left_sidebar()` and `right_sidebar()`, and they can be used like any other
+of these regions can be accessed via the API functions [`main_area()`](/docs/version/latest/api-reference/layout-elements/main_area),
+[`left_sidebar()`](/docs/version/latest/api-reference/layout-elements/left_sidebar) and `right_sidebar()`, and they can be used like any other
 function that returns a `ContainerInterface`. See usage example below.
 
 ### Function Signature
@@ -840,7 +840,7 @@ function set_page_layout(
  `right_sidebar_initial_width`   | A `String` specifying the initial width of the right sidebar.
  `right_sidebar_position`         | A `String` specifying how the right sidebar is positioned relative to the main content (`"slide-out"` or `"overlay"`).
  `right_sidebar_toggle_labels`   | A `Tuple` of two optional `String` values defining the labels for opening and closing the right sidebar toggle button.
- `top_bar`                       | Either `nothing` (default) or a `String` specifying the top bar style. Possible values: `"fixed"` or `"sticky"`. If `nothing`, the top bar is disabled. Its container can be accessed via `top_bar()`.
+ `top_bar`                       | Either `nothing` (default) or a `String` specifying the top bar style. Possible values: `"fixed"` or `"sticky"`. If `nothing`, the top bar is disabled. Its container can be accessed via [`top_bar()`](/docs/version/latest/api-reference/layout-elements/top_bar).
 
 ### Return Value
 
@@ -967,7 +967,7 @@ end
 # main_area
 
 Retrieves the `Container` corresponding to the page main area created by
-`set_page_layout()`.
+[`set_page_layout()`](/docs/version/latest/api-reference/layout-elements/set_page_layout).
 
 See `set_page_layout()` for more information.
 
@@ -979,7 +979,7 @@ function main_area(inner_func::Function=()->())::ContainerInterface
 
  Argument                              | Description
 :------------------------------------ |:-------------
- `inner_func`                      | An optional do-block `Function`, so you can define the page main area and its children like this: <pre>main\\_area() do<br/>  # main area content<br/>end</pre> which is basically the same as: <pre>@push main\\_area()<br/># main area content<br/>@pop</pre>In both cases, elements created inside the `do-end`/`push-pop` blocks will be placed inside the container returned by `main_area()`, with the difference that `push-pop` does not define a new scope, and thus variables created inside that block can be accessed after `@pop`.
+ `inner_func`                      | An optional do-block `Function`, so you can define the page main area and its children like this: <pre>main\\_area() do<br/>  # main area content<br/>end</pre> which is basically the same as: <pre>@push main\\_area()<br/># main area content<br/>@pop</pre>In both cases, elements created inside the `do-end`/`push-pop` blocks will be placed inside the container returned by `main_area()`, with the difference that `push-pop` does not define a new scope, and thus variables created inside that block can be accessed after [`@pop`](/docs/version/latest/api-reference/layout-elements/push_container#the-push-and-pop-macros).
 
 ### Return Value
 
@@ -1029,7 +1029,7 @@ Pair of functions to retrieve the left and right sidebar `ContainerInterface`s:
 - `right_sidebar()`
 
 The sidebars are disabled by default. In order to enable them, you must set
-their initial state by calling the function `set_page_layout()`. Example:
+their initial state by calling the function [`set_page_layout()`](/docs/version/latest/api-reference/layout-elements/set_page_layout). Example:
 
 ```julia
 set_page_layout("centered", left_sidebar_initial_state="open")
@@ -1044,7 +1044,7 @@ function right_sidebar(inner_func::Function=()->())::ContainerInterface
 
  Argument                              | Description
 :------------------------------------ |:-------------
- `inner_func`                      | An optional do-block `Function`, so you can add content to the sidebar like this: <pre>left\\_sidebar() do<br/>  # sidebar content<br/>end</pre> which is essentially the same as: <pre>@push left\\_sidebar()<br/># sidebar content<br/>@pop</pre>In both cases, elements created inside the `do-end`/`push-pop` blocks will be placed inside the container returned by `left_sidebar()` or `right_sidebar()`, with the difference that `push-pop` does not define a new scope, and thus variables created inside that block can be accessed after `@pop`.
+ `inner_func`                      | An optional do-block `Function`, so you can add content to the sidebar like this: <pre>left\\_sidebar() do<br/>  # sidebar content<br/>end</pre> which is essentially the same as: <pre>@push left\\_sidebar()<br/># sidebar content<br/>@pop</pre>In both cases, elements created inside the `do-end`/`push-pop` blocks will be placed inside the container returned by `left_sidebar()` or `right_sidebar()`, with the difference that `push-pop` does not define a new scope, and thus variables created inside that block can be accessed after [`@pop`](/docs/version/latest/api-reference/layout-elements/push_container#the-push-and-pop-macros).
 
 ### Return Value
 
@@ -1106,7 +1106,7 @@ end
 # top\\_bar
 
 Retrieves the `ContainerInterface` of the page top bar created by
-`set_page_layout()`.
+[`set_page_layout()`](/docs/version/latest/api-reference/layout-elements/set_page_layout).
 
 The top bar is disabled by default. In order to enable it, you must set its
 style by calling `set_page_layout()` with the `top_bar` argument.
@@ -1127,7 +1127,7 @@ function top_bar(inner_func::Function=()->())::ContainerInterface
 
  Argument                              | Description
 :------------------------------------ |:-------------
- `inner_func`                      | An optional do-block `Function`, so you can add content to the top bar like this: <pre>top\\_bar() do<br/>  # top bar content<br/>end</pre> which is essentially the same as: <pre>@push top\\_bar()<br/># top bar content<br/>@pop</pre>In both cases, elements created inside the `do-end`/`push-pop` blocks will be placed inside the container returned by `top_bar()`, with the difference that `push-pop` does not define a new scope, and thus variables created inside that block can be accessed after `@pop`.
+ `inner_func`                      | An optional do-block `Function`, so you can add content to the top bar like this: <pre>top\\_bar() do<br/>  # top bar content<br/>end</pre> which is essentially the same as: <pre>@push top\\_bar()<br/># top bar content<br/>@pop</pre>In both cases, elements created inside the `do-end`/`push-pop` blocks will be placed inside the container returned by `top_bar()`, with the difference that `push-pop` does not define a new scope, and thus variables created inside that block can be accessed after [`@pop`](/docs/version/latest/api-reference/layout-elements/push_container#the-push-and-pop-macros).
 
 ### Return Value
 

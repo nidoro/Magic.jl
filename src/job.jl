@@ -52,7 +52,7 @@ function get_jobs()::Vector{String}
 
 ### Return Value
 
-A `Vector{String}` with the ids of the jobs created with `@job` in the current
+A `Vector{String}` with the ids of the jobs created with [`@job`](/docs/version/latest/api-reference/jobs/@job) in the current
 session.
 """
 function get_jobs()::Vector{String}
@@ -85,7 +85,7 @@ block the app and proper progress visual feedback can be given.
 The job is bound to the current session and starts running in a separate task
 right after the current rerun finishes. While the job runs, the app keeps
 responding to the user. Every time the job reports progress with
-`set_progress()`, and when it finishes, the fragments bound to it are rerun so
+[`set_progress()`](/docs/version/latest/api-reference/jobs/set_progress), and when it finishes, the fragments bound to it are rerun so
 the interface can be updated.
 
 By default, a dialog displaying the job progress is shown while the job runs
@@ -121,16 +121,16 @@ end
 
  Argument        | Description
 :--------------- |:-------------
- `func`          | The `Function` to be run as a job. It takes no arguments, and its return value can be retrieved with `get_result()`.
+ `func`          | The `Function` to be run as a job. It takes no arguments, and its return value can be retrieved with [`get_result()`](/docs/version/latest/api-reference/jobs/get_result).
  `id`            | An optional `String` to uniquely identify the job within the session. If `nothing` (default), a random id is generated. If a job with the same id already exists, it is stopped (if running) and replaced.
  `dialog`        | Either `nothing` or a `String` selecting the kind of progress dialog shown while the job runs: `"spinner"` (default) displays a spinner and the current progress message, and `"progress_bar"` displays a progress bar. If `nothing`, no dialog is shown and the entire app is rerun when the job reports progress or finishes. Ignored if `on_progress` is provided.
  `dialog_title`  | An optional `String` displayed as the title of the progress dialog. If `nothing` (default), `"Please wait"` is used.
- `on_progress`   | An optional `String` with the id of a fragment to be rerun when the job reports progress or finishes. If provided, no progress dialog is shown. Pass `""` to rerun the entire app. More fragments can be bound to the job with `bind_fragment()`.
+ `on_progress`   | An optional `String` with the id of a fragment to be rerun when the job reports progress or finishes. If provided, no progress dialog is shown. Pass `""` to rerun the entire app. More fragments can be bound to the job with [`bind_fragment()`](/docs/version/latest/api-reference/jobs/bind_fragment).
 
 ### Return Value
 
 The `AsyncJob` representing the job. Functions that take a job, such as
-`is_done()` or `get_result()`, accept either this object or the job `id`.
+[`is_done()`](/docs/version/latest/api-reference/jobs/is_running) or `get_result()`, accept either this object or the job `id`.
 
 ### Example
 
@@ -225,13 +225,13 @@ const DOC_JOB_STATUS = """
 # Job status functions
 
 Family of `Bool` returning functions that check the status of a job created
-with `@job`:
+with [`@job`](/docs/version/latest/api-reference/jobs/@job):
 
 - `is_started()`: returns `true` if the job has started running.
 - `is_running()`: returns `true` if the job hasn't finished yet, including
 when its task hasn't started yet.
 - `is_done()`: returns `true` if the job has finished without throwing an
-error. A job that was stopped with `stop()` also counts as done.
+error. A job that was stopped with [`stop()`](/docs/version/latest/api-reference/jobs/stop) also counts as done.
 - `is_errored()`: returns `true` if the job threw an error.
 - `is_stopped()`: returns `true` if the job was stopped or if a stop was
 requested with `stop()`.
@@ -329,7 +329,7 @@ function get_result(job::Union{AsyncJob, AbstractString})::Any
 
  Argument  | Description
 :---------- |:-------------
- `job`     | Either the `AsyncJob` returned by `@job` or a `String` with the job id.
+ `job`     | Either the `AsyncJob` returned by [`@job`](/docs/version/latest/api-reference/jobs/@job) or a `String` with the job id.
 
 ### Return Value
 
@@ -353,7 +353,7 @@ end
 # bind\\_fragment
 
 Binds a fragment to a job, so the fragment is rerun every time the job reports
-progress with `set_progress()` and when the job finishes. A job can have many
+progress with [`set_progress()`](/docs/version/latest/api-reference/jobs/set_progress) and when the job finishes. A job can have many
 fragments bound to it.
 
 ### Function Signature
@@ -366,10 +366,10 @@ function bind_fragment(job_id::String, fragment_id::String)::Nothing
 
  Argument       | Description
 :-------------- |:-------------
- `job`          | The `AsyncJob` returned by `@job`.
+ `job`          | The `AsyncJob` returned by [`@job`](/docs/version/latest/api-reference/jobs/@job).
  `job_id`       | A `String` with the job id. If no job with this id exists, an `InvalidArgument` error is thrown.
  `fragment_id`  | A `String` with the id of the fragment to be bound. Pass `""` to bind the entire app.
- `frag`         | A `Fragment`, as returned by `fragment()`.
+ `frag`         | A `Fragment`, as returned by [`fragment()`](/docs/version/latest/api-reference/application-logic/@fragment#the-fragment-function).
 
 ### Return Value
 
@@ -462,7 +462,7 @@ Every call reruns the fragments bound to the job, so the interface can display
 the new progress. To avoid overloading the app, these reruns happen at most
 once every 0.4 seconds.
 
-This is also how jobs are stopped: if a stop has been requested with `stop()`,
+This is also how jobs are stopped: if a stop has been requested with [`stop()`](/docs/version/latest/api-reference/jobs/stop),
 `set_progress()` throws a `JobStopped` exception, which ends the job.
 
 ### Function Signature
@@ -487,7 +487,7 @@ function set_progress(
  `job`       | The `AsyncJob` whose progress should be reported. If omitted, the job `set_progress()` is called from is used. Calling it outside a job without this argument throws an `IncorrectUsage` error.
  `progress`  | A `Real` between `0` and `1` specifying the progress of the job.
  `message`   | An optional `String` describing the current progress. If `nothing` (default), the progress percentage is used (for example, `"42%"`).
- `data`      | Optional data of `Any` type to be attached to the progress, which can be retrieved with `get_progress_data()`.
+ `data`      | Optional data of `Any` type to be attached to the progress, which can be retrieved with [`get_progress_data()`](/docs/version/latest/api-reference/jobs/get_progress).
 
 ### Return Value
 
@@ -529,8 +529,8 @@ end
 const DOC_JOB_PROGRESS = """
 # Job progress functions
 
-Family of functions that retrieve the progress of a job created with `@job`,
-as reported by `set_progress()`:
+Family of functions that retrieve the progress of a job created with [`@job`](/docs/version/latest/api-reference/jobs/@job),
+as reported by [`set_progress()`](/docs/version/latest/api-reference/jobs/set_progress):
 
 - `get_progress()`: returns the progress, a `Float64` between `0` and `1`.
 - `get_progress_message()`: returns the progress message.
@@ -636,8 +636,8 @@ end
 Requests a job to stop.
 
 Stopping is cooperative: the job actually stops the next time it calls
-`set_progress()`. A job that never calls `set_progress()` runs until it
-finishes. Once a stop is requested, `is_stopped()` returns `true`.
+[`set_progress()`](/docs/version/latest/api-reference/jobs/set_progress). A job that never calls `set_progress()` runs until it
+finishes. Once a stop is requested, [`is_stopped()`](/docs/version/latest/api-reference/jobs/is_running) returns `true`.
 
 ### Function Signature
 
@@ -647,7 +647,7 @@ function stop(job::Union{AsyncJob, String})::Nothing
 
  Argument  | Description
 :---------- |:-------------
- `job`     | Either the `AsyncJob` returned by `@job` or a `String` with the job id. If no job with the passed id exists, an `InvalidArgument` error is thrown.
+ `job`     | Either the `AsyncJob` returned by [`@job`](/docs/version/latest/api-reference/jobs/@job) or a `String` with the job id. If no job with the passed id exists, an `InvalidArgument` error is thrown.
 
 ### Return Value
 

@@ -5,9 +5,9 @@ A simple framework to create Julia web apps.
 
 ## 🎓 Documentation
 
-- [Getting Started](https://magic.coisasdodavi.net/docs/build/docs/getting-started/install)
-- [Demo Web Apps](https://magic.coisasdodavi.net/)
-- [API Reference](https://magic.coisasdodavi.net/docs/build/docs/category/api-reference)
+- [Getting Started](https://magic.coisasdodavi.net/docs/version/latest/getting-started/install)
+- [Demo Web Apps](https://magic.coisasdodavi.net/examples)
+- [API Reference](https://magic.coisasdodavi.net/docs/version/latest/api-reference)
 
 ## —͟͟͞͞★ Quick start
 
