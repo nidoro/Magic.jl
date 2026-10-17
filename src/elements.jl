@@ -2217,7 +2217,13 @@ function link(
     assert_string_in_list(@named(style), ("primary", "secondary", "naked"))
 
     if icon == "" && new_tab
-        icon = "<mg-icon mg-icon='material/open_in_new'></mg-icon>"
+        icon = "material/open_in_new"
+    end
+
+    icon_html = ""
+    if !isempty(icon)
+        assert_valid_material_icon(@named(icon))
+        icon_html = "<mg-icon mg-icon='$icon'></mg-icon>"
     end
 
     if !isnothing(font_weight)
@@ -2244,7 +2250,7 @@ function link(
     set_css_to_achieve_layout(css, top_container(), fill_width, false)
     merge!(combined_css, css)
 
-    html("a", "$label$icon", css=combined_css, attributes=Dict("class" => "mg-link dd-button mg-button-style-$(style)", "href" => url, "target" => new_tab ? "_blank" : ""))
+    html("a", "$label$icon_html", css=combined_css, attributes=Dict("class" => "mg-link dd-button mg-button-style-$(style)", "href" => url, "target" => new_tab ? "_blank" : ""))
     return nothing
 end
 
