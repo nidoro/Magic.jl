@@ -19,7 +19,7 @@ end
         ENV["MAGIC_TEST_ACTIONS_SCRIPT"] = "01-counter.js"
         ENV["MAGIC_TEST_CLIENTS"] = 10
         @test @maybe_suppress start_app("src/test_examples.jl", dot_magic_dir="../examples", port=PORT, dev_mode=true, rethrow_rerun_exceptions=true, throw_client_side_error=true) === nothing
-        @test Magic.g.test_successfull
+        @test get_app_data("test_successfull")
     end
 
     @testset "examples/02-todo.jl + 02-todo.js" begin
@@ -32,7 +32,7 @@ end
         ENV["MAGIC_TEST_ACTIONS_SCRIPT"] = "02-todo.js"
         ENV["MAGIC_TEST_CLIENTS"] = 8
         @test @maybe_suppress start_app("src/test_examples.jl", dot_magic_dir="../examples", port=PORT, dev_mode=true, rethrow_rerun_exceptions=true, throw_client_side_error=true) === nothing
-        @test Magic.g.test_successfull
+        @test get_app_data("test_successfull")
     end
 
     @testset "examples/05-curves.jl + 05-curves.js" begin
@@ -45,7 +45,7 @@ end
         ENV["MAGIC_TEST_ACTIONS_SCRIPT"] = "05-curves.js"
         ENV["MAGIC_TEST_CLIENTS"] = 8
         @test @maybe_suppress start_app("src/test_examples.jl", dot_magic_dir="../examples", port=PORT, dev_mode=true, rethrow_rerun_exceptions=true, throw_client_side_error=true) === nothing
-        @test Magic.g.test_successfull
+        @test get_app_data("test_successfull")
     end
 
     @testset "examples/07-probability.jl + 07-probability.js" begin
@@ -58,7 +58,7 @@ end
         ENV["MAGIC_TEST_ACTIONS_SCRIPT"] = "07-probability.js"
         ENV["MAGIC_TEST_CLIENTS"] = 6
         @test @maybe_suppress start_app("src/test_examples.jl", dot_magic_dir="../examples", port=PORT, dev_mode=true, rethrow_rerun_exceptions=true, throw_client_side_error=true) === nothing
-        @test Magic.g.test_successfull
+        @test get_app_data("test_successfull")
     end
 
     @testset "examples/13-forecast.jl + 13-forecast.js" begin
@@ -71,7 +71,7 @@ end
         ENV["MAGIC_TEST_ACTIONS_SCRIPT"] = "13-forecast.js"
         ENV["MAGIC_TEST_CLIENTS"] = 4
         @test @maybe_suppress start_app("src/test_examples.jl", dot_magic_dir="../examples", port=PORT, dev_mode=true, rethrow_rerun_exceptions=true, throw_client_side_error=true) === nothing
-        @test Magic.g.test_successfull
+        @test get_app_data("test_successfull")
     end
 
     @testset "examples/20-image-filters.jl 20-image-filters.js" begin
@@ -84,7 +84,7 @@ end
         ENV["MAGIC_TEST_ACTIONS_SCRIPT"] = "20-image-filters.js"
         ENV["MAGIC_TEST_CLIENTS"] = 5
         @test @maybe_suppress start_app("src/test_examples.jl", dot_magic_dir="../examples", port=PORT, dev_mode=true, rethrow_rerun_exceptions=true, throw_client_side_error=true) === nothing
-        @test Magic.g.test_successfull
+        @test get_app_data("test_successfull")
     end
 
     @testset "examples/60-job-example.jl 60-job-example.js" begin
@@ -95,8 +95,8 @@ end
         """
         ENV["MAGIC_TEST_PAGE"] = "60-job-example.jl"
         ENV["MAGIC_TEST_ACTIONS_SCRIPT"] = "60-job-example.js"
-        ENV["MAGIC_TEST_CLIENTS"] = 0
-        @test @maybe_suppress start_app("src/test_examples.jl", dot_magic_dir="../examples", port=3443, dev_mode=true, rethrow_rerun_exceptions=true, throw_client_side_error=true) === nothing
-        @test Magic.g.test_successfull
+        ENV["MAGIC_TEST_CLIENTS"] = 10
+        @test @maybe_suppress start_app("src/test_examples.jl", dot_magic_dir="../examples", port=PORT, dev_mode=true, rethrow_rerun_exceptions=true, throw_client_side_error=true) === nothing
+        @test get_app_data("test_successfull")
     end
 end

@@ -1,6 +1,6 @@
 
 function spawn_chromium_instance()::Nothing
-    chromium_instance = get_app_data("chromium_instances")
+    chromium_instances = get_app_data("chromium_instances")
 
     n = length(chromium_instances)+1
     test_url = "$(get_server_origin())/?chromium_instance=$(n)"

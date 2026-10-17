@@ -72,7 +72,17 @@ function test_successfull(client_id::Cint)::Tuple{Bool, String}
         return (true, "")
 
     elseif (test_page, test_actions_script) == ("20-image-filters.jl", "20-image-filters.js")
-        # In this test, reaching the end means success.
+        expected = (true, true, true)
+        realized = (
+            Magic.get_widget_by_label(client_id, "Job 1 stopped").value,
+            Magic.get_widget_by_label(client_id, "Job 2 not running and done").value,
+            Magic.get_widget_by_label(client_id, "Job 3 errored").value,
+        )
+
+        if expected != realized
+            return (false, "Expected checkboxes to be $(expected), but they are $(realized)")
+        end
+
         return (true, "")
 
     elseif (test_page, test_actions_script) == ("60-job-example.jl", "60-job-example.js")
@@ -121,6 +131,8 @@ end
 
 @app_startup begin
     set_app_data("test_successfull", false)
+    set_app_data("chromium_instances", [])
+    set_app_data("done", 0)
     Magic.set_callback(callback)
 end
 

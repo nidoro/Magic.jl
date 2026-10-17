@@ -11,19 +11,22 @@ actions.push(() => {
 });
 
 actions.push(() => {
-    DD_GetElements("dd-button")[0].click();
-});
-
-actions.push(() => {
     DD_GetElements("dd-button")[1].click();
 });
 
 actions.push(() => {
-    DD_GetElements("dd-popup dd-button")[0].click();
+    setTimeout(() => {
+        DD_GetElements("dd-button")[2].click();
+    }, 2500);
+});
+
+actions.push(() => {
+    setTimeout(() => {
+        DD_GetElements("dd-popup dd-button")[0].click();
+    }, 4000);
 });
 
 function eventListener(event) {
-    return;
     const params = new URLSearchParams(window.location.search);
 
     if (event.type == "rerun_complete") {

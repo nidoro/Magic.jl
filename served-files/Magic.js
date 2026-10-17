@@ -741,7 +741,9 @@ function createAppElement(parent, props, fragmentId) {
             }
 
             requestAnimationFrame(() =>
-                applyCSS(elem, props.css)
+                requestAnimationFrame(() =>
+                    applyCSS(elem, props.css)
+                )
             );
         }
 
