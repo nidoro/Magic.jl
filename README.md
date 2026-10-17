@@ -28,6 +28,7 @@ science web app.
 
 ## 🎓 Documentation
 
+- [Overview](https://magic.coisasdodavi.net)
 - [Getting Started](https://magic.coisasdodavi.net/docs/version/latest/getting-started/install)
 - [Demo Web Apps](https://magic.coisasdodavi.net/examples)
 - [API Reference](https://magic.coisasdodavi.net/docs/version/latest/api-reference)
