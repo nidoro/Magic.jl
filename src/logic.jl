@@ -1717,11 +1717,14 @@ Stores page persistent data.
 
 ```julia
 function set_page_data(page_data::Any)::Nothing
+function set_page_data(key::AbstractString, value::Any)::Nothing
 ```
 
  Argument  | Description
 :---------- |:-------------
  `page_data` | Data of `Any` type.
+ `key` | A `String` identifying a keyed entry of the page persistent data. Keyed entries are stored separately from the data set with `set_page_data(page_data)`, so both can be used at the same time.
+ `value` | Data of `Any` type to be stored under `key`.
 
 ## `get_page_data()`
 
@@ -1730,20 +1733,36 @@ Retrieves the previously stored page persistent data.
 ### Function Signature
 
 ```julia
-function get_page_data()::Any
+function get_page_data(key::Union{AbstractString, Nothing}=nothing)::Any
 ```
+
+ Argument  | Description
+:---------- |:-------------
+ `key` | An optional `String`. If `nothing` (default), returns the data stored with `set_page_data(page_data)`. Otherwise, returns the data stored under `key` with `set_page_data(key, value)`, or `missing` if no data has been stored under `key`.
 """
 
 @doc DOC_PAGE_PERSISTENT_DATA
-function get_page_data()::Any
+function get_page_data(key::Union{AbstractString, Nothing} = nothing)::Any
     page = get_page(get_url_path())
-    return page.user_page_data
+    if isnothing(key)
+        return page.user_page_data
+    elseif haskey(page.user_page_dict, key)
+        return page.user_page_dict[key]
+    else
+        return missing
+    end
 end
 
 @doc DOC_PAGE_PERSISTENT_DATA
 function set_page_data(page_data::Any)::Nothing
     page = get_page(get_url_path())
     page.user_page_data = page_data
+    return nothing
+end
+
+function set_page_data(key::AbstractString, value::Any)::Nothing
+    page = get_page(get_url_path())
+    page.user_page_dict[key] = value
     return nothing
 end
 

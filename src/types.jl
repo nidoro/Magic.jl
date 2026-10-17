@@ -184,6 +184,7 @@ end
     html_injection  ::Dict{String, String} = Dict()
     first_pass      ::Bool   = true
     user_page_data  ::Any    = nothing
+    user_page_dict  ::Dict   = Dict()
 
     set_title       ::Function = (args...; kwargs...)->()
     set_description ::Function = (args...; kwargs...)->()
