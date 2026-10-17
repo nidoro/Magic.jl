@@ -2866,48 +2866,6 @@ function save_doc(object::Any, file_path::String, sidebar_position::Union{Intege
 end
 
 function gen_docs()::Nothing
-    doc_layout_dir      = mkpath(joinpath(pkgdir(Magic), "docs/docs/api-reference/layout-elements"))
-    doc_interface_dir   = mkpath(joinpath(pkgdir(Magic), "docs/docs/api-reference/interface-elements"))
-    doc_logic_dir       = mkpath(joinpath(pkgdir(Magic), "docs/docs/api-reference/application-logic"))
-
-    # Layout API
-    #-------------
-    objects = [:set_page_layout, :column, :columns, :row, :container,
-               :main_area, :push_container, :left_sidebar]
-
-    for (i, object) in enumerate(objects)
-        save_doc(getfield(Magic, object), joinpath(doc_layout_dir, "$(object)-func.md"), i)
-    end
-
-    # Logic API
-    #-------------
-    objects = [:start_app, Symbol("@app_startup"), Symbol("@page_startup"),
-               Symbol("@session_startup"), Symbol("@fragment"), :set_app_data,
-               :set_page_data, :set_session_data, :gen_serveable_path,
-               :make_serveable_copy, :move_to_serveable_dir, :get_dot_magic_path,
-               :get_dot_magic_dir, :is_on_page, :is_app_first_pass, :set_title,
-               :get_url_path, :get_url_search, :get_query_params, :get_server_host,
-               :get_server_port, :get_server_origin]
-
-    for (i, object) in enumerate(objects)
-        save_doc(getfield(Magic, object), joinpath(doc_logic_dir, "$(object)-func.md"), i)
-    end
-
-    # Interface API
-    #----------------
-    objects = [:button, :selectbox, :checkbox, :checkboxes, :radio, :text_input,
-               :number_input, :slider, :dataframe, :file_uploader,
-               :download_button, :link, :color_picker, :image, :text, :h1,
-               :metric, :code, :icon, :space, :html, :get_value]
-
-    for (i, object) in enumerate(objects)
-        save_doc(getfield(Magic, object), joinpath(doc_interface_dir, "$(object)-func.md"), i)
-    end
-
-    return nothing
-end
-
-function gen_docs2()::Nothing
     doc_layout_dir      = mkpath(joinpath(pkgdir(Magic), "docs/api-reference/layout-elements"))
     doc_interface_dir   = mkpath(joinpath(pkgdir(Magic), "docs/api-reference/interface-elements"))
     doc_logic_dir       = mkpath(joinpath(pkgdir(Magic), "docs/api-reference/application-logic"))
