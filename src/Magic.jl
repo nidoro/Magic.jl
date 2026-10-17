@@ -95,6 +95,7 @@ include("net_layer.jl")
 include("layout.jl")
 include("elements.jl")
 include("logic.jl")
+include("job.jl")
 
 # Entry points
 #---------------
