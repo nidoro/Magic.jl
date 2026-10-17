@@ -534,7 +534,7 @@ function number_input(
  `max`       | A `Real` specifying the maximum value allowed in the widget, or `nothing` (default) indicating that there is no maximum value.
  `step`       | A `Real` specifying the size of the increment/decrement applied when clicking the `-` and `+` buttons in the widget.
  `decimal_separator`       | A `String` specifying the character that should be used as decimal separator. Default: `"."`.
- `thousands_separator`       | A `String` specifying the character that should be used as decimal separator. Default: `""`.
+ `thousands_separator`       | A `String` specifying the character that should be used as thousands separator. Default: `""`.
  `show_label`       | A `Bool` indicating whether the label should be displayed. Default: `true`.
  `fill_width`       | A `Bool` indicating whether the text input should expand to fill the available horizontal space. Default: `false`.
  `id`              | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like `get_value()` and `set_value()`.
@@ -2509,7 +2509,7 @@ function metric(
  `precision`           | An optional `Integer` indicating with how many decimal places `value` should be displayed.
  `delta_precision`     | An optional `Integer` indicating with how many decimal places `delta` should be displayed. If `nothing` (default), the same value of `precision` is used.
  `decimal_separator`       | A `String` specifying the character that should be used as decimal separator. Default: `"."`.
- `thousands_separator`       | A `String` specifying the character that should be used as decimal separator. Default: `""`.
+ `thousands_separator`       | A `String` specifying the character that should be used as thousands separator. Default: `""`.
 
 ### Return Value
 
