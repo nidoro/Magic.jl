@@ -1,0 +1,6 @@
+title = "Getting Started"
+description = "Getting Started"
+subpages = [
+    "install.md",
+    "basic-concepts.md"
+]

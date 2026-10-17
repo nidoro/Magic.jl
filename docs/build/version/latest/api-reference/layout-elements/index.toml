@@ -1,0 +1,12 @@
+title = "Layout Elements"
+description = "Layout Elements"
+subpages = [
+    "set_page_layout.md",
+    "column.md",
+    "columns.md",
+    "row.md",
+    "container.md",
+    "main_area.md",
+    "push_container.md",
+    "left_sidebar.md",
+]

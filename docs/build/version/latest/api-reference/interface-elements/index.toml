@@ -1,0 +1,26 @@
+title = "Interface Elements"
+description = "Interface Elements"
+subpages = [
+    "button.md",
+    "selectbox.md",
+    "checkbox.md",
+    "checkboxes.md",
+    "radio.md",
+    "text_input.md",
+    "number_input.md",
+    "slider.md",
+    "dataframe.md",
+    "file_uploader.md",
+    "download_button.md",
+    "link.md",
+    "color_picker.md",
+    "image.md",
+    "text.md",
+    "h1.md",
+    "metric.md",
+    "code.md",
+    "icon.md",
+    "space.md",
+    "html.md",
+    "get_value.md",
+]

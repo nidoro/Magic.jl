@@ -1,0 +1,13 @@
+title = "Jobs"
+description = "Jobs"
+subpages = [
+    "@job.md",
+    "set_progress.md",
+    "get_progress.md",
+    "get_result.md",
+    "is_running.md",
+    "job_exists.md",
+    "stop.md",
+    "get_jobs.md",
+    "bind_fragment.md",
+]

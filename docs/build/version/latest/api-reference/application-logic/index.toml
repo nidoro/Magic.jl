@@ -1,0 +1,26 @@
+title = "App Logic"
+description = "App Logic"
+subpages = [
+    "start_app.md",
+    "@app_startup.md",
+    "@page_startup.md",
+    "@session_startup.md",
+    "@fragment.md",
+    "set_app_data.md",
+    "set_page_data.md",
+    "set_session_data.md",
+    "gen_serveable_path.md",
+    "make_serveable_copy.md",
+    "move_to_serveable_dir.md",
+    "get_dot_magic_path.md",
+    "get_dot_magic_dir.md",
+    "is_on_page.md",
+    "is_app_first_pass.md",
+    "set_title.md",
+    "get_url_path.md",
+    "get_url_search.md",
+    "get_query_params.md",
+    "get_server_host.md",
+    "get_server_port.md",
+    "get_server_origin.md",
+]

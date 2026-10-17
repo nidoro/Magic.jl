@@ -1,0 +1,6 @@
+title = "Magic Docs"
+description = "Magic Docs"
+subpages = [
+    "getting-started",
+    "api-reference"
+]

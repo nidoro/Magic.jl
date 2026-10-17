@@ -171,6 +171,7 @@ if startswith(get_url_path(), "/docs")
             doc_section("Interface Elements", "/docs/version/latest/api-reference/interface-elements")
             doc_section("Layout Elements", "/docs/version/latest/api-reference/layout-elements")
             doc_section("App Logic", "/docs/version/latest/api-reference/application-logic")
+            doc_section("Jobs", "/docs/version/latest/api-reference/jobs")
         end
     else
         page = get_page(get_url_path())

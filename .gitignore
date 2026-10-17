@@ -1,5 +1,6 @@
 local
-build
+/build
+net-layer/third/**/build/
 .dockerignore
 Manifest*
 .kate*
