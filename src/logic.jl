@@ -1443,7 +1443,8 @@ function unescape_uri(s::AbstractString)::String
         c = s[i]
         if c == '%' && i + 2 <= lastindex(s)
             hex = s[i+1:i+2]
-            write(io, Char(parse(UInt8, hex, base=16)))
+            # NOTE: write the raw byte, so multi-byte UTF-8 sequences (e.g. %C3%A9) are preserved
+            write(io, parse(UInt8, hex, base=16))
             i = nextind(s, i, 3)
         else
             write(io, c)
