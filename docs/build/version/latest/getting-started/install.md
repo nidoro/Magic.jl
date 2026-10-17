@@ -46,7 +46,7 @@ The previous example web app can be started in the following ways:
 
 ### Option 1: From the REPL (recommended during development)
 
-We use the `start_app()` function to start serving a web app from the REPL.
+We use the [`start_app()`](/docs/version/latest/api-reference/application-logic/start_app) function to start serving a web app from the REPL.
 
 ```julia
 > using Magic
@@ -109,7 +109,7 @@ people's app that you don't intend to change.
 
 ## Check out our Demo Apps
 
-A great way to learn how to use `Magic.jl` is checking out our [demo apps](https://magic.coisasdodavi.net/)
+A great way to learn how to use `Magic.jl` is checking out our [demo apps](/examples)
 and exploring their source code.
 
 

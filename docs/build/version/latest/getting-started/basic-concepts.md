@@ -51,11 +51,11 @@ At the moment, there are three predefined page layout styles that you can set:
 - `set_page_layout("centered")`: Narrow layout with centered content.
 - `set_page_layout("wide")`: Wide layout with small padding.
 
-These overall layout styles alter how the `main_area()` container looks and
+These overall layout styles alter how the [`main_area()`](/docs/version/latest/api-reference/layout-elements/main_area) container looks and
 behaves, but it is up to you to arrange the main area content.
 
-In short, if you want to stack elements vertically, use `columns()` or
-`column()`. If you want to stack elements horizontally, use `row()`.
+In short, if you want to stack elements vertically, use [`columns()`](/docs/version/latest/api-reference/layout-elements/columns) or
+[`column()`](/docs/version/latest/api-reference/layout-elements/column). If you want to stack elements horizontally, use [`row()`](/docs/version/latest/api-reference/layout-elements/row).
 
 Containers can be nested to create more intricate layouts. For instance, the
 example below creates an app with `"wide"` layout with two columns, and the
@@ -97,8 +97,8 @@ For more control over the layout of the `main_area()`, you can
 
 ## Widgets, reruns and callbacks
 
-Widgets are interactable interface elements, such as `button()`, `checkbox()`
-and `selectbox()`. Widget creation functions typically return its current value.
+Widgets are interactable interface elements, such as [`button()`](/docs/version/latest/api-reference/interface-elements/button), [`checkbox()`](/docs/version/latest/api-reference/interface-elements/checkbox)
+and [`selectbox()`](/docs/version/latest/api-reference/interface-elements/selectbox). Widget creation functions typically return its current value.
 Example:
 
 ```julia
@@ -117,14 +117,16 @@ user input.
 
 Sometimes it is useful to take action in response to user input even before the
 script is rerun from top to bottom. For those situations, you can bind a
-`callback` function to the widget. For instance:
+callback function to the widget, using the `onclick` argument of buttons or the
+`onchange` argument of widgets that support it, such as `selectbox()` and
+`checkbox()`. For instance:
 
 ```julia
 function click_handler()
     # Do something when the button is clicked.
 end
 
-button("Click me", callback=click_handler)
+button("Click me", onclick=click_handler)
 ```
 
 Callbacks are executed *before* reruning the app script from top to bottom, so
@@ -134,7 +136,7 @@ actions that will affect how the app looks and behaves.
 
 ## Multiple Pages
 
-`Magic.js` web apps can have multiple pages. Each page is bound to one or more
+`Magic.jl` web apps can have multiple pages. Each page is bound to one or more
 URL paths by calling the [`add_page()`](/docs/version/latest/api-reference/application-logic/set_title#addpage)
 function at a [`@app_startup`](/docs/version/latest/api-reference/application-logic/@app_startup)
 code block. Example:
@@ -167,9 +169,9 @@ When starting an app, `Magic.jl` will automatically create a `.Magic`
 directory, if one is not found or provided, to store various files needed for
 the proper functioning of the app. By default, this directory is created at the
 process working directory, but this can be changed via the `dot_magic_dir`
-argument of the `start_app` function. You can get the `.Magic` location by
-calling `get_dot_magic_dir()` to retrieve `.Magic`'s parent directory or
-`get_dot_magic_path()` to retrieve its full path including `.Magic`.
+argument of the [`start_app`](/docs/version/latest/api-reference/application-logic/start_app) function. You can get the `.Magic` location by
+calling [`get_dot_magic_dir()`](/docs/version/latest/api-reference/application-logic/get_dot_magic_dir) to retrieve `.Magic`'s parent directory or
+[`get_dot_magic_path()`](/docs/version/latest/api-reference/application-logic/get_dot_magic_path) to retrieve its full path including `.Magic`.
 
 Feel free to use this same directory to store whatever files you may need in a
 your app, but **stay out** of the following temporary subdirectories, which are
