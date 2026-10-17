@@ -2057,8 +2057,8 @@ Render a raw HTML element.
 
 ```julia
 function html(
-    tag         ::String,
-    inner_html  ::String;
+    tag         ::AbstractString,
+    inner_html  ::AbstractString;
     attributes  ::Dict = Dict(),
     css         ::Dict = Dict()
 )::Nothing
@@ -2076,12 +2076,12 @@ function html(
 Nothing.
 """
 function html(
-    tag::String,
-    inner_html::String;
+    tag::AbstractString,
+    inner_html::AbstractString;
     attributes::Dict=Dict(),
     css::Dict=Dict()
 )::Nothing
-    return create_html(top_container(), tag, inner_html, attributes, css)
+    return create_html(top_container(), String(tag), String(inner_html), attributes, css)
 end
 
 function commonmark_parser()
@@ -2278,7 +2278,7 @@ space(; width::String="1px", height::String="1px") = html("div", "", css=Dict("w
 
 # Text, headers and icons
 #-----------------------------
-function maybe_prepend_icon(text::String, icon::String, icon_color::String)::String
+function maybe_prepend_icon(text::AbstractString, icon::AbstractString, icon_color::AbstractString)::String
     if length(icon) > 0
         assert_valid_material_icon(@named(icon))
 
