@@ -82,7 +82,7 @@ fragment, @fragment, get_url_path, is_on_page, get_current_page, add_page,
 add_css_rule, add_font, set_title,
 set_description, UploadedFile, get_dot_magic_dir, get_dot_magic_path,
 inject_html, get_url_search, get_query_params, get_server_host, get_server_port,
-get_server_origin, make_uploaded_file, @job, AsyncJob, bind_fragment,
+get_server_origin, stop_app, make_uploaded_file, @job, AsyncJob, bind_fragment,
 get_progress, set_progress, get_progress_snapshot, get_progress_message,
 get_progress_data, is_started, is_done, get_result, job_exists, stop, is_running,
 get_jobs, rerun, markdown, is_stopped, is_errored, ProgressSnapshot
