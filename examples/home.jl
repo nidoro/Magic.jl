@@ -258,7 +258,7 @@ column(fill_width=true, align_items="center") do
 
         section_separator()
         h2("File upload/download")
-        file_path = ".Magic/served-files/images/chart.png"
+        file_path = joinpath(get_dot_magic_path(), "served-files/images/chart.png")
 
         fragment() do
             row(fill_width=true, align_items="center") do

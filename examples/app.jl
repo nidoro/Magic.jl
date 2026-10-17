@@ -13,17 +13,17 @@ function section_separator()::Nothing
 end
 
 @app_startup begin
-     add_page(["/", "/home"])
-     add_page("/examples")
-#     add_page("/examples/counter")
-#     add_page("/examples/todo")
-#     add_page("/examples/curves")
-#     add_page("/examples/probability-density")
-#     add_page("/examples/avatar")
-#     add_page("/examples/forecast")
-     add_page("/examples/seattle-weather")
-#     add_page("/examples/image-filters")
-#     add_page("/examples/fragment-example")
+    add_page(["/", "/home"])
+    add_page("/examples")
+    add_page("/examples/counter")
+    add_page("/examples/todo")
+    add_page("/examples/curves")
+    add_page("/examples/probability-density")
+    add_page("/examples/avatar")
+    add_page("/examples/forecast")
+    add_page("/examples/seattle-weather")
+    add_page("/examples/image-filters")
+    add_page("/examples/fragment-example")
 end
 
 if is_on_page("/")

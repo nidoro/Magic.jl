@@ -96,7 +96,7 @@ end
         ENV["MAGIC_TEST_PAGE"] = "60-job-example.jl"
         ENV["MAGIC_TEST_ACTIONS_SCRIPT"] = "60-job-example.js"
         ENV["MAGIC_TEST_CLIENTS"] = 10
-        @test @maybe_suppress start_app("src/test_examples.jl", dot_magic_dir="../examples", port=PORT, dev_mode=true, rethrow_rerun_exceptions=true, throw_client_side_error=true) === nothing
+        @test @maybe_suppress start_app("src/test_examples.jl", dot_magic_dir="../examples", port=3443, dev_mode=true, rethrow_rerun_exceptions=true, throw_client_side_error=true) === nothing
         @test get_app_data("test_successfull")
     end
 end

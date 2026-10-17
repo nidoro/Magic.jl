@@ -11,7 +11,7 @@
     @test_throws Magic.IncorrectUsage job_exists("")
     @test_throws Magic.IncorrectUsage is_started("")
     @test_throws Magic.IncorrectUsage is_done("")
-    @test_throws Magic.IncorrectUsage is_finished("")
+    @test_throws Magic.IncorrectUsage is_running("")
     @test_throws Magic.IncorrectUsage is_errored("")
     @test_throws Magic.IncorrectUsage stop("")
 

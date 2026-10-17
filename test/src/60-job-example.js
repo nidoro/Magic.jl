@@ -38,8 +38,6 @@ function eventListener(event) {
                         nextAction += 1;
                     });
                 });
-            } else if (params.has('chromium_instance')) {
-                magic.disconnect("test_done");
             }
         }
 

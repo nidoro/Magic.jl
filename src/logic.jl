@@ -1323,6 +1323,11 @@ function is_started(job::AsyncJob)::Bool
     return !isnothing(job.task) && istaskstarted(job.task)
 end
 
+function is_started(id::AbstractString)::Bool
+    job = get_job(id)
+    return !ismissing(job) && is_started(job)
+end
+
 function is_running(job::AsyncJob)::Bool
     if is_started(job)
         return !istaskdone(job.task)
@@ -1449,6 +1454,11 @@ function get_session_data(key::Union{AbstractString, Nothing} = nothing)::Any
     else
         return missing
     end
+end
+
+function get_session_data(client_id::Integer)::Any
+    session = get_session(client_id)
+    return session.user_session_data
 end
 
 @doc DOC_SESSION_PERSISTENT_DATA
