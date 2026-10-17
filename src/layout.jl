@@ -689,6 +689,59 @@ function create_dialog(
     )
 end
 
+"""
+# dialog
+
+Displays a dialog, that is, a popup window shown in front of everything.
+
+The dialog stays open for as long as `dialog()` keeps being called on each
+rerun, which usually means as long as the user don't interact with a button
+that reruns the entire script, like `x_button()`.
+
+Once a rerun no longer calls it, the dialog is closed. Only one dialog
+can be open at a time.
+
+### Function Signature
+
+```julia
+function dialog(
+    inner_func      ::Function                  =()->(),
+    id              ::Union{String, Nothing}    =nothing;
+    fragment_wrapper::Bool                      =true
+)::Union{Fragment, Nothing}
+```
+
+ Argument            | Description
+:------------------- |:-------------
+ `inner_func`        | A do-block `Function` defining the content of the dialog: <pre>dialog() do<br/>  # dialog content<br/>end</pre>
+ `id`                | An optional `String` used as the id of the fragment that wraps the dialog content. If `nothing` (default), an id is generated from the file and line where `inner_func` is defined. Ignored if `fragment_wrapper` is `false`.
+ `fragment_wrapper`  | A `Bool`. If `true` (default), the dialog content is wrapped in a fragment (see `fragment()`), so interacting with widgets inside the dialog reruns only the dialog instead of the entire app.
+
+### Return Value
+
+The `Fragment` wrapping the dialog content if `fragment_wrapper` is `true`,
+or `nothing` otherwise.
+
+### Example
+
+```julia
+if button("Open Dialog")
+    dialog() do
+        x_button()
+        h2("Dialog")
+        text_input("Enter your name", fill_width=true, id="name")
+        if button("Confirm", style="primary")
+            rerun()
+        end
+    end
+end
+```
+
+In the example above, clicking "Open Dialog" opens the dialog. Clicking on either
+"Confirm" or in the `X` close button in the top right created by `x_button`
+reruns the app, when then `button("Open Dialog")` will return `false`, so `dialog()`
+is not called and the dialog is closed.
+"""
 function dialog(
     inner_func      ::Function                  =()->(),
     id              ::Union{String, Nothing}    =nothing;
@@ -1049,6 +1102,51 @@ function right_sidebar(inner_func::Function=()->())::ContainerInterface
     return task.layout.right_sidebar
 end
 
+"""
+# top\\_bar
+
+Retrieves the `ContainerInterface` of the page top bar created by
+`set_page_layout()`.
+
+The top bar is disabled by default. In order to enable it, you must set its
+style by calling `set_page_layout()` with the `top_bar` argument.
+Example:
+
+```julia
+set_page_layout("centered", top_bar="fixed")
+```
+
+Calling `top_bar()` when the layout does not have a top bar throws an
+`ArgumentError`.
+
+### Function Signature
+
+```julia
+function top_bar(inner_func::Function=()->())::ContainerInterface
+```
+
+ Argument                              | Description
+:------------------------------------ |:-------------
+ `inner_func`                      | An optional do-block `Function`, so you can add content to the top bar like this: <pre>top\\_bar() do<br/>  # top bar content<br/>end</pre> which is essentially the same as: <pre>@push top\\_bar()<br/># top bar content<br/>@pop</pre>In both cases, elements created inside the `do-end`/`push-pop` blocks will be placed inside the container returned by `top_bar()`, with the difference that `push-pop` does not define a new scope, and thus variables created inside that block can be accessed after `@pop`.
+
+### Return Value
+
+The `ContainerInterface` of the top bar.
+
+### Example
+
+```julia
+set_page_layout("wide", top_bar="fixed")
+
+top_bar() do
+    row(fill_width=true, align_items="center") do
+        link("Home", "/", style="naked")
+        link("Examples", "/examples", style="naked")
+        link("GitHub", "https://github.com/nidoro/Magic.jl", style="naked", new_tab=true)
+    end
+end
+```
+"""
 function top_bar(inner_func::Function=()->())::ContainerInterface
     task = ensure_app_task_exists()
     if task.layout.top_bar == nothing
@@ -1063,6 +1161,59 @@ function top_bar(inner_func::Function=()->())::ContainerInterface
     return task.layout.top_bar
 end
 
+"""
+# expander
+
+Inserts an expander: a container with a clickable label that expands or
+collapses its content.
+
+### Function Signature
+
+```julia
+function expander(
+    inner_func              ::Function,                 # optional
+    label                   ::AbstractString;
+    initial_state           ::AbstractString            ="closed",
+    fill_width              ::Bool                      =false,
+    show_border             ::Bool                      =false,
+    gap                     ::String                    =".8rem",
+    label_size              ::String                    ="1rem",
+    label_color             ::Union{String, Nothing}    =nothing,
+    label_weight            ::String                    ="normal",
+    label_padding           ::String                    ="0",
+    label_hover_background  ::Union{String, Nothing}    =nothing,
+    label_css               ::Dict                      =Dict(),
+)::ContainerInterface
+```
+
+ Argument                  | Description
+:------------------------- |:-------------
+ `inner_func`              | A do-block `Function` defining the content of the expander: <pre>expander("Click to Expand") do<br/>  # expander content<br/>end</pre>If omitted, the expander is created empty, and content can be added to the returned container.
+ `label`                   | A `String` displayed in the clickable label of the expander. It can contain HTML.
+ `initial_state`           | A `String` specifying the initial state of the expander: `"closed"` (default) or `"expanded"`.
+ `fill_width`              | A `Bool` indicating whether the expander should expand to fill the available horizontal space. Default: `false`.
+ `show_border`             | A `Bool`. If `true`, a border is displayed around the expander. Default: `false`.
+ `gap`                     | A `String` specifying the spacing between the label and the content. Corresponds to the CSS `gap` property.
+ `label_size`              | A `String` specifying the font size of the label. Corresponds to the CSS `font-size` property.
+ `label_color`             | An optional `String` specifying the color of the label using a CSS color value.
+ `label_weight`            | A `String` specifying the font weight of the label. Corresponds to the CSS `font-weight` property.
+ `label_padding`           | A `String` specifying the inner spacing of the label. Corresponds to the CSS `padding` property.
+ `label_hover_background`  | An optional `String` specifying the background color of the label when the mouse hovers over it, using a CSS color value.
+ `label_css`               | A `Dict` of additional CSS properties applied to the label.
+
+### Return Value
+
+The `ContainerInterface` holding the content of the expander.
+
+### Example
+
+```julia
+expander("Click to Expand") do
+    link("Github", "https://github.com/nidoro/Magic.jl")
+    link("Examples", "https://github.com/nidoro/Magic.jl")
+end
+```
+"""
 function expander(
     inner_func::Function,
     label::AbstractString;
@@ -1077,6 +1228,8 @@ function expander(
     label_hover_background::Union{String, Nothing}=nothing,
     label_css::Dict=Dict(),
 )::ContainerInterface
+
+    assert_string_in_list(initial_state, ["closed", "expanded"])
 
     set_css_if_not_set(label_css, "font-weight", label_weight)
     set_css_if_not_set(label_css, "font-size", label_size)
