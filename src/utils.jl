@@ -91,7 +91,7 @@ function assert_string_in_list(arg::Tuple, white_list::Union{Vector, Tuple})::No
 end
 
 function assert_key_in_dict(arg::Tuple, dict::Dict)::Nothing
-    haskey(dict, arg[2]) || throw(InvalidArgument(arg, "`$(arg[1])` : $(white_list)."))
+    haskey(dict, arg[2]) || throw(InvalidArgument(arg, "`$(arg[1])` does not exists in dict."))
     return nothing
 end
 
@@ -172,7 +172,7 @@ function is_valid_mime_or_extension(s::AbstractString)::Bool
     mime_re = Regex("^" * token * "/" * token * "\$")
 
     # File extension: leading dot, then dot-separated alphanumeric segments
-    ext_re = r"^\.[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*\$"
+    ext_re = r"^\.[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*$"
 
     return occursin(mime_re, s) || occursin(ext_re, s)
 end
