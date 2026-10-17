@@ -903,6 +903,7 @@ function create_selectbox(
         widget.user_id = props["user_id"]
         widget.value = initial_value
         widget.onchange = onchange
+        widget.args = collect(args)
         widgets[props["id"]] = widget
     end
 
