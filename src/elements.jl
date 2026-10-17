@@ -91,11 +91,18 @@ Display a button widget.
 
 ```julia
 function button(
-    label   ::String                ="";
-    style   ::String                ="secondary",
-    icon    ::String                ="",
-    onclick ::Function              =()->(),
-    args    ::Union{Vector, Tuple}  =Vector()
+    label           ::String                    ="";
+    style           ::String                    ="secondary",
+    icon            ::String                    ="",
+    fill_width      ::Bool                      =false,
+    font_weight     ::Union{String, Nothing}    =nothing,
+    padding         ::Union{String, Nothing}    =nothing,
+    justify_content ::Union{String, Nothing}    =nothing,
+    background      ::Union{String, Nothing}    =nothing,
+    hover_background::Union{String, Nothing}    =nothing,
+    onclick         ::Function                  =()->(),
+    args            ::Union{Vector, Tuple}      =Vector(),
+    css             ::Dict                      =Dict()
 )::Bool
 ```
 
@@ -104,8 +111,15 @@ function button(
  `label`   | A `String` to be displayed inside the button. It can contain HTML.
  `style`   | A `String` specifying the predefined style to be applied to the button. Possible values: `primary`, `secondary` (default), or `naked`.
  `icon`    | A `String` in the format `material/icon_name`. Example: `material/thumb_up`.<br/><br/>Check out https://fonts.google.com/icons?icon.set=Material+Icons to learn the icon names.
+ `fill_width` | A `Bool` indicating whether the button should expand to fill the available horizontal space. Default: `false`.
+ `font_weight` | An optional `String` specifying the font weight of the button label. Corresponds to the CSS `font-weight` property. Example values: `"normal"`, `"bold"`, `"600"`.
+ `padding` | An optional `String` specifying the inner spacing of the button. Corresponds to the CSS `padding` property. Example: `"0.5rem 1rem"`.
+ `justify_content` | An optional `String` controlling the horizontal alignment of the button content. Corresponds to the CSS `justify-content` property. Example values: `flex-start`, `center`, `space-between`.
+ `background` | An optional `String` specifying the background color of the button using a CSS color value. Overrides the color defined by `style`.
+ `hover_background` | An optional `String` specifying the background color of the button when the mouse hovers over it, using a CSS color value.
  `onclick` | A callback `Function`. This function will be called when the button is clicked, before the app script is rerun.
- `args`    | A `Vector` of arguments that will be passed to the `onclick` callback function.
+ `args`    | A `Vector` or `Tuple` of arguments that will be passed to the `onclick` callback function.
+ `css`     | A `Dict` of additional CSS properties applied to the button element.
 
 ### Return Value
 
@@ -174,7 +188,7 @@ function download_button(
     style       ::String                    ="secondary",
     icon        ::String                    ="material/download",
     onclick     ::Function                  =()->(),
-    args        ::Vector                    =Vector()
+    args        ::Union{Vector, Tuple}      =Vector()
 )::Bool
 ```
 
@@ -186,7 +200,7 @@ function download_button(
  `style`   | A `String`. Should be either `primary`, `secondary`, or `naked`. Default: `secondary`.
  `icon`    | A `String` in the format `material/icon_name`. Example: `material/thumb_up`.<br/><br/>Check out https://fonts.google.com/icons?icon.set=Material+Icons to learn the icon names.
  `onclick` | A callback `Function`. This function will be called when the button is clicked, before the app script is rerun.
- `args`    | A `Vector` of arguments that will be passed to the `onclick` callback function.
+ `args`    | A `Vector` or `Tuple` of arguments that will be passed to the `onclick` callback function.
 
 ### Return Value
 
@@ -1641,20 +1655,32 @@ Display a `DataFrame` from package [`DataFrames.jl`](https://dataframes.juliadat
 
 ```julia
 function dataframe(
-    data            ::DataFrame;
-    column_config   ::Dict      =Dict(),
-    height          ::String    ="400px",
-    id              ::Union{String, Nothing}=nothing,
-    onchange        ::Function  =(args...; kwargs...)->(),
-    args            ::Vector    =Vector()
-)::Widget
+    data                ::DataFrame;
+    column_config       ::Dict                      =Dict(),
+    editable            ::Bool                      =false,
+    fill_height         ::Bool                      =false,
+    height              ::Union{String, Nothing}    =nothing,
+    max_height          ::Union{String, Nothing}    =nothing,
+    precision           ::Int                       =1,
+    decimal_separator   ::String                    =".",
+    thousands_separator ::String                    ="",
+    id                  ::Union{String, Nothing}    =nothing,
+    onchange            ::Function                  =()->(),
+    args                ::Vector                    =Vector()
+)::DataFrame
 ```
 
  Argument     | Description
 :------------------ |:-----------
  `data`      | A `DataFrame` to be displayed.
  `column_config` | A `Dict` used to configure column behavior and appearance. Each entry of this `Dict` should be a column name paired with a `Dict` of configurations. These are the supported configuration options: <ul><li>`"editable"`: A `Bool`. If `true`, the cells of the column will be editable (double-click to edit). Default: `false`.</li><li>`"required"`: A `Bool` indicating wether a valid non-empty value is required. Default: `false`.</li></ul>
- `height`    | A `String` specifying the height of the table using a CSS value (for example, `"400px"`).
+ `editable`  | A `Bool`. If `true`, the cells of all columns will be editable (double-click to edit). Can be overridden per column through the `"editable"` option of `column_config`. Default: `false`.
+ `fill_height` | A `Bool` indicating whether the table should expand to fill the available vertical space. Default: `false`.
+ `height`    | An optional `String` specifying the height of the table using a CSS value (for example, `"400px"`). If `nothing` (default), the table grows to fit its content.
+ `max_height` | An optional `String` specifying the maximum height of the table using a CSS value (for example, `"300px"`). If the content exceeds this height, the table becomes scrollable.
+ `precision` | An `Int` specifying how many decimal places should be displayed in floating point columns. Can be overridden per column through the `"precision"` option of `column_config`. Default: `1`.
+ `decimal_separator` | A `String` specifying the character that should be used as decimal separator. Default: `"."`.
+ `thousands_separator` | A `String` specifying the character that should be used as thousands separator. Default: `""`.
  `id`              | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like `get_value()` and `set_value()`.
  `onchange`        | A callback `Function`. This function is called when any cell value changes, before the app script is rerun.
  `args`            | A `Vector` of arguments that should be passed to the `onchange` callback function.
@@ -1691,7 +1717,7 @@ function dataframe(
     max_height          ::Union{String, Nothing}    =nothing,
     precision           ::Int                       =1,
     decimal_separator   ::String                    =".",
-    thousands_separator ::String                    =",",
+    thousands_separator ::String                    ="",
     id                  ::Union{String, Nothing}    =nothing,
     onchange            ::Function                  =()->(),
     args                ::Vector                    =Vector()
@@ -2067,12 +2093,18 @@ Display a link styled as a button.
 
 ```julia
 function link(
-    label      ::String,
-    url        ::String;
-    style      ::String = "secondary",
-    fill_width ::Bool   = false,
-    new_tab    ::Bool   = false,
-    css        ::Dict   = Dict()
+    label           ::String,
+    url             ::String;
+    style           ::String                    ="secondary",
+    new_tab         ::Bool                      =false,
+    icon            ::String                    ="",
+    fill_width      ::Bool                      =false,
+    font_weight     ::Union{String, Nothing}    =nothing,
+    padding         ::Union{String, Nothing}    =nothing,
+    justify_content ::Union{String, Nothing}    =nothing,
+    background      ::Union{String, Nothing}    =nothing,
+    hover_background::Union{String, Nothing}    =nothing,
+    css             ::Dict                      =Dict()
 )::Nothing
 ```
 
@@ -2081,8 +2113,14 @@ function link(
  `label`        | A `String` to be displayed as the link text. It can contain HTML.
  `url`          | A `String` specifying the destination URL of the link.
  `style`        | A `String` defining the visual style of the link. Accepted values: `"primary"`, `"secondary"`, or `"naked"`. Default: `"secondary"`.
- `fill_width`   | A `Bool` indicating whether the link should expand to fill the available horizontal space. Default: `false`.
  `new_tab`      | A `Bool` indicating whether the link should open in a new browser tab. Default: `false`.
+ `icon`    | A `String` in the format `material/icon_name`, displayed after the label. Example: `material/thumb_up`. If empty and `new_tab` is `true`, the `material/open_in_new` icon is used.<br/><br/>Check out https://fonts.google.com/icons?icon.set=Material+Icons to learn the icon names.
+ `fill_width` | A `Bool` indicating whether the link should expand to fill the available horizontal space. Default: `false`.
+ `font_weight` | An optional `String` specifying the font weight of the link label. Corresponds to the CSS `font-weight` property. Example values: `"normal"`, `"bold"`, `"600"`.
+ `padding` | An optional `String` specifying the inner spacing of the link. Corresponds to the CSS `padding` property. Example: `"0.5rem 1rem"`.
+ `justify_content` | An optional `String` controlling the horizontal alignment of the link content. Corresponds to the CSS `justify-content` property. Example values: `flex-start`, `center`, `space-between`.
+ `background` | An optional `String` specifying the background color of the link using a CSS color value. Overrides the color defined by `style`.
+ `hover_background` | An optional `String` specifying the background color of the link when the mouse hovers over it, using a CSS color value. Overrides the color defined by `style`.
  `css`          | A `Dict` of CSS properties applied inline to the element.
 
 ### Return Value
@@ -2199,10 +2237,11 @@ Family of functions `h1`, `h2`, `h3`, `h4`, `h5` and `h6` to display the 6 diffe
 # same signature for h1, h2, h3, h4, h5 and h6
 
 function h1(
-    text        ::String;
-    icon        ::String = "",
-    icon_color  ::String = "",
-    css         ::Dict   = Dict()
+    text             ::String;
+    icon             ::String = "",
+    icon_color       ::String = "",
+    show_anchor_link ::Bool   = true,
+    css              ::Dict   = Dict()
 )::Nothing
 ```
 
@@ -2211,6 +2250,7 @@ function h1(
  `text`         | A `String` containing the heading text. It can contain HTML.
  `icon`    | A `String` in the format `material/icon_name`. Example: `material/thumb_up`.<br/><br/>Check out https://fonts.google.com/icons?icon.set=Material+Icons to learn the icon names.
  `icon_color`   | An optional `String` specifying the color of the icon using a CSS color value.
+ `show_anchor_link` | A `Bool`. If `true`, the heading gets an `id` attribute derived from its text, so it can be linked to directly with a URL fragment (for example, `#my-heading`). Default: `true`.
  `css`          | A `Dict` of additional CSS properties applied to the heading element.
 
 ### Return Value
@@ -2629,7 +2669,7 @@ Sets the value of a uniquely identified widget.
 ### Function Signature
 
 ```julia
-function set_value(id::String, value::Any)::Nothing
+function set_value(id::String, value::Any)::Any
 ```
 
  Argument  | Description
