@@ -262,7 +262,7 @@ function create_text_input(
     label::String,
     initial_value::Union{String, Nothing},
     placeholder::Union{String, Nothing},
-    css=Dict
+    css::Dict
 )::Union{String, Nothing}
 
     # Input validation
@@ -396,7 +396,7 @@ function create_number_input(
     step::Real,
     decimal_separator::String,
     thousands_separator::String,
-    css=Dict
+    css::Dict
 )::Union{Real, Nothing}
 
     # Input validation
@@ -599,7 +599,7 @@ function create_slider(
     step::Union{Real, Nothing},
     decimal_separator::String,
     thousands_separator::String,
-    css=Dict
+    css::Dict
 )::Real
 
     # Input validation
@@ -791,7 +791,7 @@ function create_selectbox(
     placeholder::Union{String, Nothing},
     onchange::Function,
     args::Union{Vector, Tuple},
-    css=Dict
+    css::Dict
 )::Union{String, Number, Vector, Tuple, Nothing}
 
     # Input validation
@@ -999,7 +999,7 @@ function create_color_picker(
     label::String,
     initial_value::Union{String, Nothing},
     onchange::Function,
-    css=Dict
+    css::Dict
 )::String
 
     # Input validation
