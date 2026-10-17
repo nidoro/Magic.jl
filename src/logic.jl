@@ -2644,14 +2644,16 @@ function save_doc(object::Any, file_path::String, sidebar_position::Union{Intege
 end
 
 function gen_docs()::Nothing
-    doc_layout_dir      = mkpath(joinpath(pkgdir(Magic), "docs/api-reference/layout-elements"))
-    doc_interface_dir   = mkpath(joinpath(pkgdir(Magic), "docs/api-reference/interface-elements"))
-    doc_logic_dir       = mkpath(joinpath(pkgdir(Magic), "docs/api-reference/application-logic"))
+    doc_layout_dir      = mkpath(joinpath(pkgdir(Magic), "docs/build/version/latest/api-reference/layout-elements"))
+    doc_interface_dir   = mkpath(joinpath(pkgdir(Magic), "docs/build/version/latest/api-reference/interface-elements"))
+    doc_logic_dir       = mkpath(joinpath(pkgdir(Magic), "docs/build/version/latest/api-reference/application-logic"))
+    doc_jobs_dir        = mkpath(joinpath(pkgdir(Magic), "docs/build/version/latest/api-reference/jobs"))
 
     # Layout API
     #-------------
     objects = [:set_page_layout, :column, :columns, :row, :container,
-               :main_area, :push_container, :left_sidebar]
+               :main_area, :push_container, :left_sidebar, :top_bar, :dialog,
+               :expander]
 
     for (i, object) in enumerate(objects)
         save_doc(getfield(Magic, object), joinpath(doc_layout_dir, "$(object).md"))
@@ -2665,7 +2667,8 @@ function gen_docs()::Nothing
                :make_serveable_copy, :move_to_serveable_dir, :get_dot_magic_path,
                :get_dot_magic_dir, :is_on_page, :is_app_first_pass, :set_title,
                :get_url_path, :get_url_search, :get_query_params, :get_server_host,
-               :get_server_port, :get_server_origin]
+               :get_server_port, :get_server_origin, :get_current_page, :rerun,
+               :stop_app]
 
     for (i, object) in enumerate(objects)
         save_doc(getfield(Magic, object), joinpath(doc_logic_dir, "$(object).md"))
@@ -2676,10 +2679,23 @@ function gen_docs()::Nothing
     objects = [:button, :selectbox, :checkbox, :checkboxes, :radio, :text_input,
                :number_input, :slider, :dataframe, :file_uploader,
                :download_button, :link, :color_picker, :image, :text, :h1,
-               :metric, :code, :icon, :space, :html, :get_value]
+               :metric, :code, :icon, :space, :html, :get_value, :markdown,
+               :get_changes, :spinner, :progress_bar, :x_button,
+               :make_uploaded_file]
 
     for (i, object) in enumerate(objects)
         save_doc(getfield(Magic, object), joinpath(doc_interface_dir, "$(object).md"))
+    end
+
+    # Jobs API
+    #-------------
+    # NOTE: :is_running and :get_progress also cover the other functions of
+    # their shared docstrings (job status and job progress functions).
+    objects = [Symbol("@job"), :get_jobs, :job_exists, :is_running, :get_result,
+               :bind_fragment, :set_progress, :get_progress, :stop]
+
+    for (i, object) in enumerate(objects)
+        save_doc(getfield(Magic, object), joinpath(doc_jobs_dir, "$(object).md"))
     end
 
     return nothing
