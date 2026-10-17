@@ -1092,7 +1092,7 @@ function right_sidebar(inner_func::Function=()->())::ContainerInterface
     task = ensure_app_task_exists()
     if task.layout.right_sidebar == nothing
         throw(ArgumentError(
-            "Your layout does not have a left sidebar. To create one,\n" *
+            "Your layout does not have a right sidebar. To create one,\n" *
             "first call `set_page_layout()` with the desired `right_sidebar` parameters."
         ))
     end
