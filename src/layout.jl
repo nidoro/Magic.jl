@@ -959,7 +959,7 @@ left_sidebar() do
 end
 ```
 """
-function main_area(inner_func::Function)::ContainerInterface
+function main_area(inner_func::Function=()->())::ContainerInterface
     task = ensure_app_task_exists()
     push_container(task.layout.main_area)
     inner_func()
