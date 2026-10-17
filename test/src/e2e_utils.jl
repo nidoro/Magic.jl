@@ -1,8 +1,8 @@
 
 function spawn_chromium_instance()::Nothing
-    app_data = get_app_data()
+    chromium_instance = get_app_data("chromium_instances")
 
-    n = length(app_data.chromium_instances)+1
+    n = length(chromium_instances)+1
     test_url = "$(get_server_origin())/?chromium_instance=$(n)"
     mkpath("./log")
 
@@ -12,7 +12,7 @@ function spawn_chromium_instance()::Nothing
 
     sleep(0.25)
     if process_running(proc)
-        push!(app_data.chromium_instances, proc)
+        push!(chromium_instances, proc)
     else
         throw(Magic.TestFailed(test_url, "Failed to spawn a chromium instance"))
     end
@@ -28,11 +28,18 @@ function kill_chromium_instance(instance::Base.Process)::Nothing
 end
 
 function kill_all_chromium_instances()::Nothing
-    app_data = get_app_data()
-
-    for instance in app_data.chromium_instances
+    for instance in get_app_data("chromium_instances")
         kill_chromium_instance(instance)
     end
 
     return nothing
+end
+
+function single_session_rerun_callback(reason::Magic.CallbackReason, args...)
+    if     reason == Magic.CallbackReason_ServerReady
+        set_app_data("chromium_instances", [])
+        spawn_chromium_instance()
+    elseif reason == Magic.CallbackReason_ErrorDuringRerun || reason == Magic.CallbackReason_TaskFinished
+        kill_all_chromium_instances()
+    end
 end

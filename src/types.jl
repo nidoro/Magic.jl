@@ -331,7 +331,6 @@ end
     upload_max_files    ::Int                       = 10
 
     net_layer_ready     ::Bool                      = false
-    test_successfull    ::Bool                      = false
     rethrow_rerun_exceptions::Bool                  = false
     throw_client_side_error ::Bool                  = false
 

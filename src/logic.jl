@@ -1222,14 +1222,6 @@ function create_job(func::Function, id::AbstractString)::AsyncJob
     return result
 end
 
-macro job(block)
-    return :(
-        Magic.create_job(function()
-            $(esc(block))
-        end)
-    )
-end
-
 function async_job(
     func::Function,
     id::Union{AbstractString, Nothing}=nothing;
@@ -1313,17 +1305,33 @@ function job_exists(id::AbstractString)::Bool
     return get_job_index(id) >= 1
 end
 
-function is_finished(job::AsyncJob)::Bool
-    return !isnothing(job.task) && istaskdone(job.task)
+function is_started(job::AsyncJob)::Bool
+    return !isnothing(job.task) && istaskstarted(job.task)
 end
 
-function is_finished(id::AbstractString)::Bool
+function is_running(job::AsyncJob)::Bool
+    if is_started(job)
+        return !istaskdone(job.task)
+    end
+    return true
+end
+
+function is_running(id::AbstractString)::Bool
     job = get_job(id)
-    return !ismissing(job) && is_finished(job)
+    return !ismissing(job) && is_running(job)
+end
+
+function is_errored(job::AsyncJob)::Bool
+    return !isnothing(job.caught_error)
+end
+
+function is_errored(id::AbstractString)::Bool
+    job = get_job(id)
+    return !ismissing(job) && is_errored(job)
 end
 
 function is_done(job::AsyncJob)::Bool
-    return is_finished(job) && isnothing(job.caught_error)
+    return !is_running(job) && !is_errored(job)
 end
 
 function is_done(id::AbstractString)::Bool
@@ -1332,7 +1340,7 @@ function is_done(id::AbstractString)::Bool
 end
 
 function is_stopped(job::AsyncJob)::Bool
-    return job.stopped
+    return job.stopped || job.stop_requested
 end
 
 function is_stopped(id::AbstractString)::Bool
@@ -2675,7 +2683,11 @@ function set_progress(job::AsyncJob, progress::Real, message::Union{AbstractStri
 end
 
 function set_progress(progress::Real; message::Union{AbstractString, Nothing}=nothing, data::Any=nothing)::ProgressSnapshot
-    return set_progress(get_current_job(), progress, message, data)
+    job = get_current_job()
+    if isnothing(job)
+        throw(IncorrectUsage(set_progress))
+    end
+    return set_progress(job, progress, message, data)
 end
 
 function get_progress_snapshot(job::AsyncJob)::ProgressSnapshot

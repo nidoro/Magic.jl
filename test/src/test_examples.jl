@@ -74,6 +74,10 @@ function test_successfull(client_id::Cint)::Tuple{Bool, String}
     elseif (test_page, test_actions_script) == ("20-image-filters.jl", "20-image-filters.js")
         # In this test, reaching the end means success.
         return (true, "")
+
+    elseif (test_page, test_actions_script) == ("60-job-example.jl", "60-job-example.js")
+        # In this test, reaching the end means success.
+        return (true, "")
     end
 
     # NOTE: We should never reach here
@@ -81,8 +85,6 @@ function test_successfull(client_id::Cint)::Tuple{Bool, String}
 end
 
 function callback(reason::Magic.CallbackReason, args...)
-    app_data = get_app_data()
-
     if     reason == Magic.CallbackReason_ServerReady
         for i in range(1, test_clients)
             spawn_chromium_instance()
@@ -93,9 +95,12 @@ function callback(reason::Magic.CallbackReason, args...)
         query = get_query_params(client_id)
         if haskey(query, "chromium_instance")
             p = parse(Int, query["chromium_instance"])
-            proc = app_data.chromium_instances[p]
+            chromium_instances = get_app_data("chromium_instances")
+            proc = chromium_instances[p]
             kill_chromium_instance(proc)
-            app_data.done += 1
+
+            done = get_app_data("done") + 1
+            set_app_data("done", done)
 
             test_url = "$(get_server_origin())/?chromium_instance=$(p)"
 
@@ -106,23 +111,16 @@ function callback(reason::Magic.CallbackReason, args...)
                 throw(Magic.TestFailed(test_url, feedback))
             end
 
-            if app_data.done == length(app_data.chromium_instances)
-                Magic.g.test_successfull = true
+            if done == length(chromium_instances)
+                set_app_data("test_successfull", true)
                 stop_app()
             end
         end
     end
 end
 
-mutable struct AppData
-    chromium_instances::Vector{Base.Process}
-    done::Int
-end
-
 @app_startup begin
-    app_data = AppData([], 0)
-    set_app_data(app_data)
-
+    set_app_data("test_successfull", false)
     Magic.set_callback(callback)
 end
 

@@ -69,7 +69,7 @@ columns, container, @push, @pop, push_container, pop_container, dialog, expander
 export html, text, h1, h2, h3, h4, h5, h6, icon, link, space, metric, button,
 download_button, x_button, image, dataframe, selectbox, radio, checkbox, checkboxes,
 text_input, number_input, slider, file_uploader, code, color_picker, get_value,
-set_value, get_changes, spinner, progress_dialog, progress_bar
+set_value, get_changes, spinner, progress_bar, progress_dialog
 
 # Application Logic
 #--------------------
@@ -84,8 +84,8 @@ set_description, UploadedFile, get_dot_magic_dir, get_dot_magic_path,
 inject_html, get_url_search, get_query_params, get_server_host, get_server_port,
 get_server_origin, stop_app, make_uploaded_file, @job, AsyncJob, bind_fragment,
 get_progress, set_progress, get_progress_snapshot, get_progress_message,
-get_progress_data, is_done, get_result, job_exists, stop, is_finished,
-get_jobs, rerun, markdown
+get_progress_data, is_done, get_result, job_exists, stop, is_running,
+get_jobs, rerun, markdown, is_stopped, is_errored
 
 # Includes
 #------------

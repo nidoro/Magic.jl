@@ -2961,12 +2961,12 @@ function x_button()::Bool
 end
 
 function progress_dialog(
-    job::Union{AsyncJob, String};
+    job::Union{AsyncJob, AbstractString};
     fragment_id::String="magic_spinner",
     title::Union{String, Nothing}=nothing
 )::Fragment
 
-    if job isa String
+    if job isa AbstractString
         job = get_job(job)
     end
 
@@ -2976,12 +2976,12 @@ function progress_dialog(
 
     frag = dialog(fragment_id) do
         if x_button()
-            if !is_finished(job)
+            if is_running(job)
                 stop(job)
             end
         end
 
-        if isnothing(job.caught_error)
+        if !is_errored(job)
             h2(title)
 
             column(fill_width=true, align_items="center") do
