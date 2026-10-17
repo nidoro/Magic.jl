@@ -981,6 +981,21 @@ function create_static_pages()::Nothing
     return nothing
 end
 
+"""
+# stop\\_app
+
+Requests the application server to stop. Once the server stops, the call to
+`start_app()` that started it returns.
+
+The request is asynchronous: `stop_app()` returns immediately, before the
+server has actually stopped.
+
+### Function Signature
+
+```julia
+function stop_app()
+```
+"""
 function stop_app()
     app_event = create_app_event(AppEventType_ServerStopRequested, Cint(0), nothing)
     push_app_event(app_event)
@@ -2231,6 +2246,22 @@ macro page_startup(block)
     )
 end
 
+"""
+# get\\_current\\_page
+
+Retrieves the `PageConfig` of the page associated with the current URL path.
+
+### Function Signature
+
+```julia
+function get_current_page()::Union{PageConfig, Missing}
+```
+
+### Return Value
+
+The `PageConfig` of the page registered with `add_page()` for the current URL
+path, or `missing` if no page is associated with it.
+"""
 get_current_page()::Union{PageConfig, Missing} = get_page(get_url_path())
 
 """
@@ -2764,6 +2795,41 @@ function rerun_fragments(job::AsyncJob)::Nothing
     return nothing
 end
 
+"""
+# rerun
+
+Requests a rerun of a fragment or of the entire app for the current session.
+
+The request is asynchronous: `rerun()` returns immediately, and the rerun
+happens after the request is processed by the server.
+
+### Function Signature
+
+```julia
+function rerun(fragment_id::String="")::Nothing
+```
+
+ Argument       | Description
+:-------------- |:-------------
+ `fragment_id`  | A `String` with the id of the fragment that should be rerun. If empty (default), the entire app is rerun.
+
+### Return Value
+
+Nothing.
+
+### Example
+
+```julia
+fragment("counter") do
+    count = coalesce(get_session_data("count"), 0)
+    text("Count: \$count")
+    if button("Increment")
+        set_session_data("count", count + 1)
+        rerun("counter")
+    end
+end
+```
+"""
 function rerun(fragment_id::String="")::Nothing
     task = ensure_app_task_exists()
     return rerun_fragments(task.session.client_id, [fragment_id])

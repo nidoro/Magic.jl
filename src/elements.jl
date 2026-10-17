@@ -1972,6 +1972,28 @@ function file_uploader(
     return create_file_uploader(widgets, parent, id, label, types, multiple, max_file_size, max_files, onchange, args, css)
 end
 
+"""
+# make\\_uploaded\\_file
+
+Creates an [`UploadedFile`](#uploadedfile) from a local file, so it can be
+handled with the same code that handles files provided via `file_uploader()`.
+
+### Function Signature
+
+```julia
+function make_uploaded_file(file_path::String)::UploadedFile
+```
+
+ Argument     | Description
+:------------ |:-------------
+ `file_path`  | A `String` with the path of an existing file.
+
+### Return Value
+
+An `UploadedFile` describing the file. Its `path` field holds the absolute path
+of the file, and its `name`, `extension`, `type`, `size` and `last_modified`
+fields are filled in from the file itself.
+"""
 function make_uploaded_file(file_path::String)::UploadedFile
     if !isfile(file_path) throw(InvalidArgument(@named(file_path), "`file_path` must be a valid existing file.")) end
 
