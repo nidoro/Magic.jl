@@ -73,7 +73,7 @@ function create_button(
         widget.fragment_id = top_fragment().id
         widget.value = false
         widget.onclick = onclick
-        widget.args = args
+        widget.args = collect(args)
         widgets[props["id"]] = widget
     end
 
