@@ -2388,7 +2388,7 @@ Nothing.
 """
 function icon(icon::String; color::String="inherit", size::String="inherit", weight::String="inherit")::Nothing
     assert_valid_material_icon(@named(icon))
-    html("mg-icon", "", attributes=Dict("mg-icon" => icon), css=Dict("color" => color, "font-size" => size, "font-weight" => "bold"))
+    html("mg-icon", "", attributes=Dict("mg-icon" => icon), css=Dict("color" => color, "font-size" => size, "font-weight" => weight))
     return nothing
 end
 
