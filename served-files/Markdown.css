@@ -63,7 +63,12 @@
 }
 
 /* ---------- Links ---------- */
-.mg-markdown a { text-decoration: none; }
+.mg-markdown a {
+  text-decoration: none;
+}
+.mg-markdown a:not(.mg-header-link) {
+  color: #002fbd;
+}
 .mg-markdown a:hover { text-decoration: underline; }
 
 /* ---------- Lists ---------- */

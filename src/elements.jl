@@ -377,7 +377,7 @@ function text_input(
         parent = col.container
     end
 
-    merge!(css, container_css)
+    set_css_to_achieve_layout(css, parent, fill_width, false)
 
     return create_text_input(widgets, parent, id, label, initial_value, placeholder, css)
 end
@@ -581,7 +581,7 @@ function number_input(
         parent = col.container
     end
 
-    merge!(css, container_css)
+    set_css_to_achieve_layout(css, parent, fill_width, false)
 
     return create_number_input(widgets, parent, id, label, initial_value, placeholder, num_type, precision, min, max, step, decimal_separator, thousands_separator, css)
 end
@@ -773,9 +773,9 @@ function slider(
         col = column(gap="0.3em", css=container_css)
         col.html("label", label, css=Dict("font-size" => "0.9rem"))
         parent = col.container
-    else
-        merge!(css, container_css)
     end
+
+    set_css_to_achieve_layout(css, parent, fill_width, false)
 
     return create_slider(widgets, parent, id, label, initial_value, num_type, precision, min, max, step, decimal_separator, thousands_separator, css)
 end
@@ -987,7 +987,7 @@ function selectbox(
         parent = col.container
     end
 
-    merge!(css, container_css)
+    set_css_to_achieve_layout(css, parent, fill_width, false)
 
     return create_selectbox(widgets, parent, id, label, options, initial_value, multiple, placeholder, onchange, args, css)
 end
@@ -1129,9 +1129,9 @@ function color_picker(
             css["align-self"] = "stretch"
             css["width"] = "initial"
         end
-    else
-        merge!(css, container_css)
     end
+
+    set_css_to_achieve_layout(css, parent, fill_width, false)
 
     return create_color_picker(widgets, parent, id, label, initial_value, onchange, css)
 end
@@ -1967,7 +1967,7 @@ function file_uploader(
         parent = col.container
     end
 
-    merge!(css, container_css)
+    set_css_to_achieve_layout(css, parent, fill_width, false)
 
     return create_file_uploader(widgets, parent, id, label, types, multiple, max_file_size, max_files, onchange, args, css)
 end
