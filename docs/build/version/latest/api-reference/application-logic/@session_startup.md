@@ -8,7 +8,7 @@ Macro to define a code block that is only executed at a session's first run. Usa
 end
 ```
 
-Internally, this macro is implemented by checking the result of [`is_session_first_pass()`](/docs/build/docs/api-reference/application-logic/is_app_first_pass-func) and running the `@session_startup` code block only if it returns `true`.
+Internally, this macro is implemented by checking the result of [`is_session_first_pass()`](/docs/version/latest/api-reference/application-logic/is_app_first_pass) and running the `@session_startup` code block only if it returns `true`.
 
 ## Usage
 
@@ -18,11 +18,11 @@ Although sessions are not required to have `@session_startup` code blocks, some 
 
 ### Initialization of session persistent data
 
-Session persistent data is a user defined data that is bound to a session and whose lifetime is the lifetime of the session, meaning that as long as the session is alive the data will persist. Session persistent data can be retrieved at any moment using `get_page_data()`.
+Session persistent data is a user defined data that is bound to a session and whose lifetime is the lifetime of the session, meaning that as long as the session is alive the data will persist. Session persistent data can be retrieved at any moment using [`get_page_data()`](/docs/version/latest/api-reference/application-logic/set_page_data#getpagedata).
 
-You can store data that you want to be available within a session via the `set_session_data()` function, and retrieve it using the `get_session_data()` function. See [Session persistent data](/docs/build/docs/api-reference/application-logic/set_session_data-func) to learn more.
+You can store data that you want to be available within a session via the [`set_session_data()`](/docs/version/latest/api-reference/application-logic/set_session_data) function, and retrieve it using the [`get_session_data()`](/docs/version/latest/api-reference/application-logic/set_session_data#getsessiondata) function. See [Session persistent data](/docs/version/latest/api-reference/application-logic/set_session_data) to learn more.
 
 ## See also
 
-  * [`@app_startup`](/docs/build/docs/api-reference/application-logic/@app_startup-func)
-  * [`@page_startup`](/docs/build/docs/api-reference/application-logic/@page_startup-func)
+  * [`@app_startup`](/docs/version/latest/api-reference/application-logic/@app_startup)
+  * [`@page_startup`](/docs/version/latest/api-reference/application-logic/@page_startup)

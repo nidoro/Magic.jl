@@ -1,6 +1,6 @@
 # Page static settings
 
-Page static settings are persistent page settings. These can only be defined at the page's dry-run, inside `@page_startup` code blocks. The page static settings are used to build the static HTML that is served when a user accesses the page, and include things like the page title and description.
+Page static settings are persistent page settings. These can only be defined at the page's dry-run, inside [`@page_startup`](/docs/version/latest/api-reference/application-logic/@page_startup) code blocks. The page static settings are used to build the static HTML that is served when a user accesses the page, and include things like the page title and description.
 
 Example:
 
@@ -21,7 +21,7 @@ See below what functions to use to customize different page static settings.
 
 ## add_page
 
-Registers a new page in the app, associating it with one or more URL paths. Unlike the other functions in this section, `add_page()` can only be called at the app's dry-run, inside `@app_startup` code blocks.
+Registers a new page in the app, associating it with one or more URL paths. Unlike the other functions in this section, `add_page()` can only be called at the app's dry-run, inside [`@app_startup`](/docs/version/latest/api-reference/application-logic/@app_startup) code blocks.
 
 ### Function Signature
 

@@ -1,6 +1,6 @@
 # Job progress functions
 
-Family of functions that retrieve the progress of a job created with `@job`, as reported by `set_progress()`:
+Family of functions that retrieve the progress of a job created with [`@job`](/docs/version/latest/api-reference/jobs/@job), as reported by [`set_progress()`](/docs/version/latest/api-reference/jobs/set_progress):
 
   * `get_progress()`: returns the progress, a `Float64` between `0` and `1`.
   * `get_progress_message()`: returns the progress message.

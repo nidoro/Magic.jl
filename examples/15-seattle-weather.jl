@@ -97,7 +97,7 @@ row(gap="1.5rem 3rem", margin="0 0 2rem 0", css=Dict("flex-wrap" => "wrap")) do
     #metric("Least common weather", "$(weather_icons[weather_name]) $(weather_name)")
 end
 
-@fragment begin
+fragment() do
     # Years comparison
     #------------------------
     h4("Select years")

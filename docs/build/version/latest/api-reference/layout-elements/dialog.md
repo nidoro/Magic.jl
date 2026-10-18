@@ -2,7 +2,7 @@
 
 Displays a dialog, that is, a popup window shown in front of everything.
 
-The dialog stays open for as long as `dialog()` keeps being called on each rerun, which usually means as long as the user don't interact with a button that reruns the entire script, like `x_button()`.
+The dialog stays open for as long as `dialog()` keeps being called on each rerun, which usually means as long as the user don't interact with a button that reruns the entire script, like [`x_button()`](/docs/version/latest/api-reference/interface-elements/x_button).
 
 Once a rerun no longer calls it, the dialog is closed. Only one dialog can be open at a time.
 
@@ -16,11 +16,11 @@ function dialog(
 )::Union{Fragment, Nothing}
 ```
 
-| Argument           | Description                                                                                                                                                                                                                   |
-|:------------------ |:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `inner_func`       | A do-block `Function` defining the content of the dialog: <pre>dialog() do<br/>  # dialog content<br/>end</pre>                                                                                                               |
-| `id`               | An optional `String` used as the id of the fragment that wraps the dialog content. If `nothing` (default), an id is generated from the file and line where `inner_func` is defined. Ignored if `fragment_wrapper` is `false`. |
-| `fragment_wrapper` | A `Bool`. If `true` (default), the dialog content is wrapped in a fragment (see `fragment()`), so interacting with widgets inside the dialog reruns only the dialog instead of the entire app.                                |
+| Argument           | Description                                                                                                                                                                                                                                                                            |
+|:------------------ |:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `inner_func`       | A do-block `Function` defining the content of the dialog: <pre>dialog() do<br/>  # dialog content<br/>end</pre>                                                                                                                                                                        |
+| `id`               | An optional `String` used as the id of the fragment that wraps the dialog content. If `nothing` (default), an id is generated from the file and line where `inner_func` is defined. Ignored if `fragment_wrapper` is `false`.                                                          |
+| `fragment_wrapper` | A `Bool`. If `true` (default), the dialog content is wrapped in a fragment (see [`fragment()`](/docs/version/latest/api-reference/application-logic/@fragment#the-fragment-function)), so interacting with widgets inside the dialog reruns only the dialog instead of the entire app. |
 
 ### Return Value
 

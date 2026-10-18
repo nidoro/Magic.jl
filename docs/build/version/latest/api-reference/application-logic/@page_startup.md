@@ -8,7 +8,7 @@ Macro to define a code block that is only executed at the startup of the current
 end
 ```
 
-Internally, this macro is implemented by checking the result of [`is_page_first_pass()`](/docs/build/docs/api-reference/application-logic/is_app_first_pass-func) and running the `@page_startup` code block only if it returns `true`.
+Internally, this macro is implemented by checking the result of [`is_page_first_pass()`](/docs/version/latest/api-reference/application-logic/is_app_first_pass) and running the `@page_startup` code block only if it returns `true`.
 
 ## Usage
 
@@ -18,7 +18,7 @@ Although pages are not required to have `@page_startup` code blocks, some initia
 
 ### 1. Page static settings
 
-Page static settings are persistent settings that are defined at the page's dry-run. These are initialized once and that cannot be changed later, and include, among other things, the page title and description. The static settings related functions can only be called inside `@page_startup` blocks. Internally, these static settings are used to build the static HTML that is served when a user accesses the page's URL. See [Page static settings](/docs/build/docs/api-reference/application-logic/set_title-func) to learn more.
+Page static settings are persistent settings that are defined at the page's dry-run. These are initialized once and that cannot be changed later, and include, among other things, the page title and description. The static settings related functions can only be called inside `@page_startup` blocks. Internally, these static settings are used to build the static HTML that is served when a user accesses the page's URL. See [Page static settings](/docs/version/latest/api-reference/application-logic/set_title) to learn more.
 
 Example:
 
@@ -37,9 +37,9 @@ end
 
 ### 2. Initialization of page persistent data
 
-Page persistent data is a user defined data that is bound to a page and whose lifetime is the lifetime of the app, meaning tht as long as the app is running the data will persist. Page persistent data can be retrieved at any moment using `get_page_data()` and is shared accross sessions.
+Page persistent data is a user defined data that is bound to a page and whose lifetime is the lifetime of the app, meaning tht as long as the app is running the data will persist. Page persistent data can be retrieved at any moment using [`get_page_data()`](/docs/version/latest/api-reference/application-logic/set_page_data#getpagedata) and is shared accross sessions.
 
-You can store data that you want to be available to all the sessions of a page via the `set_page_data()` function, and retrieve it using the `get_page_data()` function. See [Page persistent data](/docs/build/docs/api-reference/application-logic/set_page_data-func) to learn more.
+You can store data that you want to be available to all the sessions of a page via the [`set_page_data()`](/docs/version/latest/api-reference/application-logic/set_page_data) function, and retrieve it using the `get_page_data()` function. See [Page persistent data](/docs/version/latest/api-reference/application-logic/set_page_data) to learn more.
 
 Example:
 
@@ -62,5 +62,5 @@ end
 
 ## See also
 
-  * [`@app_startup`](/docs/build/docs/api-reference/application-logic/@app_startup-func)
-  * [`@session_startup`](/docs/build/docs/api-reference/application-logic/@session_startup-func)
+  * [`@app_startup`](/docs/version/latest/api-reference/application-logic/@app_startup)
+  * [`@session_startup`](/docs/version/latest/api-reference/application-logic/@session_startup)

@@ -10,7 +10,7 @@ end
     set_session_data(session)
 end
 
-@fragment begin
+fragment() do
     session = get_session_data()
     button("Inside Button")
     session.fragment_reruns += 1

@@ -8,9 +8,9 @@ Retrieves the value returned by the function of a job.
 function get_result(job::Union{AsyncJob, AbstractString})::Any
 ```
 
-| Argument | Description                                                             |
-|:-------- |:----------------------------------------------------------------------- |
-| `job`    | Either the `AsyncJob` returned by `@job` or a `String` with the job id. |
+| Argument | Description                                                                                                             |
+|:-------- |:----------------------------------------------------------------------------------------------------------------------- |
+| `job`    | Either the `AsyncJob` returned by [`@job`](/docs/version/latest/api-reference/jobs/@job) or a `String` with the job id. |
 
 ### Return Value
 

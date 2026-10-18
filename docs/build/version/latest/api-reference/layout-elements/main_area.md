@@ -1,6 +1,6 @@
 # main_area
 
-Retrieves the `Container` corresponding to the page main area created by `set_page_layout()`.
+Retrieves the `Container` corresponding to the page main area created by [`set_page_layout()`](/docs/version/latest/api-reference/layout-elements/set_page_layout).
 
 See `set_page_layout()` for more information.
 
@@ -10,9 +10,9 @@ See `set_page_layout()` for more information.
 function main_area(inner_func::Function=()->())::ContainerInterface
 ```
 
-| Argument     | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-|:------------ |:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `inner_func` | An optional do-block `Function`, so you can define the page main area and its children like this: <pre>main_area() do<br/>  # main area content<br/>end</pre> which is basically the same as: <pre>@push main_area()<br/># main area content<br/>@pop</pre>In both cases, elements created inside the `do-end`/`push-pop` blocks will be placed inside the container returned by `main_area()`, with the difference that `push-pop` does not define a new scope, and thus variables created inside that block can be accessed after `@pop`. |
+| Argument     | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+|:------------ |:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `inner_func` | An optional do-block `Function`, so you can define the page main area and its children like this: <pre>main_area() do<br/>  # main area content<br/>end</pre> which is basically the same as: <pre>@push main_area()<br/># main area content<br/>@pop</pre>In both cases, elements created inside the `do-end`/`push-pop` blocks will be placed inside the container returned by `main_area()`, with the difference that `push-pop` does not define a new scope, and thus variables created inside that block can be accessed after [`@pop`](/docs/version/latest/api-reference/layout-elements/push_container#the-push-and-pop-macros). |
 
 ### Return Value
 

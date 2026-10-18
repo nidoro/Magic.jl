@@ -38,4 +38,4 @@ Nothing.
 
 ### Examples
 
-See [Seattle Weather](https://magic.coisasdodavi.net/seattle-weather).
+See [Seattle Weather](https://magic.coisasdodavi.net/examples/seattle-weather).

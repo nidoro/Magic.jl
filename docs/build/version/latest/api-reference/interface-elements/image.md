@@ -30,4 +30,4 @@ A `String` containing the rendered HTML for the image.
 
 ### Examples
 
-See [Image Filters](https://magic.coisasdodavi.net/image-filters).
+See [Image Filters](https://magic.coisasdodavi.net/examples/image-filters).

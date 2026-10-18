@@ -16,7 +16,7 @@ function is_on_page(path::String)::Bool
 
 `true` if the current page is the page associated with `path`.
 
-The current page is the page associated with the URL path returned by `get_url_path()`. `is_on_page()` will return `true` if `path` is any of the paths associated with the current page, regardless of which URL path the user used to reach the page.
+The current page is the page associated with the URL path returned by [`get_url_path()`](/docs/version/latest/api-reference/application-logic/get_url_path). `is_on_page()` will return `true` if `path` is any of the paths associated with the current page, regardless of which URL path the user used to reach the page.
 
 ## Example
 

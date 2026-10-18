@@ -1,6 +1,6 @@
 # Job status functions
 
-Family of `Bool` returning functions that check the status of a job created with `@job`:
+Family of `Bool` returning functions that check the status of a job created with [`@job`](/docs/version/latest/api-reference/jobs/@job):
 
   * `is_started()`: returns `true` if the job has started running.
   * `is_running()`: returns `true` if the job hasn't finished yet, including
@@ -9,7 +9,7 @@ when its task hasn't started yet.
 
   * `is_done()`: returns `true` if the job has finished without throwing an
 
-error. A job that was stopped with `stop()` also counts as done.
+error. A job that was stopped with [`stop()`](/docs/version/latest/api-reference/jobs/stop) also counts as done.
 
   * `is_errored()`: returns `true` if the job threw an error.
   * `is_stopped()`: returns `true` if the job was stopped or if a stop was

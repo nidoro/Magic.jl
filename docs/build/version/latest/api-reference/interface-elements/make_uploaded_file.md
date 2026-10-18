@@ -1,6 +1,6 @@
 # make_uploaded_file
 
-Creates an [`UploadedFile`](#uploadedfile) from a local file, so it can be handled with the same code that handles files provided via `file_uploader()`.
+Creates an [`UploadedFile`](/docs/version/latest/api-reference/interface-elements/file_uploader#uploadedfile) from a local file, so it can be handled with the same code that handles files provided via [`file_uploader()`](/docs/version/latest/api-reference/interface-elements/file_uploader).
 
 ### Function Signature
 

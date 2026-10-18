@@ -1,6 +1,6 @@
 # get_changes
 
-Retrieves the cell edits made by the user on a uniquely identified `dataframe()` widget.
+Retrieves the cell edits made by the user on a uniquely identified [`dataframe()`](/docs/version/latest/api-reference/interface-elements/dataframe) widget.
 
 ### Function Signature
 

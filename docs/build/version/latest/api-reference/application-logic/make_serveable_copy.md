@@ -1,8 +1,8 @@
 # make_serveable_copy
 
-Saves a serveable copy of a file inside `.Magic/served-files/`. This is a convenience function that calls `gen_serveable_path()` and `cp()` to create a serveable copy of a file. If you want to move the file to make it serveable instead of creating a serveable copy, use [`move_to_serveable_dir()`](/docs/build/docs/api-reference/application-logic/move_to_serveable_dir-func) instead.
+Saves a serveable copy of a file inside `.Magic/served-files/`. This is a convenience function that calls [`gen_serveable_path()`](/docs/version/latest/api-reference/application-logic/gen_serveable_path) and `cp()` to create a serveable copy of a file. If you want to move the file to make it serveable instead of creating a serveable copy, use [`move_to_serveable_dir()`](/docs/version/latest/api-reference/application-logic/move_to_serveable_dir) instead.
 
-See [`gen_serveable_path()`](/docs/build/docs/api-reference/application-logic/gen_serveable_path-func) to learn more.
+See [`gen_serveable_path()`](/docs/version/latest/api-reference/application-logic/gen_serveable_path) to learn more.
 
 ### Function Signature
 

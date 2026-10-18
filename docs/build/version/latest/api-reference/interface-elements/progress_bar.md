@@ -25,13 +25,13 @@ function progress_bar(
 )::Nothing
 ```
 
-| Argument     | Description                                                                                                                                                                               |
-|:------------ |:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `progress`   | Either a `Real` between `0` and `1` specifying the progress to be displayed, or a `ProgressSnapshot`, as returned by `get_progress_snapshot()`, whose progress and message are displayed. |
-| `job_id`     | A `String` with the id of a job created with `@job`. The current progress of the job is displayed. If the job does not exist, an empty progress bar is displayed.                         |
-| `message`    | An optional `String` displayed above the bar. If `nothing` (default), the progress percentage is displayed (for example, `"42%"`).                                                        |
-| `show_label` | A `Bool` indicating whether the message should be displayed above the bar. Default: `true`.                                                                                               |
-| `max_width`  | A `String` specifying the maximum width of the progress bar using a CSS value. Default: `"100%"`.                                                                                         |
+| Argument     | Description                                                                                                                                                                                                                                       |
+|:------------ |:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `progress`   | Either a `Real` between `0` and `1` specifying the progress to be displayed, or a `ProgressSnapshot`, as returned by [`get_progress_snapshot()`](/docs/version/latest/api-reference/jobs/get_progress), whose progress and message are displayed. |
+| `job_id`     | A `String` with the id of a job created with [`@job`](/docs/version/latest/api-reference/jobs/@job). The current progress of the job is displayed. If the job does not exist, an empty progress bar is displayed.                                 |
+| `message`    | An optional `String` displayed above the bar. If `nothing` (default), the progress percentage is displayed (for example, `"42%"`).                                                                                                                |
+| `show_label` | A `Bool` indicating whether the message should be displayed above the bar. Default: `true`.                                                                                                                                                       |
+| `max_width`  | A `String` specifying the maximum width of the progress bar using a CSS value. Default: `"100%"`.                                                                                                                                                 |
 
 ### Return Value
 

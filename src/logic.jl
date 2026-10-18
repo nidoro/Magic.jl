@@ -1131,10 +1131,37 @@ const DOC_FRAGMENT = """
 # Fragments
 
 A fragment is a function that can be rerun independently of the full app. It
-can be created using the `@fragment` macro or the `fragment` function.
+can be created using the `fragment` function (recommended) or the `@fragment`
+macro.
 
 Use fragments to avoid rerunning the entire app script on every widget
 interaction.
+
+### The `fragment()` function
+
+Turns a function into a fragment. This is the recommended way of creating
+fragments, typically used with a `do` block:
+
+```julia
+fragment() do
+    # code block
+end
+```
+
+#### Function Signature
+
+```julia
+function fragment(func::Function, id::Union{String, Nothing}=nothing)::Fragment
+```
+
+ Argument  | Description
+:---------- |:-------------
+ `func`   | The `Function` that will be isolated from the rest of the app.
+ `id`   | An optional `String` to uniquely identify the fragment. If `nothing` (default), an id is generated from the file and line where `func` is defined.
+
+#### Return Value
+
+The `Fragment` object registered for `func`.
 
 ### The `@fragment` macro
 
@@ -1151,25 +1178,6 @@ body, and then calls `fragment()` to register the function as a fragment. This
 means that you should treat the code block as a function with closed scope,
 meaning that objects created inside a fragment won't be visible outside the
 fragment.
-
-### The `fragment()` function
-
-Turns a function into a fragment.
-
-#### Function Signature
-
-```julia
-function fragment(func::Function, id::Union{String, Nothing}=nothing)::Fragment
-```
-
- Argument  | Description
-:---------- |:-------------
- `func`   | The `Function` that will be isolated from the rest of the app.
- `id`   | An optional `String` to uniquely identify the fragment. If `nothing` (default), an id is generated from the file and line where `func` is defined.
-
-#### Return Value
-
-The `Fragment` object registered for `func`.
 
 ## Example
 
@@ -1193,7 +1201,7 @@ button("Outside Button")
 session.app_reruns += 1
 text("App reruns: \$(session.app_reruns)")
 
-@fragment begin
+fragment() do
     session = get_session_data()
     button("Inside Button")
     session.fragment_reruns += 1
@@ -1204,7 +1212,8 @@ end
 In the above example, everytime the `Outside Button` is clicked, both counters
 `session.app_reruns` and `session.fragment_reruns` are incremented. But when
 the `Inside Button` is clicked, only the `session.fragment_reruns` counter is
-incremented.
+incremented. Note that, just like in a regular function, variables created
+inside the `do` block are local to the fragment.
 """
 
 function default_fragment_id(func::Function)

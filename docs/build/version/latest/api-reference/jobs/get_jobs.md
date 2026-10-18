@@ -10,4 +10,4 @@ function get_jobs()::Vector{String}
 
 ### Return Value
 
-A `Vector{String}` with the ids of the jobs created with `@job` in the current session.
+A `Vector{String}` with the ids of the jobs created with [`@job`](/docs/version/latest/api-reference/jobs/@job) in the current session.

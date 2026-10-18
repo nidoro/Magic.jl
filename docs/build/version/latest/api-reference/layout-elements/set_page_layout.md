@@ -2,7 +2,7 @@
 
 Configure the overall page layout.
 
-This function defines the global layout of the page, including the main content area and optional left and right sidebars. The containers corresponding to each of these regions can be accessed via the API functions `main_area()`, `left_sidebar()` and `right_sidebar()`, and they can be used like any other function that returns a `ContainerInterface`. See usage example below.
+This function defines the global layout of the page, including the main content area and optional left and right sidebars. The containers corresponding to each of these regions can be accessed via the API functions [`main_area()`](/docs/version/latest/api-reference/layout-elements/main_area), [`left_sidebar()`](/docs/version/latest/api-reference/layout-elements/left_sidebar) and `right_sidebar()`, and they can be used like any other function that returns a `ContainerInterface`. See usage example below.
 
 ### Function Signature
 
@@ -25,19 +25,19 @@ function set_page_layout(
 )::Containers
 ```
 
-| Argument                      | Description                                                                                                                                                                                            |
-|:----------------------------- |:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `style`                       | A `String` for selecting the overall layout style. The default `"basic"` style imposes minimal layout behaviour on the `main_area()` container. Possible values: `"basic"`, `"centered"`, `"wide"`.    |
-| `max_width`                   | A `String` specifying the maximum width of the container returned by `main_area()`.                                                                                                                    |
-| `left_sidebar_initial_state`  | Either `nothing` or a `String` specifying the initial state of the left sidebar (`"open"` or `"closed"`). If `nothing`, the sidebar is disabled.                                                       |
-| `left_sidebar_initial_width`  | A `String` specifying the initial width of the left sidebar.                                                                                                                                           |
-| `left_sidebar_position`       | A `String` specifying how the left sidebar is positioned relative to the main content (`"slide-out"` or `"overlay"`).                                                                                  |
-| `left_sidebar_toggle_labels`  | A `Tuple` of two optional `String` values defining the labels for opening and closing the left sidebar toggle button.                                                                                  |
-| `right_sidebar_initial_state` | Either `nothing` or a `String` specifying the initial state of the right sidebar (`"open"` or `"closed"`). If `nothing`, the sidebar is disabled.                                                      |
-| `right_sidebar_initial_width` | A `String` specifying the initial width of the right sidebar.                                                                                                                                          |
-| `right_sidebar_position`      | A `String` specifying how the right sidebar is positioned relative to the main content (`"slide-out"` or `"overlay"`).                                                                                 |
-| `right_sidebar_toggle_labels` | A `Tuple` of two optional `String` values defining the labels for opening and closing the right sidebar toggle button.                                                                                 |
-| `top_bar`                     | Either `nothing` (default) or a `String` specifying the top bar style. Possible values: `"fixed"` or `"sticky"`. If `nothing`, the top bar is disabled. Its container can be accessed via `top_bar()`. |
+| Argument                      | Description                                                                                                                                                                                                                                                          |
+|:----------------------------- |:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `style`                       | A `String` for selecting the overall layout style. The default `"basic"` style imposes minimal layout behaviour on the `main_area()` container. Possible values: `"basic"`, `"centered"`, `"wide"`.                                                                  |
+| `max_width`                   | A `String` specifying the maximum width of the container returned by `main_area()`.                                                                                                                                                                                  |
+| `left_sidebar_initial_state`  | Either `nothing` or a `String` specifying the initial state of the left sidebar (`"open"` or `"closed"`). If `nothing`, the sidebar is disabled.                                                                                                                     |
+| `left_sidebar_initial_width`  | A `String` specifying the initial width of the left sidebar.                                                                                                                                                                                                         |
+| `left_sidebar_position`       | A `String` specifying how the left sidebar is positioned relative to the main content (`"slide-out"` or `"overlay"`).                                                                                                                                                |
+| `left_sidebar_toggle_labels`  | A `Tuple` of two optional `String` values defining the labels for opening and closing the left sidebar toggle button.                                                                                                                                                |
+| `right_sidebar_initial_state` | Either `nothing` or a `String` specifying the initial state of the right sidebar (`"open"` or `"closed"`). If `nothing`, the sidebar is disabled.                                                                                                                    |
+| `right_sidebar_initial_width` | A `String` specifying the initial width of the right sidebar.                                                                                                                                                                                                        |
+| `right_sidebar_position`      | A `String` specifying how the right sidebar is positioned relative to the main content (`"slide-out"` or `"overlay"`).                                                                                                                                               |
+| `right_sidebar_toggle_labels` | A `Tuple` of two optional `String` values defining the labels for opening and closing the right sidebar toggle button.                                                                                                                                               |
+| `top_bar`                     | Either `nothing` (default) or a `String` specifying the top bar style. Possible values: `"fixed"` or `"sticky"`. If `nothing`, the top bar is disabled. Its container can be accessed via [`top_bar()`](/docs/version/latest/api-reference/layout-elements/top_bar). |
 
 ### Return Value
 

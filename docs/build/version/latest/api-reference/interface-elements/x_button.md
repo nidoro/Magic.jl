@@ -1,6 +1,6 @@
 # x_button
 
-Special button to be used within a `dialog()`. Displays a close button (an "X" icon) in the top-right of the dialog. When clicked, the entire app is rerun, which closes the dialog unless the app calls `dialog()` again.
+Special button to be used within a [`dialog()`](/docs/version/latest/api-reference/layout-elements/dialog). Displays a close button (an "X" icon) in the top-right of the dialog. When clicked, the entire app is rerun, which closes the dialog unless the app calls `dialog()` again.
 
 ### Function Signature
 

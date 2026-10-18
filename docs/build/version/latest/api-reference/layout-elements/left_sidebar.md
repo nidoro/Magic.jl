@@ -5,7 +5,7 @@ Pair of functions to retrieve the left and right sidebar `ContainerInterface`s:
   * `left_sidebar()`
   * `right_sidebar()`
 
-The sidebars are disabled by default. In order to enable them, you must set their initial state by calling the function `set_page_layout()`. Example:
+The sidebars are disabled by default. In order to enable them, you must set their initial state by calling the function [`set_page_layout()`](/docs/version/latest/api-reference/layout-elements/set_page_layout). Example:
 
 ```julia
 set_page_layout("centered", left_sidebar_initial_state="open")
@@ -18,9 +18,9 @@ function left_sidebar (inner_func::Function=()->())::ContainerInterface
 function right_sidebar(inner_func::Function=()->())::ContainerInterface
 ```
 
-| Argument     | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-|:------------ |:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `inner_func` | An optional do-block `Function`, so you can add content to the sidebar like this: <pre>left_sidebar() do<br/>  # sidebar content<br/>end</pre> which is essentially the same as: <pre>@push left_sidebar()<br/># sidebar content<br/>@pop</pre>In both cases, elements created inside the `do-end`/`push-pop` blocks will be placed inside the container returned by `left_sidebar()` or `right_sidebar()`, with the difference that `push-pop` does not define a new scope, and thus variables created inside that block can be accessed after `@pop`. |
+| Argument     | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+|:------------ |:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `inner_func` | An optional do-block `Function`, so you can add content to the sidebar like this: <pre>left_sidebar() do<br/>  # sidebar content<br/>end</pre> which is essentially the same as: <pre>@push left_sidebar()<br/># sidebar content<br/>@pop</pre>In both cases, elements created inside the `do-end`/`push-pop` blocks will be placed inside the container returned by `left_sidebar()` or `right_sidebar()`, with the difference that `push-pop` does not define a new scope, and thus variables created inside that block can be accessed after [`@pop`](/docs/version/latest/api-reference/layout-elements/push_container#the-push-and-pop-macros). |
 
 ### Return Value
 
