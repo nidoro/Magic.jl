@@ -13,13 +13,13 @@ function progress_bar(
 )::Nothing
 
 function progress_bar(
-    progress    ::ProgressSnapshot,
+    progress    ::ProgressSnapshot;
     show_label  ::Bool      =true,
     max_width   ::String    ="100%"
 )::Nothing
 
 function progress_bar(
-    job_id      ::String,
+    job_id      ::String;
     show_label  ::Bool      =true,
     max_width   ::String    ="100%"
 )::Nothing

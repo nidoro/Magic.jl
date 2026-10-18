@@ -3103,13 +3103,13 @@ function progress_bar(
 )::Nothing
 
 function progress_bar(
-    progress    ::ProgressSnapshot,
+    progress    ::ProgressSnapshot;
     show_label  ::Bool      =true,
     max_width   ::String    ="100%"
 )::Nothing
 
 function progress_bar(
-    job_id      ::String,
+    job_id      ::String;
     show_label  ::Bool      =true,
     max_width   ::String    ="100%"
 )::Nothing
@@ -3162,7 +3162,7 @@ function progress_bar(progress::ProgressSnapshot; show_label::Bool=true, max_wid
     return progress_bar(progress.progress, message=progress.message, show_label=show_label, max_width=max_width)
 end
 
-function progress_bar(job_id::String, show_label::Bool=true, max_width::String="100%")::Nothing
+function progress_bar(job_id::String; show_label::Bool=true, max_width::String="100%")::Nothing
     if job_exists(job_id)
         progress = get_progress_snapshot(job_id)
         return progress_bar(progress, show_label=show_label, max_width=max_width)
