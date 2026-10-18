@@ -24,6 +24,7 @@ end
     add_page("/examples/seattle-weather")
     add_page("/examples/image-filters")
     add_page("/examples/fragment-example")
+    add_page("/examples/optimization")
 end
 
 if is_on_page("/")
@@ -56,6 +57,8 @@ elseif startswith(get_url_path(), "/examples")
         layout_style = "wide"
     elseif is_on_page("/examples/fragment-example")
         page_script = "50-fragment-example.jl"
+    elseif is_on_page("/examples/optimization")
+        page_script = "70-optimization.jl"
     end
 
     set_page_layout(
@@ -140,6 +143,16 @@ elseif startswith(get_url_path(), "/examples")
                 text("file_uploader and download_button")
                 link("Open", "/examples/image-filters", style="primary")
             end
+
+            cols = columns(2, show_border=true, padding=".8rem", justify_content="space-between")
+
+            cols(1) do
+                h5("TSP Optimization")
+                text("Long running async jobs")
+                link("Open", "/examples/optimization", style="primary")
+            end
+
+            cols[2].container["css"]["opacity"] = 0;
         end
     else
         include(page_script)
@@ -158,6 +171,7 @@ elseif startswith(get_url_path(), "/examples")
             link("Brazil Forecast", "/examples/forecast", style="naked", fill_width=true, css=Dict("justify-content" => "flex-start"))
             link("Seattle Weather", "/examples/seattle-weather", style="naked", fill_width=true, css=Dict("justify-content" => "flex-start"))
             link("Image Filters", "/examples/image-filters", style="naked", fill_width=true, css=Dict("justify-content" => "flex-start"))
+            link("TSP Optimization", "/examples/optimization", style="naked", fill_width=true, css=Dict("justify-content" => "flex-start"))
         end
     end
 
