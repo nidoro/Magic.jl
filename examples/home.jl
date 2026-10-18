@@ -642,5 +642,19 @@ column(fill_width=true, align_items="center") do
         markdown("---")
 
         space(height="3rem")
+        h1("Get started now!", css=Dict("align-self" => "center"))
+
+        row(fill_width=true, justify_content="center") do
+            link("Get Started", "/docs/version/latest/getting-started/install", new_tab=true, style="primary")
+            link("Issues", "https://github.com/nidoro/Magic.jl/issues", new_tab=true)
+        end
+
+        space(height="4rem")
+        column(fill_width=true, align_items="center") do
+            column() do
+                markdown("Made with [Magic.jl](https://github.com/nidoro/Magic.jl)")
+            end
+        end
+        space(height="1rem")
     end
 end
