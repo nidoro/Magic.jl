@@ -89,6 +89,7 @@ html, body {
     color: var(--body-color1);
     margin: 0;
     height: 100%;
+    overscroll-behavior-y: none;
 }
 
 [hidden] { display: none !important }
@@ -97,6 +98,8 @@ input[type="checkbox"] {margin: 0}
 input {font-size: inherit}
 
 *, ::before, ::after { box-sizing: border-box; margin: 0; padding: 0 }
+
+* { overflow-anchor: none }
 
 p {
     margin-bottom: 0;
@@ -466,6 +469,7 @@ dd-button.mg-button, a.mg-link {
     height: 100%;
     overflow-x: hidden;
     overflow-y: auto;
+    overscroll-behavior: contain;
 }
 
 .mg-sidebar.mg-show {

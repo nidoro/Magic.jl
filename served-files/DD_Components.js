@@ -4972,6 +4972,7 @@ style.textContent = `
         width: max-content;
         white-space: nowrap;
         overflow: auto;
+        overscroll-behavior: contain;
     }
     
     dd-menu.dd-showing, dd-select.dd-showing {

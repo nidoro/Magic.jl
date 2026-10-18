@@ -786,7 +786,7 @@ function create_sidebar(
 
     sidebar_wrapper = column(
         fill_height=true,
-        max_height="100vh",
+        max_height="100dvh",
         attributes=Dict("class" => "mg-sidebar $(side_class) $(state_class) $(position_class)", "data-mg-open-label" => open_label, "data-mg-close-label" => close_label),
         css=Dict("--sidebar-width" => initial_width)
     )
@@ -902,12 +902,12 @@ function set_page_layout(
     #------------------------
     left_sidebar, right_sidebar = nothing, nothing
 
-    @push row(fill_width=true, gap="0px", css=Dict("height" => "100vh"))
+    @push row(fill_width=true, gap="0px", css=Dict("height" => "100dvh", "position" => "relative"))
         if left_sidebar_initial_state != nothing
             left_sidebar = create_sidebar(left_sidebar_initial_state, "left", left_sidebar_initial_width, left_sidebar_position, left_sidebar_toggle_labels)
         end
 
-        main_area = column(fill_width=true, fill_height=true, gap="0px", css=Dict("position" => "relative", "overflow" => "auto", "height" => "100vh", "flex-shrink" => "1"))
+        main_area = column(fill_width=true, fill_height=true, gap="0px", css=Dict("position" => "relative", "overflow" => "auto", "overscroll-behavior" => "contain", "height" => "100dvh", "flex-shrink" => "1"))
 
         if right_sidebar_initial_state != nothing
             right_sidebar = create_sidebar(right_sidebar_initial_state, "right", right_sidebar_initial_width, right_sidebar_position, right_sidebar_toggle_labels)
