@@ -1,4 +1,4 @@
-### NEXT v0.9.0 (2026-10-17)
+### v0.9.0 (2026-10-17)
 
 - New: `@job` macro for running long running computations with visual
 progress feedback.
