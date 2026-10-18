@@ -27,9 +27,11 @@ function create_button(
 
     if !isnothing(download_path)
         if isfile(download_path)
-            served_files_path = joinpath(get_dot_magic_path(), "served-files/")
-            full_path = realpath(download_path)
-            if !startswith(full_path, served_files_path)
+            served_files_path = get_serveable_dir() * "/"
+            # NOTE: Normalized because the net layer also checks that the path
+            # starts with the serveable dir before serving the file.
+            full_path = normalize_path(realpath(download_path))
+            if !is_serveable_path(full_path)
                 throw(InvalidArgument(@named(download_path), "The file to be downloaded must live inside .Magic at \"$(served_files_path)\".\nThese functions might help you: gen_serveable_path(...), make_serveable_copy(...), move_to_serveable_dir(...).\nCheck out the download_button() documentation to learn more."))
             end
             download_path = full_path
@@ -1583,10 +1585,7 @@ function image(
         end
     end
 
-    src = src_or_path
-    if startswith(src_or_path, "$(g.dot_magic_dir)/.Magic/served-files")
-        src = replace(src_or_path, "$(g.dot_magic_dir)/.Magic/served-files" => "")
-    end
+    src = serveable_url(src_or_path)
 
     return create_image(widgets, top_container(), src, width, height, css)
 end
@@ -1998,7 +1997,7 @@ fields are filled in from the file itself.
 function make_uploaded_file(file_path::String)::UploadedFile
     if !isfile(file_path) throw(InvalidArgument(@named(file_path), "`file_path` must be a valid existing file.")) end
 
-    file_path = realpath(file_path)
+    file_path = normalize_path(realpath(file_path))
 
     result = UploadedFile()
     result.id = "file_" * get_random_string(32-length("file_")-1)

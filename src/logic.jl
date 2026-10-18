@@ -119,7 +119,9 @@ function start_app(
         throw(InvalidArgument(@named(dot_magic_dir), "Directory not found or invalid: $dot_magic_dir"))
     end
 
-    g.dot_magic_dir = realpath(g.dot_magic_dir)
+    # NOTE: Normalized to forward slashes, so paths built from it with "/" are
+    # consistent on Windows too.
+    g.dot_magic_dir = normalize_path(realpath(g.dot_magic_dir))
 
     if docs_path === nothing
         docs_path = ""
@@ -970,11 +972,11 @@ function create_static_pages()::Nothing
         # User explicitly configured app pages
         for page in g.pages
             for uri in page.uris
-                push_uri_mapping(uri, replace(page.file_path, "$(g.dot_magic_dir)/.Magic/served-files" => ""))
+                push_uri_mapping(uri, serveable_url(page.file_path))
             end
         end
     else
-        push_uri_mapping("/", replace(g.base_page_config.file_path, "$(g.dot_magic_dir)/.Magic/served-files" => ""))
+        push_uri_mapping("/", serveable_url(g.base_page_config.file_path))
     end
 
     # Create 404.html
@@ -1704,13 +1706,6 @@ end
 
 add_page(uri::Union{AbstractString, AbstractVector, Tuple}; title::String="", description::String="") = add_page(nothing, uri, title=title, description=description)
 
-function strip_prefix(str::String, prefix::String)::String
-    if startswith(str, prefix)
-        return replace(str, prefix => "")
-    end
-    return str
-end
-
 DOC_PAGE_STATIC_SETTINGS = """
 # Page static settings
 
@@ -1901,7 +1896,7 @@ function add_font(page::PageConfig, font_name::String, src_or_path::String)::Not
     add_css_rule(page, """
         @font-face {
             font-family: "$(font_name)";
-            src: url($(strip_prefix(src_or_path, "$(g.dot_magic_dir)/.Magic/served-files")));
+            src: url($(serveable_url(src_or_path)));
         }
     """)
     return nothing
@@ -2438,7 +2433,7 @@ function gen_serveable_path(extension::String=""; lifetime::String="session")::S
         dir_path = "$(g.dot_magic_dir)/.Magic/served-files/generated/app"
     end
 
-    return joinpath(dir_path, file_name)
+    return "$(dir_path)/$(file_name)"
 end
 
 function get_serveable_dir()::String
@@ -2446,7 +2441,15 @@ function get_serveable_dir()::String
 end
 
 function is_serveable_path(path::AbstractString)::Bool
-    return startswith(path, get_serveable_dir())
+    return is_path_inside(path, get_serveable_dir())
+end
+
+# Returns the URL path in which a serveable file is served, e.g.
+# "<dot_magic_dir>/.Magic/served-files/generated/app/x.png" => "/generated/app/x.png".
+# Paths that are not serveable are returned unchanged.
+function serveable_url(path::AbstractString)::String
+    if !is_serveable_path(path) return path end
+    return normalize_path(path)[ncodeunits(get_serveable_dir())+1:end]
 end
 
 """

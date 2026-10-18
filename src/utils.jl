@@ -332,3 +332,27 @@ function matching_subtype(A::Union, B::Type)
     r = matching_subtype(A.a, B)
     r !== nothing ? r : matching_subtype(A.b, B)
 end
+
+# Returns an absolute, normalized path that uses forward slashes on every
+# platform, so paths built from different sources can be compared on both Linux
+# and Windows. NOTE: On Linux, backslashes are valid file name characters, so they
+# are left untouched.
+function normalize_path(path::AbstractString)::String
+    path = normpath(abspath(path))
+    @static if Sys.iswindows()
+        path = replace(path, '\\' => '/')
+    end
+    return path
+end
+
+# Checks if `path` is `dir` itself or lives somewhere inside `dir`. Both paths
+# are normalized first, and the comparison is case-insensitive on Windows.
+function is_path_inside(path::AbstractString, dir::AbstractString)::Bool
+    path = normalize_path(path)
+    dir = rstrip(normalize_path(dir), '/')
+    @static if Sys.iswindows()
+        path = lowercase(path)
+        dir = lowercase(dir)
+    end
+    return path == dir || startswith(path, dir * "/")
+end
