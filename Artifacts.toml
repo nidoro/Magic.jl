@@ -5,15 +5,15 @@ os = "linux"
 arch = "x86_64"
 
     [[artifacts.download]]
-    url = "https://github.com/nidoro/Magic.jl/releases/download/vv0.9.0/artifacts-linux-x86_64.tar.gz"
-    sha256 = "95c60ecb7bb1b5fcdf4b64e8aeed47fcbcfdf2d39e5928ccffdb027b5ae4aeb9"
+    url = "https://github.com/nidoro/Magic.jl/releases/download/v0.9.0/artifacts-linux-x86_64.tar.gz"
+    sha256 = "0ce2a14b5786d1d3fa390cc2555f375bcae82cec42f722ba8c7c9dbc87749b7d"
 
 [[artifacts]]
-git-tree-sha1 = "cac3bd6f094ff2ae211cfbc508e488a44f40f52f"
+git-tree-sha1 = "3a49af3619018e3ba48b8629c74e7bbfee837219"
 os = "windows"
 arch = "x86_64"
 
     [[artifacts.download]]
-    url = "https://github.com/nidoro/Magic.jl/releases/download/vv0.9.0/artifacts-win64.tar.gz"
-    sha256 = "9dc2342a397cccdf76d4b23c0b0d6425d5b06704fa8242727b2de31437d9d094"
+    url = "https://github.com/nidoro/Magic.jl/releases/download/v0.9.0/artifacts-win64.tar.gz"
+    sha256 = "df184029c5d8c5fe7423037e972996f10fa29729b9a516b12907342bf80d46f7"
 
