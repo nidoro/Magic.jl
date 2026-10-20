@@ -907,7 +907,7 @@ function set_page_layout(
             left_sidebar = create_sidebar(left_sidebar_initial_state, "left", left_sidebar_initial_width, left_sidebar_position, left_sidebar_toggle_labels)
         end
 
-        main_area = column(fill_width=true, fill_height=true, gap="0px", css=Dict("position" => "relative", "overflow" => "auto", "overscroll-behavior" => "contain", "height" => "100dvh", "flex-shrink" => "1"))
+        main_area = column(fill_width=true, fill_height=true, gap="0px", css=Dict("position" => "relative", "overflow" => "auto", "overscroll-behavior" => "contain", "height" => "100dvh", "flex-shrink" => "1"), attributes=Dict("class" => "mg-page-main-area-wrapper"))
 
         if right_sidebar_initial_state != nothing
             right_sidebar = create_sidebar(right_sidebar_initial_state, "right", right_sidebar_initial_width, right_sidebar_position, right_sidebar_toggle_labels)
@@ -930,18 +930,18 @@ function set_page_layout(
 
     if style == "basic"
         @push main_area
-            main_area = column(fill_width=true, fill_height=true)
+            main_area = column(fill_width=true, fill_height=true, attributes=Dict("class" => "mg-page-main-area"))
         @pop
     elseif style == "centered"
         @push main_area
             @push column(fill_width=true, fill_height=true, align_items="center", padding="$(top_padding) 5px 5px 5px")
-                main_area = column(fill_width=true, fill_height=true, align_items="center", max_width=max_width, css=Dict("align-items" => "center"))
+                main_area = column(fill_width=true, fill_height=true, align_items="center", max_width=max_width, css=Dict("align-items" => "center"), attributes=Dict("class" => "mg-page-main-area"))
             @pop
         @pop
     elseif style == "wide"
         @push main_area
             @push column(fill_width=true, fill_height=true, align_items="center", padding="$(top_padding) 0 0 0")
-                main_area = column(fill_width=true, fill_height=true, css=Dict("padding" => "0 5%"))
+                main_area = column(fill_width=true, fill_height=true, css=Dict("padding" => "0 5%"), attributes=Dict("class" => "mg-page-main-area"))
             @pop
         @pop
     end

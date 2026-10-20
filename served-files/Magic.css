@@ -513,8 +513,12 @@ dd-button.mg-button, a.mg-link {
 }
 
 .mg-page-top-bar.mg-fixed {
-    box-shadow: 0 12px 12px -12px rgba(0, 0, 0, 0.5);
     z-index: 10;
+    transition: box-shadow 0.3s ease-out;
+}
+
+.mg-page-top-bar.mg-fixed.mg-shadow {
+    box-shadow: 0 12px 12px -12px rgba(0, 0, 0, 0.5);
 }
 
 /* FILE UPLOADER */

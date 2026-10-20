@@ -766,6 +766,21 @@ function createAppElement(parent, props, fragmentId) {
             fragmentId = props.fragment_id;
         }
 
+        // Main area
+        //-------------
+        if (elem.classList.contains("mg-page-main-area-wrapper")) {
+            elem.addEventListener("scroll", (event) => {
+                const topBar = event.target.querySelector(".mg-page-top-bar");
+                if (topBar) {
+                    if (elem.scrollTop > 0) {
+                        topBar.classList.add("mg-shadow");
+                    } else {
+                        topBar.classList.remove("mg-shadow");
+                    }
+                }
+            });
+        }
+
         // Sidebar
         //---------
         if (elem.classList.contains("mg-sidebar")) {
