@@ -50,7 +50,6 @@ function start_app(
     upload_max_files            ::Int                       =10,
     dot_magic_dir               ::Union{String, Nothing}    =nothing,
     open_browser                ::Bool                      =true,
-    docs_path                   ::Union{String, Nothing}    =nothing,
     init_and_quit               ::Bool                      =false,
     callback                    ::Union{Function, Nothing}  =nothing,
     verbose                     ::Bool                      =false,
@@ -123,16 +122,6 @@ function start_app(
     # consistent on Windows too.
     g.dot_magic_dir = normalize_path(realpath(g.dot_magic_dir))
 
-    if docs_path === nothing
-        docs_path = ""
-    else
-        docs_path = joinpath(pwd(), docs_path)
-        if !isdir(docs_path)
-            throw(InvalidArgument(@named(docs_path), "Directory not found or invalid: $docs_path"))
-            return nothing
-        end
-    end
-
     @info """
         $(AC_Bold("Configuration"))
         App script/function  : $(g.script_or_func)
@@ -170,7 +159,6 @@ function start_app(
     init_net_layer(
         g.host_name,
         g.port,
-        docs_path,
         Int(ipc_port),
         g.dot_magic_dir,
         joinpath(@__DIR__, ".."),

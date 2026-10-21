@@ -7,7 +7,6 @@ end
 function init_net_layer(
     host_name::String,
     port::Int,
-    docs_path::String,
     ipc_port::Int,
     dot_magic_dir::String,
     package_root_dir::String,
@@ -19,8 +18,8 @@ function init_net_layer(
     ccall(
         get_net_layer_func(:MG_InitNetLayer),
         Cvoid,
-        (Cstring, Cint, Cint, Cstring, Cint, Cint, Cstring, Cint, Cstring, Cint, Cint, Cint, Cint),
-        host_name, Cint(sizeof(host_name)), port, docs_path, Cint(sizeof(docs_path)), Cint(ipc_port), dot_magic_dir, Cint(sizeof(dot_magic_dir)), package_root_dir, Cint(sizeof(package_root_dir)), Cint(upload_max_size), Cint(verbose), Cint(dev_mode)
+        (Cstring, Cint, Cint, Cint, Cstring, Cint, Cstring, Cint, Cint, Cint, Cint),
+        host_name, Cint(sizeof(host_name)), port, Cint(ipc_port), dot_magic_dir, Cint(sizeof(dot_magic_dir)), package_root_dir, Cint(sizeof(package_root_dir)), Cint(upload_max_size), Cint(verbose), Cint(dev_mode)
     )
 end
 

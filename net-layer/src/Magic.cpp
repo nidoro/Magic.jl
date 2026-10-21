@@ -105,8 +105,6 @@ struct MG_Global {
 
     char appHostName[PATH_MAX];
     int  appPort;
-    char docsPath[PATH_MAX];
-    int  docsPathSize;
     bool verbose;
     bool devMode;
     bool tlsEnabled;
@@ -739,10 +737,6 @@ MG_API void* MG_RunServer(void*) {
         HS_DisableFileCache(&g.hserver, "magic-app");
     }
 
-    if (g.docsPath[0]) {
-        HS_AddServedFilesDir(&g.hserver, "magic-app", "/docs", g.docsPath);
-    }
-
     if (HS_IsRegularFile(".Magic/companion-host.json")) {
         HS_AddVHost(&g.hserver, "magic-companion");
         HS_SetLWSVHostConfig(&g.hserver, "magic-companion", pt_serv_buf_size, HS_KILO_BYTES(12));
@@ -836,8 +830,6 @@ MG_API void MG_InitNetLayer(
     const char* hostName,
     int hostNameSize,
     int port,
-    const char* docsPath,
-    int docsPathSize,
     int ipcPort,
     const char* dotMagicDirPath,
     int dotMagicDirPathSize,
@@ -860,7 +852,6 @@ MG_API void MG_InitNetLayer(
     }
 
     strncpy(g.appHostName, hostName, hostNameSize);
-    strncpy(g.docsPath, docsPath, docsPathSize);
     g.appPort = port;
     g.verbose = verbose;
     g.devMode = devMode;
