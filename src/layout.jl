@@ -922,7 +922,7 @@ function set_page_layout(
         @push main_area
             padding_left = isnothing(left_sidebar) ? "0.5em" : "2.0em"
             padding_right = isnothing(right_sidebar) ? "0.5em" : "2.0em"
-            top_bar_container = row(fill_width=true, css=Dict("background" => "white", "position" => top_bar, "top" => "0", "border-radius" => "0", "padding" => ".5em $(padding_right) .5em $(padding_left)", "overflow-x" => "auto"), attributes=Dict("class" => "mg-page-top-bar mg-$(top_bar)"))
+            top_bar_container = row(fill_width=true, css=Dict("position" => top_bar, "top" => "0", "border-radius" => "0", "padding" => ".5em $(padding_right) .5em $(padding_left)", "overflow-x" => "auto"), attributes=Dict("class" => "mg-page-top-bar mg-$(top_bar)"))
         @pop
 
         top_padding = "6rem"

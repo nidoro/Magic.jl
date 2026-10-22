@@ -308,6 +308,7 @@ end
     app_mod                     ::Module                    = Module(:MagicApp)
     jobs                        ::Vector{AsyncJob}          = Vector{AsyncJob}()
     ran_fragments               ::Vector{String}            = String[]
+    theme                       ::String                    = "auto"
 end
 
 # Global

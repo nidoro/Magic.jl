@@ -13,7 +13,7 @@ function init_net_layer(
     upload_max_size::Int,
     verbose::Bool,
     dev_mode::Bool
-)
+)::Nothing
 
     ccall(
         get_net_layer_func(:MG_InitNetLayer),
@@ -21,6 +21,7 @@ function init_net_layer(
         (Cstring, Cint, Cint, Cint, Cstring, Cint, Cstring, Cint, Cint, Cint, Cint),
         host_name, Cint(sizeof(host_name)), port, Cint(ipc_port), dot_magic_dir, Cint(sizeof(dot_magic_dir)), package_root_dir, Cint(sizeof(package_root_dir)), Cint(upload_max_size), Cint(verbose), Cint(dev_mode)
     )
+    return nothing
 end
 
 function deinit_net_layer()::Nothing

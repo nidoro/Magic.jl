@@ -330,6 +330,7 @@ function start_app(
                             "dev_mode" => g.dev_mode,
                             "request_id" => ev.data.payload["request_id"],
                             "root" => ev.data.state["root"],
+                            "theme" => session.theme,
                             "error" => nothing
                         )
 
@@ -2258,6 +2259,18 @@ end
 function set_callback(callback::Function)::Nothing
     g.callback = callback
     return nothing
+end
+
+function set_theme(theme::AbstractString)::Nothing
+    assert_string_in_list(@named(theme), ["auto", "light", "dark"])
+    task = ensure_app_task_exists()
+    task.session.theme = theme
+    return nothing
+end
+
+function get_theme()::String
+    task = ensure_app_task_exists()
+    return task.session.theme
 end
 
 # Misc

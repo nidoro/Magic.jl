@@ -677,8 +677,11 @@ function createCode(code, css, showLineNumbers) {
     elem.appendChild(textarea);
 
     requestAnimationFrame(() => {
+        const theme = document.body.classList.contains("mg-theme-dark") ? "dracula" : "default";
+
         const cm = CodeMirror.fromTextArea(textarea, {
             mode: "julia",
+            theme: theme,
             viewportMargin: Infinity,
             lineNumbers: showLineNumbers,
             readOnly: true,
@@ -1115,6 +1118,7 @@ function createAppElement(parent, props, fragmentId) {
         if (!cbxGroup) {
             for (const op of props.options) {
                 const elem = document.createElement("dd-checkbox");
+                elem.classList.add("mg-checkbox");
                 elem.setAttribute("dd-group", props.id);
                 elem.setAttribute("dd-onanychange", "cbxAnyChange()");
 
@@ -1177,6 +1181,7 @@ function createAppElement(parent, props, fragmentId) {
         if (!group) {
             for (const op of props.options) {
                 const elem = document.createElement("dd-radio");
+                elem.classList.add("mg-radio");
                 elem.setAttribute("dd-group", props.id);
 
                 elem.innerText = op;
@@ -1781,6 +1786,20 @@ async function displayRerunResponse(msg) {
             child.style.setProperty("--opacity", 1.0);
         }
     }, 10);
+
+    // Set theme
+    const defaultThemes = ["mg-theme-light", "mg-theme-dark"]
+    for (let theme of defaultThemes) {
+        document.body.classList.remove(theme);
+    }
+
+    let theme = msg.theme;
+    if (theme == "auto") {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        theme = prefersDark ? 'dark' : 'light';
+    }
+
+    document.body.classList.add(`mg-theme-${theme}`);
 
     g.lastValidRerunResponse = null;
 }

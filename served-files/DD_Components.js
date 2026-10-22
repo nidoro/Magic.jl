@@ -4395,7 +4395,7 @@ style.textContent = `
         border-radius: 3px;
         border: 2px solid var(--checkbox-bg, #ffffff);
         background: var(--checkbox-bg, #ffffff);
-        box-shadow: 0 0 1px 1px #cccccc;
+        box-shadow: 0 0 1px 1px var(--checkbox-border-color, #cccccc);
     }
 
     dd-checkbox[checked]::before, dd-radio[checked]::before {
@@ -4475,6 +4475,7 @@ style.textContent = `
         
         border-radius: var(--input-border-radius, var(--border-radius, 0));
 
+        color: var(--input-color, initial);
         background-color: var(--input-bg, #ffffff);
         padding: var(--input-padding, 0);
         font-size: var(--input-font-size, 1rem);
@@ -4489,6 +4490,7 @@ style.textContent = `
         max-width: var(--input-max-width, none);
         min-width: var(--input-min-width, none);
         width: var(--input-width, initial);
+        color: var(--input-color, initial);
         background-color: var(--input-bg, #ffffff);
         cursor: text;
     }
@@ -5061,7 +5063,7 @@ style.textContent = `
         content: '';
         display: block;
         height: 50%;
-        background: #00b6f0;
+        background: var(--slider-left-color, #00b6f0);
         width: calc(0.5 * var(--slider-height, 30px));
         border-radius: 100vw 0 0 100vw;
     }
@@ -5070,7 +5072,7 @@ style.textContent = `
         content: '';
         display: block;
         height: 50%;
-        background: #bbb;
+        background: var(--slider-right-color, #bbb);
         width: calc(0.5 * var(--slider-height, 30px));
         border-radius: 0 100vw 100vw 0;
     }
@@ -5114,7 +5116,7 @@ style.textContent = `
     dd-slider .dd-left-bar {
         position: relative;
         width: 0%;
-        background: #00b6f0;
+        background: var(--slider-left-color, #00b6f0);
         height: calc(0.5 * var(--slider-height, 30px));
     }
 
@@ -5128,7 +5130,7 @@ style.textContent = `
         height: 200%;
         aspect-ratio: 1 / 1;
         border-radius: 100px;
-        background: black;
+        background: var(--slider-knob-color, black);
         z-index: 2;
     }
 
@@ -5137,7 +5139,7 @@ style.textContent = `
     }
 
     dd-slider .dd-right-bar {
-        background: #bbb;
+        background: var(--slider-right-color, #bbb);
         height: calc(0.5 * var(--slider-height, 30px));
         flex-grow: 1;
         position: relative;
