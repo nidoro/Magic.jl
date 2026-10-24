@@ -69,7 +69,8 @@ columns, container, @push, @pop, push_container, pop_container, dialog, expander
 export html, text, h1, h2, h3, h4, h5, h6, icon, link, space, metric, button,
 download_button, x_button, image, dataframe, selectbox, radio, checkbox, checkboxes,
 text_input, number_input, slider, file_uploader, code, color_picker, get_value,
-set_value, get_changes, spinner, progress_bar, set_theme, get_theme
+set_value, get_changes, spinner, progress_bar, set_theme, get_theme,
+set_default_theme
 
 # Application Logic
 #--------------------

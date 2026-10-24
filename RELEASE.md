@@ -1,4 +1,3 @@
-### v0.9.1 (2026-10-18)
+### v0.9.2 (2026-xx-xx)
 
-- Bug-fix: layout shift issues when interacting with widgets in scrolling page.
-- Bug-fix: overscroll on iPad.
+- New: dark theme and theme related functions `set_default_theme`, `set_theme`.

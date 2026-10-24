@@ -1713,6 +1713,20 @@ function getFragments(props) {
     return [];
 }
 
+function setTheme(theme) {
+    const defaultThemes = ["mg-theme-light", "mg-theme-dark"];
+    for (let theme of defaultThemes) {
+        document.body.classList.remove(theme);
+    }
+
+    if (theme == "auto") {
+        prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        theme = prefersDark ? 'dark' : 'light';
+    }
+
+    document.body.classList.add(`mg-theme-${theme}`);
+}
+
 async function displayRerunResponse(msg) {
     // Preload images
     //-------------------
@@ -1787,19 +1801,7 @@ async function displayRerunResponse(msg) {
         }
     }, 10);
 
-    // Set theme
-    const defaultThemes = ["mg-theme-light", "mg-theme-dark"]
-    for (let theme of defaultThemes) {
-        document.body.classList.remove(theme);
-    }
-
-    let theme = msg.theme;
-    if (theme == "auto") {
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        theme = prefersDark ? 'dark' : 'light';
-    }
-
-    document.body.classList.add(`mg-theme-${theme}`);
+    setTheme(msg.theme);
 
     g.lastValidRerunResponse = null;
 }
@@ -2111,4 +2113,5 @@ function errorHandler(event) {
     };
 
     window.addEventListener("error", errorHandler);
+    setTheme("auto");
 })();

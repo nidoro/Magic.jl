@@ -14,18 +14,56 @@
     <link rel="icon" type="image/png" href="/Magic.jl/images/favicon.ico">
 
     <style>
+        .mg-theme-light {
+            --mg-link-color: #002fbd;
+        }
+
+        .mg-theme-dark {
+            --mg-link-color: #577ae3;
+            --mg-page-background-color: #0e1117;
+            --mg-page-color: #fafafa;
+        }
+
+        @media (prefers-color-scheme: light) {
+            :root {
+                --mg-link-color: #002fbd;
+            }
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --mg-link-color: #577ae3;
+                --mg-page-background-color: #0e1117;
+                --mg-page-color: #fafafa;
+            }
+        }
+
+        body {
+            background: var(--mg-page-background-color, initial);
+            color: var(--mg-page-color, initial);
+        }
+
         h1, h2 {
             margin: 0;
+        }
+
+        a, a:hover, a:visited {
+            text-decoration: none;
+            color: var(--mg-link-color, inherit);
+        }
+
+        a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 
-<body style="height: 100%; font-family: sans-serif; margin: 0; padding: 0;">
+<body class="BODY_CLASS" style="height: 100%; font-family: sans-serif; margin: 0; padding: 0;">
     <div style="display: flex; height: 100%; justify-content: center; align-items: center;">
         <div style="display: flex; flex-direction: column; gap: .4em; align-items: center">
             <h1 style="font-size: 3rem">404 :(</h1>
             <h2>Page not found.</h2>
-            <a href="/">Back to Home
+            <a href="/">Back to Home</a>
         </div>
     </div>
 </body>

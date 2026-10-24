@@ -4942,7 +4942,6 @@ style.textContent = `
         top: .3em;
         right: .3em;
         font-weight: bold;
-        color: #000;
         font-family: sans-serif;
         font-size: 2rem;
         line-height: 1.5rem;

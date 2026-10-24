@@ -598,6 +598,7 @@ function rerun_app(client_id::Cint, payload::Dict)::Task
         task.payload = payload
         page = get_current_page()
         task.current_page = ismissing(page) ? g.base_page_config : page
+        session.theme = task.current_page.default_theme
 
         # Identify and initialize fragment
         #------------------------------------
@@ -1672,7 +1673,7 @@ function add_page(
         uris[i] = maybe_prepend(uri, "/")
     end
 
-    page = PageConfig()
+    page = deepcopy(g.base_page_config)
     page.id = get_random_string(6) # TODO: check for id clash
     page.uris = uris
     page.title = title
@@ -1931,6 +1932,26 @@ function inject_html(html::String=""; file_path::Union{String, Nothing}=nothing,
     return inject_html(task.current_page, html, file_path=file_path, location=location)
 end
 
+function set_default_theme(page::PageConfig, theme::AbstractString)::Nothing
+    if !(page.first_pass || is_app_first_pass()) throw(PastStartupCall("set_default_theme", "page")) end
+    assert_string_in_list(@named(theme), ("auto", "light", "dark"))
+    page.default_theme = theme
+    return nothing
+end
+
+function set_default_theme(theme::AbstractString)::Nothing
+    if is_app_first_pass()
+        set_default_theme(g.base_page_config, theme)
+        for page in g.pages
+            set_default_theme(page, theme)
+        end
+    elseif is_page_first_pass()
+        task = ensure_app_task_exists()
+        set_default_theme(task.current_page, theme)
+    end
+    return nothing
+end
+
 function begin_page_config(page::PageConfig)::Nothing
     task = ensure_app_task_exists()
     task.current_page = page
@@ -1948,6 +1969,7 @@ function create_page_html(page::PageConfig, output_path::String)::Nothing
 
     title = length(page.title) > 0 ? page.title : g.base_page_config.title
     description = length(page.description) > 0 ? page.description : g.base_page_config.description
+    body_class = page.default_theme == "auto" ? "" : "mg-theme-$(page.default_theme)"
 
     get!(page.html_injection, "head_top", "")
     get!(page.html_injection, "head_bottom", "")
@@ -1959,6 +1981,7 @@ function create_page_html(page::PageConfig, output_path::String)::Nothing
         "<title>Magic App</title>" => "<title>$(escape_html(title))</title>",
         "<meta property=\"og:description\" content=\"Web app made with Magic.jl\">" => "<meta property=\"og:description\" content=\"$(escape_html(description))\">",
         "<!-- MAGIC PAGE STYLE -->" => "<style>$(page.style)</style>",
+        "BODY_CLASS" => body_class,
         "<!-- HTML HEAD TOP INJECTION -->" => page.html_injection["head_top"],
         "<!-- HTML HEAD BOTTOM INJECTION -->" => page.html_injection["head_bottom"],
         "<!-- HTML BODY TOP INJECTION -->" => page.html_injection["body_top"],
@@ -1975,11 +1998,13 @@ function create_404_html(output_path::String)::Nothing
 
     title = g.base_page_config.title
     description = g.base_page_config.description
+    body_class = g.base_page_config.default_theme == "auto" ? "" : "mg-theme-$(g.base_page_config.default_theme)"
 
     page_html = replace(
         template,
         "<title>Magic App</title>" => "<title>$(escape_html(title))</title>",
         "<meta property=\"og:description\" content=\"Web app made with Magic.jl\">" => "<meta property=\"og:description\" content=\"$(escape_html(description))\">",
+        "BODY_CLASS" => body_class,
     )
 
     write(output_path, page_html)

@@ -67,7 +67,7 @@
   text-decoration: none;
 }
 .mg-markdown a:not(.mg-header-link) {
-  color: #002fbd;
+  color: var(--mg-link-color);
 }
 .mg-markdown a:hover { text-decoration: underline; }
 

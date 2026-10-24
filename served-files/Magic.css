@@ -87,7 +87,15 @@
 body.mg-theme-light {
     --mg-page-background-color: white;
     --mg-page-color: #31333f;
+    --mg-sidebar-background-color: #f0f0f0;
     --mg-heading-color: #31333f;
+    --mg-link-color: #002fbd;
+
+    --mg-light-border-color: #d6d6d6;
+    --mg-border-color: var(--mg-light-border-color);
+
+    --mg-sidebar-toggle-button-color: #aaa;
+    --mg-sidebar-toggle-button-hover-color: #555;
 }
 
 body.mg-theme-light .mg-button,
@@ -124,6 +132,10 @@ body.mg-theme-light dd-input.mg-selectbox dd-selected-option {
     color: white;
 }
 
+body.mg-theme-light .mg-page-top-bar.mg-fixed.mg-shadow {
+    box-shadow: 0 12px 12px -12px rgba(0, 0, 0, 0.5);
+}
+
 /* DARK THEME */
 /* DARK THEME */
 /* DARK THEME */
@@ -131,14 +143,20 @@ body.mg-theme-light dd-input.mg-selectbox dd-selected-option {
 body.mg-theme-dark {
     --mg-page-background-color: #0e1117;
     --mg-page-color: #fafafa;
+    --mg-sidebar-background-color: var(--mg-dark-background-secondary);
     --mg-heading-color: #fafafa;
+    --mg-link-color: #577ae3;
 
     --mg-dark-background-secondary-hs: 231, 15%;
     --mg-dark-background-secondary: hsl(var(--mg-dark-background-secondary-hs), 18%);
 
     --mg-dark-border-color: hsla(0, 0%, 98%, 0.2);
-}
+    --mg-border-color: var(--mg-dark-border-color);
 
+    --mg-sidebar-toggle-button-background-color: var(--mg-page-background-color);
+    --mg-sidebar-toggle-button-color: var(--mg-page-color);
+    --mg-sidebar-toggle-button-hover-color: white;
+}
 
 body.mg-theme-dark ::selection {
     background: hsl(var(--mg-dark-background-secondary-hs), 35%);
@@ -210,12 +228,14 @@ body.mg-theme-dark dd-slider.mg-slider {
     --slider-knob-color: hsl(212.7, 76.5%, 55%);
 }
 
-body.mg-theme-light .mg-page-top-bar.mg-fixed.mg-shadow {
-    box-shadow: 0 12px 12px -12px rgba(0, 0, 0, 0.5);
+body.mg-theme-dark .mg-page-top-bar.mg-fixed.mg-shadow {
+    box-shadow: 0 16px 16px -16px #333;
 }
 
-body.mg-theme-dark .mg-page-top-bar.mg-fixed.mg-shadow {
-    box-shadow: 0 16px 16px -16px black;
+body.mg-theme-dark .dd-x {
+    --button-color: var(--mg-page-color);
+    --button-bg: #131720;
+    --button-hover-bg: #222222;
 }
 
 /* DARK TABULATOR */
@@ -624,7 +644,7 @@ dd-button.mg-button, a.mg-link {
 .mg-sidebar {
     --sidebar-width: 300px;
     --max-width: 0px;
-    background: #f0f0f0;
+    background-color: var(--mg-sidebar-background-color);
     border-radius: 0 !important;
     width: 100%;
     max-width: var(--max-width) !important;
@@ -665,7 +685,7 @@ dd-button.mg-button, a.mg-link {
 }
 
 .mg-sidebar.mg-show .mg-sidebar-toggle-button {
-    background: #f0f0f0;
+    background: var(--mg-sidebar-background-color);
 }
 
 .mg-sidebar-toggle-button {
@@ -675,8 +695,9 @@ dd-button.mg-button, a.mg-link {
     padding: 5px;
     top: 0;
     --button-font-size: .85rem;
-    --button-color: #aaa;
-    --button-hover-color: #555;
+    --button-bg: var(--mg-page-background-color);
+    --button-color: var(--mg-sidebar-toggle-button-color);
+    --button-hover-color: var(--mg-sidebar-toggle-button-hover-color);
 }
 
 .mg-sidebar-toggle-button mg-icon {
@@ -756,8 +777,9 @@ dd-button.mg-button, a.mg-link {
 /* DIALOG */
 /* DIALOG */
 dd-popup {
-    background: white;
+    background: var(--mg-page-background-color);
     border-radius: 1em;
+    border: 1px solid var(--mg-border-color);
     max-width: 500px;
     padding: 1em;
     align-self: flex-start;

@@ -184,20 +184,23 @@ end
     title           ::String = "Magic App"
     description     ::String = "Web app made with Magic.jl"
     style           ::String = ""
+    default_theme   ::String = "auto"
     file_path       ::String = ""
     html_injection  ::Dict{String, String} = Dict()
     first_pass      ::Bool   = true
     user_page_data  ::Any    = nothing
     user_page_dict  ::Dict   = Dict()
 
-    set_title       ::Function = (args...; kwargs...)->()
-    set_description ::Function = (args...; kwargs...)->()
-    add_font        ::Function = (args...; kwargs...)->()
-    add_css_rule    ::Function = (args...; kwargs...)->()
-    inject_html     ::Function = (args...; kwargs...)->()
+    set_title           ::Function = (args...; kwargs...)->()
+    set_description     ::Function = (args...; kwargs...)->()
+    add_font            ::Function = (args...; kwargs...)->()
+    add_css_rule        ::Function = (args...; kwargs...)->()
+    inject_html         ::Function = (args...; kwargs...)->()
+    set_default_theme   ::Function = (args...; kwargs...)->()
 end
 
-const PAGE_CONFIG_FUNCS = [:set_title, :set_description, :add_font, :add_css_rule, :inject_html]
+const PAGE_CONFIG_FUNCS = [:set_title, :set_description, :add_font,
+                           :add_css_rule, :inject_html, :set_default_theme]
 
 # AppTask
 #------------
