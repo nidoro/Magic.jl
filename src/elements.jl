@@ -1026,7 +1026,7 @@ function create_color_picker(
         end
         initial_value = normalized
     else
-        initial_value = coalesce(default_value, "#000000")
+        initial_value = coalesce(default_value, "#808080")
     end
 
     props = Dict(
@@ -2208,6 +2208,7 @@ function link(
     justify_content ::Union{String, Nothing}    =nothing,
     background      ::Union{String, Nothing}    =nothing,
     hover_background::Union{String, Nothing}    =nothing,
+    highlight       ::Bool                      =false,
     css             ::Dict                      =Dict()
 )::Nothing
 
@@ -2225,11 +2226,14 @@ function link(
         icon_html = "<mg-icon mg-icon='$icon'></mg-icon>"
     end
 
+
     if !isnothing(font_weight)
         set_css_if_not_set(css, "font-weight", font_weight)
     end
 
-    if !isnothing(background)
+    if highlight
+        set_css_if_not_set(css, "--button-bg", "var(--mg-button-highlight-background)")
+    elseif !isnothing(background)
         set_css_if_not_set(css, "--button-bg", background)
     end
 
@@ -2249,7 +2253,16 @@ function link(
     set_css_to_achieve_layout(css, top_container(), fill_width, false)
     merge!(combined_css, css)
 
-    html("a", "$label$icon_html", css=combined_css, attributes=Dict("class" => "mg-link dd-button mg-button-style-$(style)", "href" => url, "target" => new_tab ? "_blank" : ""))
+    html(
+        "a",
+        "$label$icon_html",
+        css=combined_css,
+        attributes=Dict(
+            "class" => "mg-link dd-button mg-button-style-$(style)",
+            "href" => url,
+            "target" => new_tab ? "_blank" : ""
+        )
+    )
     return nothing
 end
 

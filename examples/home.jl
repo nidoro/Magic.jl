@@ -11,6 +11,10 @@ function section_separator()::Nothing
 end
 
 set_page_layout("wide", top_bar="fixed")
+
+theme = radio("Theme", ["auto", "light", "dark"])
+set_theme(theme)
+
 column(fill_width=true, align_items="center") do
     column(fill_width=true, max_width="1300px") do
 
@@ -210,7 +214,6 @@ column(fill_width=true, align_items="center") do
                 color = cols[1].link("Link", "https://github.com/nidoro/Magic.jl", new_tab=new_tab)
                 cols[2].code("""
                                 link("Link", "https://github.com/nidoro/Magic.jl"$(optional_code))
-                                # color = $(repr(color))
                                 """)
 
                 link("Learn more", "/docs/version/latest/api-reference/interface-elements/link", new_tab=true)
@@ -290,7 +293,7 @@ column(fill_width=true, align_items="center") do
 
                 cols[1].download_button("Download", file_path)
                 cols[2].code("""
-                                file_path = $(repr(file_path))
+                                file_path = joinpath(get_dot_magic_path(), "served-files/images/chart.png")
                                 download_button("Download", file_path$(optional_code))
                                 """)
 
@@ -312,7 +315,7 @@ column(fill_width=true, align_items="center") do
 
             cols[1].image(file_path, fill_width=fill_width)
             cols[2].code("""
-                        file_path = $(repr(file_path))
+                        file_path = joinpath(get_dot_magic_path(), "served-files/images/chart.png")
                         image(file_path$(optional_code))
                         """)
 

@@ -81,7 +81,7 @@ function sidebar_links(section::AbstractString="/", section_title::AbstractStrin
 
     cnt = level == 0 ?
           column(fill_width=true) :
-          expander(uppercase(section_title), fill_width=true, initial_state=expander_state, gap="0", label_padding=".3em .8em .3em .8em", label_weight="bold", label_color="#777", label_size=".9rem", label_hover_background="#ddd")
+          expander(uppercase(section_title), fill_width=true, initial_state=expander_state, gap="0", label_padding=".3em .8em .3em .8em", label_weight="bold",  label_size=".9rem")
 
     @push cnt
         column(fill_width=true, gap="0px", padding="0 0 0 $(level*0.5)em") do
@@ -97,7 +97,7 @@ function sidebar_links(section::AbstractString="/", section_title::AbstractStrin
                             fill_width=true,
                             padding=".2em .5em .2em .5em",
                             justify_content="flex-start",
-                            background=page.url_path == current_path ? "#ddd" : nothing,
+                            highlight=(page.url_path == current_path),
                         )
                     else
                         sidebar_links(page.url_path, page.title, level+1)

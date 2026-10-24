@@ -96,12 +96,20 @@ body.mg-theme-light {
 
     --mg-sidebar-toggle-button-color: #aaa;
     --mg-sidebar-toggle-button-hover-color: #555;
+
+    --mg-button-secondary-hover-bg-hs: 0, 0%;
+    --mg-button-secondary-hover-bg: hsl(var(--mg-button-secondary-hover-bg-hs), 94%);
+}
+
+body.mg-theme-light .mg-sidebar {
+    --mg-button-secondary-hover-bg: hsl(var(--mg-button-secondary-hover-bg-hs), 88%);
+    --mg-button-highlight-background: hsl(var(--mg-button-secondary-hover-bg-hs), 88%);
 }
 
 body.mg-theme-light .mg-button,
 body.mg-theme-light .mg-link {
     --button-border-color: transparent;
-    --button-hover-bg: #f0f0f0;
+    --button-hover-bg: var(--mg-button-secondary-hover-bg);
 }
 
 body.mg-theme-light .mg-button.mg-button-style-primary,
@@ -114,7 +122,7 @@ body.mg-theme-light .mg-link.mg-button-style-primary {
 
 body.mg-theme-light .mg-button.mg-button-style-secondary,
 body.mg-theme-light .mg-link.mg-button-style-secondary {
-    --button-hover-bg: #f0f0f0;
+    --button-hover-bg: var(--mg-button-secondary-hover-bg);
     --button-border-color: #d0d0d0;
 }
 
@@ -156,6 +164,14 @@ body.mg-theme-dark {
     --mg-sidebar-toggle-button-background-color: var(--mg-page-background-color);
     --mg-sidebar-toggle-button-color: var(--mg-page-color);
     --mg-sidebar-toggle-button-hover-color: white;
+
+    --mg-button-secondary-hover-bg-hs: 0, 0%;
+    --mg-button-secondary-hover-bg: hsl(var(--mg-button-secondary-hover-bg-hs), 13%);
+}
+
+body.mg-theme-dark .mg-sidebar {
+    --mg-button-secondary-hover-bg: hsl(var(--mg-button-secondary-hover-bg-hs), 13%);
+    --mg-button-highlight-background: hsl(var(--mg-button-secondary-hover-bg-hs), 13%);
 }
 
 body.mg-theme-dark ::selection {
@@ -164,7 +180,7 @@ body.mg-theme-dark ::selection {
 
 body.mg-theme-dark .mg-button,
 body.mg-theme-dark .mg-link {
-    --button-hover-bg: #222222;
+    --button-hover-bg: var(--mg-button-secondary-hover-bg);
     --button-border-color: transparent;
 }
 
@@ -179,7 +195,7 @@ body.mg-theme-dark .mg-link.mg-button-style-primary {
 body.mg-theme-dark .mg-button.mg-button-style-secondary,
 body.mg-theme-dark .mg-link.mg-button-style-secondary {
     --button-bg: #131720;
-    --button-hover-bg: #222222;
+    --button-hover-bg: var(--mg-button-secondary-hover-bg);
     --button-border-color: var(--mg-dark-border-color);
 }
 
@@ -362,21 +378,21 @@ input[type="color"] {
 }
 
 input[type="color"]::-moz-color-swatch {
-    border-radius: 0;
+    border-radius: .5em;
     border: none;
     outline: none;
     padding: 0;
 }
 
 input[type="color"]::-webkit-color-swatch-wrapper {
-    border-radius: 0;
+    border-radius: .5em;
     border: none;
     outline: none;
     padding: 0;
 }
 
 input[type="color"]::-webkit-color-swatch {
-    border-radius: 0;
+    border-radius: .5em;
     border: none;
     outline: none;
     padding: 0;
@@ -600,7 +616,6 @@ dd-button.mg-button, a.mg-link {
 }
 
 .mg-sidebar .dd-button {
-    --button-hover-bg: #ddd;
     --button-white-space: nowrap;
 }
 

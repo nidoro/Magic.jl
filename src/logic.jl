@@ -56,7 +56,25 @@ function start_app(
     dev_mode                    ::Bool                      =false,
     rethrow_rerun_exceptions    ::Bool                      =false,
     throw_client_side_error     ::Bool                      =false,
+    revise                      ::Bool                      =true,
 )::Nothing
+
+    # Revise Magic before starting, if Revise is loaded. The call is then
+    # re-entered via invokelatest so the revised definitions take effect,
+    # including any changes to start_app itself.
+    # NOTE: Revise's file watcher can be killed by the Ctrl+C that stops the
+    # server, so we can't rely on it to pick up changes between runs.
+    #---------------------------------------------------------------------------
+    if revise && dev_mode
+        revise_id = Base.PkgId(Base.UUID("295af30f-e4ad-537b-8983-00126c2a3abe"), "Revise")
+        if haskey(Base.loaded_modules, revise_id)
+            Base.loaded_modules[revise_id].revise(@__MODULE__; force=false)
+            return Base.invokelatest(start_app, script_or_func;
+                host_name, port, upload_max_size, upload_max_files, dot_magic_dir,
+                open_browser, init_and_quit, callback, verbose, dev_mode,
+                rethrow_rerun_exceptions, throw_client_side_error, revise=false)
+        end
+    end
 
     # Input validation
     #----------------------

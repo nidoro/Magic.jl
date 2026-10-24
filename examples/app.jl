@@ -1,17 +1,6 @@
 using Magic
 using DataFrames
 
-function comment_lines(s::AbstractString)::String
-    join(("# " * line for line in split(strip(s), '\n')), '\n')
-end
-
-function section_separator()::Nothing
-    space(height="1.5rem")
-    markdown("---")
-    space(height="1rem")
-    return nothing
-end
-
 @app_startup begin
     add_page(["/", "/home"])
     add_page("/examples")
@@ -161,7 +150,7 @@ elseif startswith(get_url_path(), "/examples")
     left_sidebar() do
         column(fill_width=true, gap="0px") do
             space(height="3rem")
-            h5("Magic Examples", css=Dict("margin" => "0 0 .8rem .8rem", "white-space" => "nowrap", "color" => "#444"))
+            h5("Magic Examples", css=Dict("margin" => "0 0 .8rem .8rem", "white-space" => "nowrap", "opacity" => "0.6"))
             link("Overview", "/examples", style="naked", fill_width=true, css=Dict("justify-content" => "flex-start"))
             link("Counter", "/examples/counter", style="naked", fill_width=true, css=Dict("justify-content" => "flex-start"))
             link("To-Do List", "/examples/todo", style="naked", fill_width=true, css=Dict("justify-content" => "flex-start"))
