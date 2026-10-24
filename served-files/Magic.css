@@ -132,6 +132,16 @@ body.mg-theme-dark {
     --mg-page-background-color: #0e1117;
     --mg-page-color: #fafafa;
     --mg-heading-color: #fafafa;
+
+    --mg-dark-background-secondary-hs: 231, 15%;
+    --mg-dark-background-secondary: hsl(var(--mg-dark-background-secondary-hs), 18%);
+
+    --mg-dark-border-color: hsla(0, 0%, 98%, 0.2);
+}
+
+
+body.mg-theme-dark ::selection {
+    background: hsl(var(--mg-dark-background-secondary-hs), 35%);
 }
 
 body.mg-theme-dark .mg-button,
@@ -152,7 +162,7 @@ body.mg-theme-dark .mg-button.mg-button-style-secondary,
 body.mg-theme-dark .mg-link.mg-button-style-secondary {
     --button-bg: #131720;
     --button-hover-bg: #222222;
-    --button-border-color: rgba(250, 250, 250, 0.2);
+    --button-border-color: var(--mg-dark-border-color);
 }
 
 body.mg-theme-dark .mg-checkbox,
@@ -162,7 +172,7 @@ body.mg-theme-dark .mg-radio {
 }
 
 body.mg-theme-dark dd-input.mg-selectbox {
-    --input-bg: #282a36;
+    --input-bg: var(--mg-dark-background-secondary);
     --input-color: var(--mg-page-color);
 }
 
@@ -177,14 +187,14 @@ body.mg-theme-dark dd-input.mg-selectbox dd-selected-option {
 }
 
 body.mg-theme-dark dd-select.mg-selectbox {
-    background: #282a36;
+    background: var(--mg-dark-background-secondary);
     border: 1px solid rgba(250, 250, 250, 0.2);
     box-shadow: 0px 20px 54px -20px #000000;
     --button-hover-bg: #14161a;
 }
 
 body.mg-theme-dark dd-input.mg-text-input {
-    --input-bg: #282a36;
+    --input-bg: var(--mg-dark-background-secondary);
     --input-color: var(--mg-page-color);
 }
 
@@ -196,8 +206,72 @@ body.mg-theme-dark dd-input .dd-increment-button {
 
 body.mg-theme-dark dd-slider.mg-slider {
     --slider-left-color: hsl(212.7, 76.5%, 55%);
-    --slider-right-color: #282a36;
+    --slider-right-color: var(--mg-dark-background-secondary);
     --slider-knob-color: hsl(212.7, 76.5%, 55%);
+}
+
+body.mg-theme-light .mg-page-top-bar.mg-fixed.mg-shadow {
+    box-shadow: 0 12px 12px -12px rgba(0, 0, 0, 0.5);
+}
+
+body.mg-theme-dark .mg-page-top-bar.mg-fixed.mg-shadow {
+    box-shadow: 0 16px 16px -16px black;
+}
+
+/* DARK TABULATOR */
+/* DARK TABULATOR */
+/* DARK TABULATOR */
+
+body.mg-theme-dark .tabulator {
+    border-color: var(--mg-dark-border-color);
+    background: var(--mg-dark-border-color);
+}
+
+body.mg-theme-dark .tabulator .tabulator-header {
+    background: hsl(var(--mg-dark-background-secondary-hs), 13%);
+    color: var(--mg-page-color);
+}
+
+body.mg-theme-dark .tabulator .tabulator-header .tabulator-col.tabulator-range-highlight {
+    background: hsl(var(--mg-dark-background-secondary-hs), 8%);
+    color: var(--mg-page-color);
+}
+
+body.mg-theme-dark .tabulator .tabulator-header .tabulator-col {
+    border-bottom-color: var(--mg-dark-border-color);
+    border-right-color: var(--mg-dark-border-color);
+}
+
+body.mg-theme-dark .tabulator .tabulator-header .tabulator-col:hover {
+    background: hsl(var(--mg-dark-background-secondary-hs), 13%) !important;
+    color: var(--mg-page-color);
+}
+
+body.mg-theme-dark .tabulator-row .tabulator-cell.tabulator-range-selected {
+    background: hsl(var(--mg-dark-background-secondary-hs), 13%) !important;
+    color: var(--mg-page-color);
+}
+
+body.mg-theme-dark .tabulator-row {
+    background: var(--mg-dark-background-secondary);
+}
+
+body.mg-theme-dark .tabulator-row:hover {
+    background: hsl(var(--mg-dark-background-secondary-hs), 20%);
+}
+
+body.mg-theme-dark .tabulator .tabulator-tableholder .tabulator-table {
+    color: var(--mg-page-color);
+}
+
+body.mg-theme-dark .tabulator .tabulator-cell {
+    border-bottom-color: var(--mg-dark-border-color);
+    border-right-color: var(--mg-dark-border-color);
+}
+
+body.mg-theme-dark .mg-file-uploader {
+    background: var(--mg-dark-background-secondary);
+    color: var(--mg-page-color);
 }
 
 /* BASE STYLES */
@@ -628,14 +702,6 @@ dd-button.mg-button, a.mg-link {
 .mg-page-top-bar.mg-fixed {
     z-index: 10;
     transition: box-shadow 0.3s ease-out;
-}
-
-body.mg-theme-light .mg-page-top-bar.mg-fixed.mg-shadow {
-    box-shadow: 0 12px 12px -12px rgba(0, 0, 0, 0.5);
-}
-
-body.mg-theme-dark .mg-page-top-bar.mg-fixed.mg-shadow {
-    box-shadow: 0 16px 16px -16px black;
 }
 
 /* FILE UPLOADER */
