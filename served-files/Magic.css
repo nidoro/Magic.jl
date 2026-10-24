@@ -92,6 +92,7 @@ body.mg-theme-light {
     --mg-sidebar-background-color: #f0f0f0;
     --mg-heading-color: #31333f;
     --mg-link-color: #002fbd;
+    --mg-selection-background-color: #bbb;
 
     --mg-light-border-color: #d6d6d6;
     --mg-border-color: var(--mg-light-border-color);
@@ -102,6 +103,11 @@ body.mg-theme-light {
     --mg-button-secondary-hover-bg-hs: 0, 0%;
     --mg-button-secondary-hover-bg: hsl(var(--mg-button-secondary-hover-bg-hs), 94%);
     --mg-button-highlight-background: var(--mg-button-secondary-hover-bg);
+
+    --mg-progress-bar-right-background: #bbb;
+
+    --mg-file-uploader-clear-button-hover-color: black;
+    --mg-file-uploader-error-color: #a40202;
 }
 
 body.mg-theme-light .mg-sidebar {
@@ -156,9 +162,10 @@ body.mg-theme-dark {
 
     --mg-page-background-color: #0e1117;
     --mg-page-color: #fafafa;
-    --mg-sidebar-background-color: var(--mg-dark-background-secondary);
     --mg-heading-color: #fafafa;
     --mg-link-color: #577ae3;
+    --mg-selection-background-color: hsl(var(--mg-dark-background-secondary-hs), 35%);
+    --mg-top-bar-shadow: 0 16px 16px -16px #333;
 
     --mg-dark-background-secondary-hs: 231, 15%;
     --mg-dark-background-secondary: hsl(var(--mg-dark-background-secondary-hs), 18%);
@@ -166,97 +173,57 @@ body.mg-theme-dark {
     --mg-dark-border-color: hsla(0, 0%, 98%, 0.2);
     --mg-border-color: var(--mg-dark-border-color);
 
-    --mg-sidebar-toggle-button-color: var(--mg-page-color);
-    --mg-sidebar-toggle-button-hover-color: white;
+    --mg-button-primary-bg: hsl(212.7, 76.5%, 55%);
+    --mg-button-primary-color: white;
+    --mg-button-primary-hover-bg: hsl(212.7, 76.5%, 42%);
+    --mg-button-primary-border-color: hsl(212.7, 76.5%, 55%);
 
+    --mg-button-secondary-bg: #131720;
+    --mg-button-secondary-color: var(--mg-page-color);
     --mg-button-secondary-hover-bg-hs: 0, 0%;
     --mg-button-secondary-hover-bg: hsl(var(--mg-button-secondary-hover-bg-hs), 13%);
+    --mg-button-secondary-border-color: var(--mg-border-color);
+
     --mg-button-highlight-background: var(--mg-button-secondary-hover-bg);
-}
 
-body.mg-theme-dark .mg-sidebar {
-    --mg-button-secondary-hover-bg: hsl(var(--mg-button-secondary-hover-bg-hs), 13%);
-    --mg-button-highlight-background: hsl(var(--mg-button-secondary-hover-bg-hs), 13%);
-}
+    --mg-checkbox-bg: var(--mg-page-background-color);
+    --mg-checkbox-border-color: rgba(250, 250, 250, 0.4);
 
-body.mg-theme-dark ::selection {
-    background: hsl(var(--mg-dark-background-secondary-hs), 35%);
-}
+    --mg-input-bg: var(--mg-dark-background-secondary);
+    --mg-input-color: var(--mg-page-color);
+    --mg-increment-button-color: #666;
+    --mg-increment-button-hover-bg: #14161a;
+    --mg-increment-button-hover-color: var(--mg-page-color);
 
-body.mg-theme-dark .mg-button,
-body.mg-theme-dark .mg-link {
-    --button-hover-bg: var(--mg-button-secondary-hover-bg);
-    --button-border-color: transparent;
-}
+    --mg-selectbox-clear-button-bg: #999;
+    --mg-selectbox-clear-button-color: white;
+    --mg-selectbox-menu-background: var(--mg-dark-background-secondary);
+    --mg-selectbox-menu-border-color: rgba(250, 250, 250, 0.2);
+    --mg-selectbox-menu-shadow-color: black;
+    --mg-selectbox-option-hover-bg: #14161a;
+    --mg-selectbox-selected-option-background: hsl(212.7, 76.5%, 55%);
+    --mg-selectbox-selected-option-color: white;
 
-body.mg-theme-dark .mg-button.mg-button-style-primary,
-body.mg-theme-dark .mg-link.mg-button-style-primary {
-    --button-bg: hsl(212.7, 76.5%, 55%);
-    --button-color: white;
-    --button-hover-bg: hsl(212.7, 76.5%, 42%);
-    --button-border-color: hsl(212.7, 76.5%, 55%);
-}
+    --mg-slider-left-color: hsl(212.7, 76.5%, 55%);
+    --mg-slider-right-color: var(--mg-dark-background-secondary);
+    --mg-slider-knob-color: hsl(212.7, 76.5%, 55%);
 
-body.mg-theme-dark .mg-button.mg-button-style-secondary,
-body.mg-theme-dark .mg-link.mg-button-style-secondary {
-    --button-bg: #131720;
-    --button-hover-bg: var(--mg-button-secondary-hover-bg);
-    --button-border-color: var(--mg-dark-border-color);
-}
+    --mg-progress-bar-right-background: hsl(var(--mg-dark-background-secondary-hs), 28%);
 
-body.mg-theme-dark .mg-checkbox,
-body.mg-theme-dark .mg-radio {
-    --checkbox-bg: var(--mg-page-background-color);
-    --checkbox-border-color: rgba(250, 250, 250, 0.4);
-}
+    --mg-sidebar-background-color: var(--mg-dark-background-secondary);
+    --mg-sidebar-toggle-button-color: var(--mg-page-color);
+    --mg-sidebar-toggle-button-hover-color: white;
+    --mg-sidebar-button-secondary-hover-bg: hsl(var(--mg-button-secondary-hover-bg-hs), 13%);
+    --mg-sidebar-button-highlight-background: hsl(var(--mg-button-secondary-hover-bg-hs), 13%);
 
-body.mg-theme-dark dd-input.mg-selectbox {
-    --input-bg: var(--mg-dark-background-secondary);
-    --input-color: var(--mg-page-color);
-}
+    --mg-dialog-close-button-color: var(--mg-page-color);
+    --mg-dialog-close-button-bg: #131720;
+    --mg-dialog-close-button-hover-bg: #222222;
 
-body.mg-theme-dark dd-input.mg-selectbox .dd-clear-button {
-    --button-bg: #999;
-    --button-color: white;
-}
-
-body.mg-theme-dark dd-input.mg-selectbox dd-selected-option {
-    background: hsl(212.7, 76.5%, 55%);
-    color: white;
-}
-
-body.mg-theme-dark dd-select.mg-selectbox {
-    background: var(--mg-dark-background-secondary);
-    border: 1px solid rgba(250, 250, 250, 0.2);
-    box-shadow: 0px 20px 54px -20px #000000;
-    --button-hover-bg: #14161a;
-}
-
-body.mg-theme-dark dd-input.mg-text-input {
-    --input-bg: var(--mg-dark-background-secondary);
-    --input-color: var(--mg-page-color);
-}
-
-body.mg-theme-dark dd-input .dd-increment-button {
-    --button-color: #666;
-    --button-hover-bg: #14161a;
-    --button-hover-color: var(--mg-page-color);
-}
-
-body.mg-theme-dark dd-slider.mg-slider {
-    --slider-left-color: hsl(212.7, 76.5%, 55%);
-    --slider-right-color: var(--mg-dark-background-secondary);
-    --slider-knob-color: hsl(212.7, 76.5%, 55%);
-}
-
-body.mg-theme-dark .mg-page-top-bar.mg-fixed.mg-shadow {
-    box-shadow: 0 16px 16px -16px #333;
-}
-
-body.mg-theme-dark .dd-x {
-    --button-color: var(--mg-page-color);
-    --button-bg: #131720;
-    --button-hover-bg: #222222;
+    --mg-file-uploader-clear-button-hover-color: #ddd;
+    --mg-file-uploader-error-color: #f90707;
+    --mg-file-uploader-background: var(--mg-dark-background-secondary);
+    --mg-file-uploader-color: var(--mg-page-color);
 }
 
 /* DARK TABULATOR */
@@ -310,11 +277,6 @@ body.mg-theme-dark .tabulator .tabulator-cell {
     border-right-color: var(--mg-dark-border-color);
 }
 
-body.mg-theme-dark .mg-file-uploader {
-    background: var(--mg-dark-background-secondary);
-    color: var(--mg-page-color);
-}
-
 /* BASE STYLES */
 /* BASE STYLES */
 /* BASE STYLES */
@@ -337,6 +299,10 @@ input {font-size: inherit}
 *, ::before, ::after { box-sizing: border-box; margin: 0; padding: 0 }
 
 * { overflow-anchor: none }
+
+::selection {
+    background: var(--mg-selection-background-color);
+}
 
 p {
     margin-bottom: 0;
@@ -524,9 +490,12 @@ img.mg-image {
 dd-input.mg-selectbox {
     border-radius: .5rem;
     overflow: hidden;
-    --input-after-font-size: .8rem;
-    --input-bg: #f4f4f4;
     padding: 5px 8px;
+
+    --input-after-font-size: .8rem;
+    --input-bg: var(--mg-input-bg);
+    --input-color: var(--mg-input-color);
+    /*--input-bg: #f4f4f4;*/
 }
 
 dd-input.mg-selectbox .dd-input-container {
@@ -540,12 +509,15 @@ dd-input.mg-selectbox input {
 }
 
 dd-input.mg-selectbox .dd-clear-button {
-    --button-bg: #999;
-    --button-color: white;
+    /*--button-bg: #999;
+    --button-color: white;*/
     --button-font-size: 10px;
     --button-border-radius: 100%;
     --button-height: 9px;
     --button-width: 9px;
+
+    --button-bg: var(--mg-selectbox-clear-button-bg);
+    --button-color: var(--mg-selectbox-clear-button-color);
     min-width: 9px;
     line-height: 0;
     aspect-ratio: 1 / 1;
@@ -553,8 +525,10 @@ dd-input.mg-selectbox .dd-clear-button {
 
 dd-input.mg-selectbox dd-selected-option {
     border-radius: 0.25rem;
-    background: var(--primary);
-    color: white;
+    /*background: var(--primary);
+    color: white;*/
+    background: var(--mg-selectbox-selected-option-background);
+    color: var(--mg-selectbox-selected-option-color);
     padding: 3px 6px 3px 6px;
     font-size: 1em;
     margin-right: 6px;
@@ -565,13 +539,17 @@ dd-input.mg-selectbox dd-selected-option {
 }
 
 dd-select.mg-selectbox {
-    background: white;
-    border-radius: .5rem;
+    /*background: white;
     border: 1px solid #f6f6f6;
-    box-shadow: 0px 20px 54px -20px #000000;
+    box-shadow: 0px 20px 54px -20px #000000;*/
+    background: var(--mg-selectbox-menu-background);
+    border: 1px solid var(--mg-selectbox-menu-border-color);
+    border-radius: .5rem;
+    box-shadow: 0px 20px 54px -20px var(--mg-selectbox-menu-shadow-color);
 
     --button-padding: 12px;
-    --button-hover-bg: #f6f6f6;
+    /*--button-hover-bg: #f6f6f6;*/
+    --button-hover-bg: var(--mg-selectbox-option-hover-bg);
 }
 
 /* INPUT */
@@ -582,8 +560,10 @@ dd-input.mg-text-input {
     border-radius: .5rem;
     overflow: hidden;
     padding: 5px 8px;
-    --input-bg: #f4f4f4;
+    /*--input-bg: #f4f4f4;*/
     --input-padding: 4px 0;
+    --input-bg: var(--mg-input-bg);
+    --input-color: var(--mg-input-color);
 }
 
 dd-input .dd-increment-button {
@@ -591,9 +571,13 @@ dd-input .dd-increment-button {
     min-width: 32px;
     font-size: 1.5em;
     border-radius: .5rem;
-    --button-color: #666;
+    /*--button-color: #666;
     --button-hover-color: black;
-    --button-hover-bg: #ddd;
+    --button-hover-bg: #ddd;*/
+
+    --button-color: var(--mg-increment-button-color);
+    --button-hover-bg: var(--mg-increment-button-hover-bg);
+    --button-hover-color: var(--mg-increment-button-hover-color);
 }
 
 /* SLIDER */
@@ -603,6 +587,9 @@ dd-input .dd-increment-button {
 dd-slider.mg-slider {
     max-width: 100%;
     --slider-height: 15px;
+    --slider-left-color: var(--mg-slider-left-color);
+    --slider-right-color: var(--mg-slider-right-color);
+    --slider-knob-color: var(--mg-slider-knob-color);
 }
 
 /* BUTTON */
@@ -613,6 +600,9 @@ dd-button.mg-button, a.mg-link {
     --button-border-width: 1px;
     --button-padding: 9.5px 14px;
     --button-border-radius: .5rem;
+
+    --button-hover-bg: var(--mg-button-secondary-hover-bg);
+    --button-border-color: transparent;
 }
 
 .mg-button mg-icon, .mg-link mg-icon {
@@ -628,6 +618,27 @@ dd-button.mg-button, a.mg-link {
     font-style: normal;
     font-size: 1.2em;
     line-height: 0.85;
+}
+
+.mg-button.mg-button-style-primary,
+.mg-link.mg-button-style-primary {
+    --button-bg: var(--mg-button-primary-bg);
+    --button-color: var(--mg-button-primary-color);
+    --button-hover-bg: var(--mg-button-primary-hover-bg);
+    --button-border-color: var(--mg-button-primary-border-color);
+}
+
+.mg-button.mg-button-style-secondary,
+.mg-link.mg-button-style-secondary {
+    --button-bg: var(--mg-button-secondary-bg);
+    --button-color: var(--mg-button-secondary-color);
+    --button-hover-bg: var(--mg-button-secondary-hover-bg);
+    --button-border-color: var(--mg-button-secondary-border-color);
+}
+
+.mg-checkbox, .mg-radio {
+    --checkbox-bg: var(--mg-checkbox-bg);
+    --checkbox-border-color: var(--mg-checkbox-border-color);
 }
 
 #mg_app_wrapper {
@@ -672,6 +683,9 @@ dd-button.mg-button, a.mg-link {
     transition: max-width 0.3s ease-out, min-width 0.3s ease-out;
     height: 100vh;
     white-space: nowrap;
+
+    --mg-button-secondary-hover-bg: var(--mg-sidebar-button-secondary-hover-bg);
+    --mg-button-highlight-background: var(--mg-sidebar-button-highlight-background);
 }
 
 .mg-sidebar.mg-right {
@@ -745,6 +759,10 @@ dd-button.mg-button, a.mg-link {
     transition: box-shadow 0.3s ease-out;
 }
 
+.mg-page-top-bar.mg-fixed.mg-shadow {
+    box-shadow: var(--mg-top-bar-shadow);
+}
+
 /* FILE UPLOADER */
 /* FILE UPLOADER */
 /* FILE UPLOADER */
@@ -756,11 +774,13 @@ dd-button.mg-button, a.mg-link {
     width: 400px;
     max-width: 100%;
     height: 90px;
-    background: #f0f0f0;
     padding: 0 1em;
     border-radius: .5em;
     text-align: center;
-    color: #555;
+    /*background: #f0f0f0;
+    color: #555;*/
+    background: var(--mg-file-uploader-background);
+    color: var(--mg-file-uploader-color);
     --dragover-outline: 5px solid #4b92e7;
     --dragover-outline-offset: -5px;
 }
@@ -779,11 +799,11 @@ dd-button.mg-button, a.mg-link {
 }
 
 .mg-file-uploader .mg-inner-label.mg-error {
-    color: #a40202;
+    color: var(--mg-file-uploader-error-color);
 }
 
 .mg-file-uploader .mg-clear-button {
-    --button-hover-color: black;
+    --button-hover-color: var(--mg-file-uploader-clear-button-hover-color);
 }
 
 .mg-no-select, label {
@@ -806,6 +826,15 @@ dd-popup {
     margin-top: 10em;
 }
 
+.dd-x {
+    --button-color: var(--mg-dialog-close-button-color);
+    --button-bg: var(--mg-dialog-close-button-bg);
+}
+
+.dd-x:hover {
+    background: var(--mg-dialog-close-button-hover-bg);
+}
+
 /* PROGRESS BAR */
 /* PROGRESS BAR */
 /* PROGRESS BAR */
@@ -815,7 +844,7 @@ dd-popup {
     right: 0;
     bottom: 0;
     left: 0;
-    background: #bbb;
+    background: var(--mg-progress-bar-right-background);
     display: flex;
     border-radius: 100vw;
     overflow: hidden;

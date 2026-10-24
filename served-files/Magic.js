@@ -2114,7 +2114,7 @@ function errorHandler(event) {
 
     window.addEventListener("error", errorHandler);
 
-    if (!("mg-theme" in document.body.getAttribute("class"))) {
+    if (!document.body.getAttribute("class").includes("mg-theme")) {
         setTheme("auto");
     }
 })();
