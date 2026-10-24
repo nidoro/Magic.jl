@@ -1720,7 +1720,7 @@ function setTheme(theme) {
     }
 
     if (theme == "auto") {
-        prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         theme = prefersDark ? 'dark' : 'light';
     }
 
@@ -2113,5 +2113,8 @@ function errorHandler(event) {
     };
 
     window.addEventListener("error", errorHandler);
-    setTheme("auto");
+
+    if (!("mg-theme" in document.body.getAttribute("class"))) {
+        setTheme("auto");
+    }
 })();

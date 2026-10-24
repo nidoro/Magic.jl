@@ -24,20 +24,6 @@
             --mg-page-color: #fafafa;
         }
 
-        @media (prefers-color-scheme: light) {
-            :root {
-                --mg-link-color: #002fbd;
-            }
-        }
-
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --mg-link-color: #577ae3;
-                --mg-page-background-color: #0e1117;
-                --mg-page-color: #fafafa;
-            }
-        }
-
         body {
             background: var(--mg-page-background-color, initial);
             color: var(--mg-page-color, initial);
@@ -66,5 +52,11 @@
             <a href="/">Back to Home</a>
         </div>
     </div>
+
+    <script>
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        let theme = prefersDark ? "dark" : "light";
+        document.body.classList.add(`mg-theme-${theme}`);
+    </script>
 </body>
 </html>

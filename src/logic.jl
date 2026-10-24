@@ -616,7 +616,9 @@ function rerun_app(client_id::Cint, payload::Dict)::Task
         task.payload = payload
         page = get_current_page()
         task.current_page = ismissing(page) ? g.base_page_config : page
-        session.theme = task.current_page.default_theme
+        if is_session_first_pass()
+            session.theme = task.current_page.default_theme
+        end
 
         # Identify and initialize fragment
         #------------------------------------

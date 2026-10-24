@@ -85,6 +85,8 @@
 /* LIGHT THEME */
 
 body.mg-theme-light {
+    color-scheme: light;
+
     --mg-page-background-color: white;
     --mg-page-color: #31333f;
     --mg-sidebar-background-color: #f0f0f0;
@@ -99,6 +101,7 @@ body.mg-theme-light {
 
     --mg-button-secondary-hover-bg-hs: 0, 0%;
     --mg-button-secondary-hover-bg: hsl(var(--mg-button-secondary-hover-bg-hs), 94%);
+    --mg-button-highlight-background: var(--mg-button-secondary-hover-bg);
 }
 
 body.mg-theme-light .mg-sidebar {
@@ -149,6 +152,8 @@ body.mg-theme-light .mg-page-top-bar.mg-fixed.mg-shadow {
 /* DARK THEME */
 
 body.mg-theme-dark {
+    color-scheme: dark;
+
     --mg-page-background-color: #0e1117;
     --mg-page-color: #fafafa;
     --mg-sidebar-background-color: var(--mg-dark-background-secondary);
@@ -161,12 +166,12 @@ body.mg-theme-dark {
     --mg-dark-border-color: hsla(0, 0%, 98%, 0.2);
     --mg-border-color: var(--mg-dark-border-color);
 
-    --mg-sidebar-toggle-button-background-color: var(--mg-page-background-color);
     --mg-sidebar-toggle-button-color: var(--mg-page-color);
     --mg-sidebar-toggle-button-hover-color: white;
 
     --mg-button-secondary-hover-bg-hs: 0, 0%;
     --mg-button-secondary-hover-bg: hsl(var(--mg-button-secondary-hover-bg-hs), 13%);
+    --mg-button-highlight-background: var(--mg-button-secondary-hover-bg);
 }
 
 body.mg-theme-dark .mg-sidebar {
