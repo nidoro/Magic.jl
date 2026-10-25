@@ -512,6 +512,131 @@ end
     end
 end
 
+@testset "cycle_button(...) input validation and initialization" begin
+    @maybe_suppress @info """
+    ------------------------------------------------------------------
+    Test: cycle_button(...) input validation and initialization
+    ------------------------------------------------------------------------
+    """
+
+    @test_throws Magic.IncorrectUsage cycle_button(["a", "b", "c"])
+
+    # Tests that don't throw exceptions
+    #--------------------------------------
+    tests = [
+        # Test that the first option is the value if no initial_value is provided
+        function ()
+            val = cycle_button(["a", "b", "c"])
+            set_app_data("test_successfull", val == "a")
+        end,
+
+        # Test that the value assigned at initialization is the returned value
+        function ()
+            val = cycle_button(["a", "b", "c"], labels=["A", "B", "C"], initial_value="b")
+            set_app_data("test_successfull", val == "b")
+        end,
+
+        # Test that default_value will be used if initial_value is not provided
+        function ()
+            set_default_value("cyc", "c")
+            val = cycle_button(("a", "b", "c"), id="cyc")
+            set_app_data("test_successfull", val == "c")
+        end,
+
+        # Test that set_value will work when given valid arguments
+        function ()
+            cycle_button(["a", "b", "c"], id="cyc")
+            set_value("cyc", "c")
+            val = get_value("cyc")
+            set_app_data("test_successfull", val == "c")
+        end,
+
+        # Test that style and fill_width are accepted
+        function ()
+            val = cycle_button(["a", "b", "c"], style="primary", fill_width=true)
+            set_app_data("test_successfull", val == "a")
+        end,
+
+        # Test that set_value with nothing will assign the first value of the list of options
+        function ()
+            cycle_button(["a", "b", "c"], id="cyc", initial_value="b")
+            set_value("cyc", nothing)
+            val = get_value("cyc")
+            set_app_data("test_successfull", val == "a")
+        end,
+    ]
+
+    @maybe_suppress begin
+        for test in tests
+            @test start_app(test, port=PORT, dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true) == nothing
+            @test get_app_data("test_successfull")
+        end
+    end
+
+    # Tests that throw InvalidArgument
+    #-----------------------------------
+    tests = [
+        # Test that it will fail when given empty options
+        function ()
+            cycle_button([])
+        end,
+
+        # Test that it will fail when options contains elements that are not String
+        function ()
+            cycle_button(["a", "b", 3])
+        end,
+
+        # Test that it will fail when options contains duplicated elements
+        function ()
+            cycle_button(["a", "b", "a"])
+        end,
+
+        # Test that it will fail when given an invalid style
+        function ()
+            cycle_button(["a", "b", "c"], style="INVALID_STYLE")
+        end,
+
+        # Test that it will fail when labels doesn't match the length of options
+        function ()
+            cycle_button(["a", "b", "c"], labels=["A", "B"])
+        end,
+
+        # Test that it will fail when given an initial_value that is not in options
+        function ()
+            cycle_button(["a", "b", "c"], initial_value="invalid")
+        end,
+
+        # Test that it will fail when given a default_value that is not in options
+        function ()
+            set_default_value("cyc", "invalid")
+            cycle_button(["a", "b", "c"], id="cyc")
+        end,
+
+        # Test that it will fail when onchange doesn't accept the arguments in args
+        function ()
+            cycle_button(["a", "b", "c"], onchange=()->(), args=(1, 2))
+        end,
+
+        # Test that set_value will fail when trying to assign a value that is not a String
+        function ()
+            cycle_button(["a", "b", "c"], id="cyc")
+            set_value("cyc", 1)
+        end,
+
+        # Test that set_value will fail when trying to assign a value that does not exist in options
+        function ()
+            cycle_button(["a", "b", "c"], id="cyc")
+            set_value("cyc", "invalid")
+        end,
+    ]
+
+    @maybe_suppress begin
+        for test in tests
+            @test_throws Magic.InvalidArgument start_app(test, port=PORT, dev_mode=true, init_and_quit=true, rethrow_rerun_exceptions=true)
+        end
+    end
+end
+
 @testset "text_input(...) input validation and initialization" begin
     @maybe_suppress @info """
     ------------------------------------------------------------------

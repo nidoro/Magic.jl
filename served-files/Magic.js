@@ -349,6 +349,16 @@ function radChange(groupName) {
     }]);
 }
 
+function cybChange(elem, oldValue, newValue) {
+    requestUpdate([{
+        type: "change",
+        widget_id: elem.getAttribute("data-mg-id"),
+        fragment_id: elem.getAttribute("data-mg-fragment-id"),
+        old_value: oldValue,
+        new_value: newValue,
+    }]);
+}
+
 function isNumber(value) {
     return !isNaN(value);
 }
@@ -1204,6 +1214,41 @@ function createAppElement(parent, props, fragmentId) {
         requestAnimationFrame(() => {
             DD_Radio.selectInGroup(props.id, `${props.value}`, {silent: true});
         })
+    } else if (props.type == "cycle_button") {
+        let elem = document.querySelector(`[data-mg-id="${props.id}"]`);
+
+        if (!elem) {
+            elem = document.createElement("dd-cycle-button");
+            elem.classList.add("mg-button");
+            elem.classList.add(`mg-button-style-${props.style}`);
+            elem.classList.add("mg-cycle-button");
+            applyCSS(elem, props.css);
+
+            elem.setAttribute("data-mg-container-id", props.container_id);
+            elem.setAttribute("data-mg-local-id", props.local_id);
+            elem.setAttribute("data-mg-id", props.id);
+            elem.setAttribute("value", `${props.value}`);
+            elem.setAttribute("dd-onchange", "cybChange()");
+
+            for (let i = 0; i < props.options.length; ++i) {
+                const optElem = document.createElement("dd-option");
+                optElem.setAttribute("value", `${props.options[i]}`);
+                optElem.setAttribute("dd-text", props.labels[i]);
+                elem.appendChild(optElem);
+            }
+        } else {
+            elem.setAttribute("dd-reconnecting", "");
+            elem.setAttribute("value", `${props.value}`);
+            elem.value = `${props.value}`;
+
+            if (DD_Components.isFocused(elem)) {
+                requestAnimationFrame(()=>{
+                    elem.focus();
+                });
+            }
+        }
+
+        newElements.push(elem);
     } else if (props.type == "image") {
         let elem = document.querySelector(`[data-mg-id="${props.id}"]`);
 

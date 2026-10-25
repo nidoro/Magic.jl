@@ -1473,6 +1473,179 @@ function radio(
     return create_radio(widgets, top_container(), id, label, options, initial_value)
 end
 
+# Cycle Button
+#--------------
+function create_cycle_button(
+    widgets         ::Dict{String, Widget},
+    parent          ::Dict,
+    user_id         ::Union{AbstractString, Nothing},
+    options         ::Union{AbstractVector, Tuple},
+    labels          ::Union{AbstractVector, Tuple, Nothing},
+    initial_value   ::Union{AbstractString, Nothing},
+    style           ::AbstractString,
+    onchange        ::Function,
+    args            ::Union{AbstractVector, Tuple},
+    css             ::AbstractDict,
+)::String
+
+    # Input validation
+    #----------------------
+    assert_string_in_list(@named(style), ("primary", "secondary", "naked"))
+
+    if !function_accepts_arg_count(onchange, length(args))
+        throw(InvalidArgument(@named(onchange), "`onchange` should accept the same number of arguments passed in `args` ($(length(args)))."))
+    end
+
+    if isempty(options)
+        throw(InvalidArgument(@named(options), "`options` can't be empty."))
+    end
+
+    if !all(entry -> entry isa AbstractString, options)
+        throw(InvalidArgument(@named(options), "`options` contains elements that are not String."))
+    end
+
+    if !allunique(options)
+        throw(InvalidArgument(@named(options), "`options` contains duplicated elements."))
+    end
+
+    if !isnothing(labels)
+        if length(labels) != length(options)
+            throw(InvalidArgument(@named(labels), "`labels` should have the same length as `options` ($(length(options)))."))
+        end
+
+        if !all(entry -> entry isa AbstractString, labels)
+            throw(InvalidArgument(@named(labels), "`labels` contains elements that are not String."))
+        end
+    end
+
+    default_value = maybe_get_default_value(user_id)
+    if !isnothing(default_value) && !ismissing(default_value)
+        if !(default_value isa AbstractString)
+            throw(InvalidArgument(@named(default_value), "You tried to assign a default value to this cycle_button that is not a String."))
+        end
+        if !(default_value in options)
+            throw(InvalidArgument(@named(default_value), "You tried to assign a default value to this cycle_button that is not one of the values provided in `options`."))
+        end
+    end
+
+    if !isnothing(initial_value)
+        if !(initial_value in options)
+            throw(InvalidArgument(@named(initial_value), "You tried to assign an initial value to this cycle_button that is not one of the values provided in `options`."))
+        end
+    end
+
+    props = Dict(
+        "type" => "cycle_button",
+        "user_id" => user_id,
+        "options" => options,
+        "labels" => isnothing(labels) ? options : labels,
+        "initial_value" => initial_value,
+        "style" => style,
+        "css" => css,
+    )
+
+    if isnothing(props["initial_value"])
+        props["initial_value"] = coalesce(default_value, options[1])
+    end
+
+    props["local_id"] = bytes2hex(sha256(JSON.json(props)))
+    props["container_id"] = parent["id"]
+    props["id"] = "$(props["container_id"])/$(props["local_id"])"
+
+    push!(parent["children"], props)
+
+    widget = nothing
+
+    if haskey(widgets, props["id"])
+        widget = widgets[props["id"]]
+        widget.alive = true
+    else
+        widget = Widget()
+        widget.kind = WidgetKind_CycleButton
+        widget.id = props["id"]
+        widget.user_id = props["user_id"]
+        widget.fragment_id = top_fragment().id
+        widget.value = props["initial_value"]
+        widget.onchange = onchange
+        widget.args = collect(args)
+        widgets[props["id"]] = widget
+    end
+
+    props["value"] = widget.value
+    widget.props = props
+
+    return widget.value
+end
+
+"""
+# cycle\\_button
+
+Display a button that cycles through a list of options. Each click selects the
+next option, going back to the first one after the last.
+
+### Function Signature
+
+```julia
+function cycle_button(
+    options         ::Union{AbstractVector, Tuple};
+    labels          ::Union{AbstractVector, Tuple, Nothing} =nothing,
+    id              ::Union{AbstractString, Nothing}        =nothing,
+    initial_value   ::Union{AbstractString, Nothing}        =nothing,
+    style           ::AbstractString                        ="secondary",
+    fill_width      ::Bool                                  =false,
+    onchange        ::Function                              =()->(),
+    args            ::Union{AbstractVector, Tuple}          =[],
+    css             ::AbstractDict                          =Dict(),
+)::String
+```
+
+ Argument           | Description
+:------------------  |:-----------
+ `options`          | An `AbstractVector` or `Tuple` of `String`s. These are the possible values of the widget, in the order they are cycled through.
+ `labels`           | An optional `AbstractVector` or `Tuple` of `String`s, with the same length as `options`, specifying what is displayed inside the button for each option. Labels can contain HTML. If `nothing` (default), the options themselves are displayed.
+ `id`               | An optional `String` identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like [`get_value()`](/docs/version/latest/api-reference/interface-elements/get_value) and [`set_value()`](/docs/version/latest/api-reference/interface-elements/get_value#setvalue).
+ `initial_value`    | The value that should be initially selected. If provided, it should match one of the values in `options`. If `nothing` (default), the default value set with [`set_default_value()`](/docs/version/latest/api-reference/interface-elements/get_value#setdefaultvalue) will be selected if one was provided. Otherwise, the first option in `options` will be selected.
+ `style`            | A `String` specifying the predefined style to be applied to the button. Possible values: `primary`, `secondary` (default), or `naked`.
+ `fill_width`       | A `Bool` indicating whether the button should expand to fill the available horizontal space. Default: `false`.
+ `onchange`         | A callback `Function`. This function is called when the value changes, before the app script is rerun.
+ `args`             | A `Vector` or `Tuple` of arguments that will be passed to the `onchange` callback function.
+ `css`              | A `Dict` of additional CSS properties applied to the button element.
+
+### Return Value
+
+The currently selected value from `options`.
+
+### Example
+
+```julia
+using Magic
+
+mode = cycle_button(["light", "dark"], labels=["☀️ Light", "🌙 Dark"])
+text("Current mode: \$(mode)")
+```
+"""
+function cycle_button(
+    options         ::Union{AbstractVector, Tuple};
+    labels          ::Union{AbstractVector, Tuple, Nothing} =nothing,
+    id              ::Union{AbstractString, Nothing}        =nothing,
+    initial_value   ::Union{AbstractString, Nothing}        =nothing,
+    style           ::AbstractString                        ="secondary",
+    fill_width      ::Bool                                  =false,
+    onchange        ::Function                              =()->(),
+    args            ::Union{AbstractVector, Tuple}          =[],
+    css             ::AbstractDict                          =Dict(),
+)::String
+
+    task = ensure_app_task_exists()
+    widgets = task.session.widgets
+    parent = top_container()
+
+    css = Dict(css)
+    set_css_to_achieve_layout(css, parent, fill_width, false)
+
+    return create_cycle_button(widgets, parent, id, options, labels, initial_value, style, onchange, args, css)
+end
+
 # Image
 #-----------
 function get_file_sha256(path::AbstractString)
@@ -2895,6 +3068,20 @@ function set_value(user_id::String, value::Any)::Any
                     end
                 else
                     throw(InvalidArgument(@named(value), "You tried to assign to a radio a value is not a String or Number."))
+                end
+            else
+                widget.value = widget.props["options"][1]
+            end
+        elseif widget.kind == WidgetKind_CycleButton
+            if !isnothing(value)
+                if value isa AbstractString
+                    if value in widget.props["options"]
+                        widget.value = value
+                    else
+                        throw(InvalidArgument(@named(value), "You tried to assign to a cycle_button a value that is not one of its options."))
+                    end
+                else
+                    throw(InvalidArgument(@named(value), "You tried to assign to a cycle_button a value that is not a String."))
                 end
             else
                 widget.value = widget.props["options"][1]

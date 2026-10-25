@@ -593,7 +593,7 @@ dd-slider.mg-slider {
 /* BUTTON */
 /* BUTTON */
 
-dd-button.mg-button, a.mg-link {
+dd-button.mg-button, dd-cycle-button.mg-button, a.mg-link {
     --button-border-width: 1px;
     --button-padding: 9.5px 14px;
     --button-border-radius: .5rem;

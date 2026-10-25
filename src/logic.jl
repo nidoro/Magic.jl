@@ -730,6 +730,9 @@ function rerun_app(client_id::Cint, payload::Dict)::Task
                     elseif widget.kind == WidgetKind_Radio
                         widget.value = get_item_by_its_stringified_version(widget.props["options"], front_event["new_value"])
                         invokelatest(widget.onchange, widget.args...)
+                    elseif widget.kind == WidgetKind_CycleButton
+                        widget.value = get_item_by_its_stringified_version(widget.props["options"], front_event["new_value"])
+                        invokelatest(widget.onchange, widget.args...)
                     elseif widget.kind in [WidgetKind_TextInput, WidgetKind_ColorPicker]
                         widget.value = front_event["new_value"]
                         invokelatest(widget.onchange, widget.args...)
@@ -2739,7 +2742,7 @@ function gen_docs()::Nothing
                :download_button, :link, :color_picker, :image, :text, :h1,
                :metric, :code, :icon, :space, :html, :get_value, :markdown,
                :get_changes, :spinner, :progress_bar, :x_button,
-               :make_uploaded_file]
+               :make_uploaded_file, :cycle_button]
 
     for (i, object) in enumerate(objects)
         save_doc(getfield(Magic, object), joinpath(doc_interface_dir, "$(object).md"))

@@ -1,5 +1,5 @@
 
-let DD_Components = {};
+const DD_Components = {};
 
 DD_Components.getPreferredLang = function() {
     const preferredLanguages = navigator.languages;
@@ -3463,7 +3463,7 @@ class DD_Option extends DD_Button {
         this.addEventListener("mousedown", function(event) {
             // NOTE: Prevent blur on anchor if it is dd-input
             let menu = this.getSelectMenu();
-            if (menu.anchorType == "INPUT") {
+            if (menu && menu.anchorType == "INPUT") {
                 event.preventDefault();
             }
         });
@@ -3472,13 +3472,15 @@ class DD_Option extends DD_Button {
             let value = this.getAttribute("value");
             if (value) {
                 let menu = this.getSelectMenu();
-                menu.selectOption(value);
-                if (menu.anchorType != "INPUT") {
-                    menu.anchor.focus();
-                } else {
-                    menu.anchor.input.focus();
+                if (menu) {
+                    menu.selectOption(value);
+                    if (menu.anchorType != "INPUT") {
+                        menu.anchor.focus();
+                    } else {
+                        menu.anchor.input.focus();
+                    }
+                    menu.hide();
                 }
-                menu.hide();
             }
         });
     }
@@ -3496,11 +3498,11 @@ class DD_Option extends DD_Button {
             
         this.innerHTML = this.getAttribute("dd-text");
         
-        let selectMenu = this.getSelectMenu();
-        
         if (!this.hasAttribute("value")) {
             this.setAttribute("value", "");
         }
+
+        let selectMenu = this.getSelectMenu();
         
         if (selectMenu) {
             if (this.hasAttribute("value")) {
@@ -3519,6 +3521,13 @@ class DD_Option extends DD_Button {
                     }
                 }
             }
+        }
+
+        const cycleButton = this.getCycleButton();
+
+        if (cycleButton) {
+            cycleButton.addOption(this.getAttribute("value"), this.getAttribute("dd-text"));
+            this.remove();
         }
     }
     
@@ -3539,6 +3548,118 @@ class DD_Option extends DD_Button {
             el = el.parentElement;
         }
         return null;
+    }
+
+    getCycleButton() {
+        let el = this.parentElement;
+        while (el) {
+            if (el.tagName == "DD-CYCLE-BUTTON") {
+                return el;
+            }
+            el = el.parentElement;
+        }
+        return null;
+    }
+}
+
+// NOTE: Options are declared as dd-option children. Each dd-option registers
+// itself in the cycle button and removes itself from the DOM, so the button
+// only shows the label of the current option. The initially selected option
+// can be set with the `value` attribute.
+class DD_CycleButton extends DD_Button {
+    constructor() {
+        super();
+        this.options = [];
+        this.currentOption = 0;
+    }
+
+    connectedCallback() {
+        if (this.hasAttribute("dd-reconnecting")) {
+            this.removeAttribute("dd-reconnecting");
+            return;
+        }
+
+        // NOTE: Reuses dd-button styles, which target the .dd-button class too.
+        this.classList.add("dd-button");
+        this.initializeButton();
+
+        this.addEventListener("click", (event) => {
+            if (!this.hasAttribute("disabled")) {
+                this.next();
+            }
+        });
+    }
+
+    addOption(value, label) {
+        if (this.getOptionIndex(value) >= 0) return;
+        if (label == null) label = value;
+        this.options.push({value: value, label: label});
+
+        const index = this.options.length - 1;
+        if (index == 0 || value == this.getAttribute("value")) {
+            this.currentOption = index;
+            this.updateInnerHTML();
+        }
+    }
+
+    setValue(v, notify) {
+        let index = v;
+        if (typeof v == "string") {
+            index = this.getOptionIndex(v);
+        }
+
+        if (!(0 <= index && index < this.options.length)) {
+            return;
+        }
+
+        const oldValue = this.value;
+        this.currentOption = index;
+        this.updateInnerHTML();
+
+        if (notify && !this.hasAttribute("dd-silent") && this.hasAttribute("dd-onchange") && oldValue != this.value) {
+            DD_Components.executeFunctionByName(this.getAttribute("dd-onchange"), window, this, oldValue, this.value);
+        }
+    }
+
+    get value() {
+        if (this.options.length) {
+            return this.options[this.currentOption].value;
+        }
+        return null;
+    }
+
+    set value(v) {
+        this.setValue(v, false);
+    }
+
+    updateInnerHTML() {
+        // NOTE: When the button is built before being connected, all dd-option
+        // children connect at once. Replacing innerHTML on the first one would
+        // remove the others before they register, so only the label nodes are
+        // replaced here.
+        for (const node of Array.from(this.childNodes)) {
+            if (node.tagName != "DD-OPTION") {
+                node.remove();
+            }
+        }
+
+        const option = this.options[this.currentOption];
+        this.insertAdjacentHTML("afterbegin", option.label);
+    }
+
+    getOptionIndex(value) {
+        for (let i = 0; i < this.options.length; ++i) {
+            if (this.options[i].value == value) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    next() {
+        if (!this.options.length) return;
+        const i = (this.currentOption+1) % this.options.length;
+        this.setValue(i, true);
     }
 }
 
@@ -5246,6 +5367,7 @@ style.textContent = `
     window.customElements.define("dd-slider", DD_Slider);
     window.customElements.define("dd-spinner", DD_Spinner);
     window.customElements.define("dd-selected-option", DD_SelectedOption);
+    window.customElements.define("dd-cycle-button", DD_CycleButton);
 
     window.addEventListener("DOMContentLoaded", function() {
         document.body.classList.add('dd-using-mouse');
