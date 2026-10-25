@@ -89,68 +89,65 @@ body.mg-theme-light {
 
     --mg-page-background-color: white;
     --mg-page-color: #31333f;
-    --mg-sidebar-background-color: #f0f0f0;
     --mg-heading-color: #31333f;
     --mg-link-color: #002fbd;
     --mg-selection-background-color: #bbb;
+    --mg-top-bar-shadow: 0 12px 12px -12px rgba(0, 0, 0, 0.5);
 
     --mg-light-border-color: #d6d6d6;
     --mg-border-color: var(--mg-light-border-color);
 
-    --mg-sidebar-toggle-button-color: #aaa;
-    --mg-sidebar-toggle-button-hover-color: #555;
+    --mg-button-primary-bg: hsl(240, 100%, 21%);
+    --mg-button-primary-color: white;
+    --mg-button-primary-hover-bg: hsl(240, 100%, 30%);
+    --mg-button-primary-border-color: hsl(240, 100%, 21%);
 
+    --mg-button-secondary-bg: transparent;
+    --mg-button-secondary-color: var(--mg-page-color);
     --mg-button-secondary-hover-bg-hs: 0, 0%;
     --mg-button-secondary-hover-bg: hsl(var(--mg-button-secondary-hover-bg-hs), 94%);
+    --mg-button-secondary-border-color: #d0d0d0;
+
     --mg-button-highlight-background: var(--mg-button-secondary-hover-bg);
+
+    --mg-checkbox-bg: #ffffff;
+    --mg-checkbox-border-color: #cccccc;
+
+    --mg-input-bg: #f4f4f4;
+    --mg-input-color: black;
+    --mg-increment-button-color: #666;
+    --mg-increment-button-hover-bg: #ddd;
+    --mg-increment-button-hover-color: black;
+
+    --mg-selectbox-clear-button-bg: #999;
+    --mg-selectbox-clear-button-color: white;
+    --mg-selectbox-menu-background: white;
+    --mg-selectbox-menu-border-color: #f6f6f6;
+    --mg-selectbox-menu-shadow-color: black;
+    --mg-selectbox-option-hover-bg: #f6f6f6;
+    --mg-selectbox-selected-option-background: var(--primary);
+    --mg-selectbox-selected-option-color: white;
+
+    --mg-slider-left-color: #00b6f0;
+    --mg-slider-right-color: #bbb;
+    --mg-slider-knob-color: black;
 
     --mg-progress-bar-right-background: #bbb;
 
+    --mg-sidebar-background-color: #f0f0f0;
+    --mg-sidebar-toggle-button-color: #aaa;
+    --mg-sidebar-toggle-button-hover-color: #555;
+    --mg-sidebar-button-secondary-hover-bg: hsl(var(--mg-button-secondary-hover-bg-hs), 88%);
+    --mg-sidebar-button-highlight-background: hsl(var(--mg-button-secondary-hover-bg-hs), 88%);
+
+    --mg-dialog-close-button-color: var(--mg-page-color);
+    --mg-dialog-close-button-bg: transparent;
+    --mg-dialog-close-button-hover-bg: rgba(0, 0, 0, 0.1);
+
     --mg-file-uploader-clear-button-hover-color: black;
     --mg-file-uploader-error-color: #a40202;
-}
-
-body.mg-theme-light .mg-sidebar {
-    --mg-button-secondary-hover-bg: hsl(var(--mg-button-secondary-hover-bg-hs), 88%);
-    --mg-button-highlight-background: hsl(var(--mg-button-secondary-hover-bg-hs), 88%);
-}
-
-body.mg-theme-light .mg-button,
-body.mg-theme-light .mg-link {
-    --button-border-color: transparent;
-    --button-hover-bg: var(--mg-button-secondary-hover-bg);
-}
-
-body.mg-theme-light .mg-button.mg-button-style-primary,
-body.mg-theme-light .mg-link.mg-button-style-primary {
-    --button-bg: hsl(240, 100%, 21%);
-    --button-color: white;
-    --button-hover-bg: hsl(240, 100%, 30%);
-    --button-border-color: hsl(240, 100%, 21%);
-}
-
-body.mg-theme-light .mg-button.mg-button-style-secondary,
-body.mg-theme-light .mg-link.mg-button-style-secondary {
-    --button-hover-bg: var(--mg-button-secondary-hover-bg);
-    --button-border-color: #d0d0d0;
-}
-
-body.mg-theme-light dd-input.mg-selectbox {
-    --input-bg: #f4f4f4;
-}
-
-body.mg-theme-light dd-input.mg-selectbox .dd-clear-button {
-    --button-bg: #999;
-    --button-color: white;
-}
-
-body.mg-theme-light dd-input.mg-selectbox dd-selected-option {
-    background: var(--primary);
-    color: white;
-}
-
-body.mg-theme-light .mg-page-top-bar.mg-fixed.mg-shadow {
-    box-shadow: 0 12px 12px -12px rgba(0, 0, 0, 0.5);
+    --mg-file-uploader-background: #f0f0f0;
+    --mg-file-uploader-color: #555;
 }
 
 /* DARK THEME */
