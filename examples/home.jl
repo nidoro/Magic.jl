@@ -12,10 +12,6 @@ end
 
 set_page_layout("wide", top_bar="fixed")
 
-theme = radio("Theme", ["auto", "light", "dark"])
-set_theme(theme)
-progress_bar(0.5)
-
 column(fill_width=true, align_items="center") do
     column(fill_width=true, max_width="1300px") do
 
@@ -273,7 +269,7 @@ column(fill_width=true, align_items="center") do
                 optional_code = ""
                 optional_code *= fill_width ? ", fill_width=$(fill_width)" : ""
 
-                uploaded_file = cols[1].file_uploader("File uploader", fill_width=fill_width, multiple=true, max_files=2)
+                uploaded_file = cols[1].file_uploader("File uploader", fill_width=fill_width)
                 cols[2].code("""
                                 file = file_uploader("File uploader"$(optional_code))
                                 # file = $(comment_lines(repr(uploaded_file)))
