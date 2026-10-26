@@ -18,7 +18,6 @@ end
 
 if is_on_page("/")
     include("home.jl")
-    include("top-bar.jl")
 elseif startswith(get_url_path(), "/examples")
     page_script = "01-counter.jl"
     layout_style = "centered"
@@ -62,6 +61,8 @@ elseif startswith(get_url_path(), "/examples")
         ),
         top_bar="fixed"
     )
+
+    include("top-bar.jl")
 
     if is_on_page("/examples")
         @page_startup begin
@@ -167,6 +168,4 @@ elseif startswith(get_url_path(), "/examples")
     right_sidebar() do
         code(initial_value_file=joinpath(@__DIR__, page_script))
     end
-
-    include("top-bar.jl")
 end

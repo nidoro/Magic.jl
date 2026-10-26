@@ -11,6 +11,7 @@ function section_separator()::Nothing
 end
 
 set_page_layout("wide", top_bar="fixed")
+include("top-bar.jl")
 
 column(fill_width=true, align_items="center") do
     column(fill_width=true, max_width="1300px") do
@@ -29,6 +30,26 @@ column(fill_width=true, align_items="center") do
 
             space(height="1.5rem")
         end
+
+        h2("Theme")
+
+        row(fill_width=true, align_items="center") do
+            cols = columns(2, justify_content="center")
+
+            cols(1) do
+                row().radio("Theme", ["auto", "light", "dark"], id="theme_example", onchange=update_theme, args=["theme_example"])
+            end
+
+            cols(2) do
+                code("""
+                    set_theme($(repr(get_value("theme_example"))))
+                    """)
+            end
+
+            link("Learn more", "/docs/version/latest/api-reference/interface-elements/button", new_tab=true)
+        end
+
+        markdown("---")
 
         h2("Basic widgets")
 

@@ -446,6 +446,12 @@ end
             set_app_data("test_successfull", val == 3.14)
         end,
 
+        # Test that onchange and args are accepted
+        function ()
+            val = radio("Radio", [1, 2, 3], onchange=(a, b)->(), args=(1, 2))
+            set_app_data("test_successfull", val == 1)
+        end,
+
         # Test that set_value with nothing will assign the first value of the list of options
         function ()
             radio("Radio", (1, 2, 3, "abc", 3.14), id="rad")
@@ -502,6 +508,11 @@ end
         function ()
             radio("Radio", [1, 2, 3, "abc", 3.14], id="rad")
             set_value("rad", "invalid")
+        end,
+
+        # Test that it will fail when onchange doesn't accept the arguments in args
+        function ()
+            radio("Radio", [1, 2, 3], onchange=()->(), args=(1, 2))
         end,
     ]
 

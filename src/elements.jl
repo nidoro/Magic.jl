@@ -1366,11 +1366,17 @@ function create_radio(
     user_id::Any,
     label::String,
     options::Union{AbstractVector, Tuple},
-    initial_value::Union{String, Number, Nothing}
+    initial_value::Union{String, Number, Nothing},
+    onchange::Function,
+    args::Union{AbstractVector, Tuple}
 )::Union{String, Number}
 
     # Input validation
     #----------------------
+    if !function_accepts_arg_count(onchange, length(args))
+        throw(InvalidArgument(@named(onchange), "`onchange` should accept the same number of arguments passed in `args` ($(length(args)))."))
+    end
+
     if isempty(options)
         throw(InvalidArgument(@named(options), "`options` can't be empty."))
     end
@@ -1425,6 +1431,8 @@ function create_radio(
         widget.user_id = props["user_id"]
         widget.fragment_id = top_fragment().id
         widget.value = props["initial_value"]
+        widget.onchange = onchange
+        widget.args = collect(args)
         widgets[props["id"]] = widget
     end
 
@@ -1446,7 +1454,9 @@ function radio(
     label           ::String,
     options         ::Union{AbstractVector, Tuple};
     id              ::Any                               =nothing,
-    initial_value   ::Union{String, Number, Nothing}    =nothing
+    initial_value   ::Union{String, Number, Nothing}    =nothing,
+    onchange        ::Function                          =()->(),
+    args            ::Union{AbstractVector, Tuple}      =Vector()
 )::Union{String, Number}
 ```
 
@@ -1456,6 +1466,8 @@ function radio(
  `options`          | An `AbstractVector` or `Tuple` of selectable values. Each element represents one radio option and will be displayed using its string representation.
  `id`              | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like [`get_value()`](/docs/version/latest/api-reference/interface-elements/get_value) and [`set_value()`](/docs/version/latest/api-reference/interface-elements/get_value#setvalue).
  `initial_value`    | The value that should be initially selected. If provided, it should match one of the values in `options`. If `nothing` (default), the default value set with [`set_default_value()`](/docs/version/latest/api-reference/interface-elements/get_value#setdefaultvalue) will be selected if one was provided. Otherwise, first option in `options` will be selected.
+ `onchange`         | A callback `Function`. This function is called when the selected value changes, before the app script is rerun.
+ `args`             | A `Vector` or `Tuple` of arguments that will be passed to the `onchange` callback function.
 
 ### Return Value
 
@@ -1465,12 +1477,14 @@ function radio(
     label           ::String,
     options         ::Union{AbstractVector, Tuple};
     id              ::Any                               =nothing,
-    initial_value   ::Union{String, Number, Nothing}    =nothing
+    initial_value   ::Union{String, Number, Nothing}    =nothing,
+    onchange        ::Function                          =()->(),
+    args            ::Union{AbstractVector, Tuple}      =Vector()
 )::Union{String, Number}
 
     task = ensure_app_task_exists()
     widgets = task.session.widgets
-    return create_radio(widgets, top_container(), id, label, options, initial_value)
+    return create_radio(widgets, top_container(), id, label, options, initial_value, onchange, args)
 end
 
 # Cycle Button
