@@ -840,7 +840,7 @@ function set_page_layout(
  `right_sidebar_initial_width`   | A `String` specifying the initial width of the right sidebar.
  `right_sidebar_position`         | A `String` specifying how the right sidebar is positioned relative to the main content (`"slide-out"` or `"overlay"`).
  `right_sidebar_toggle_labels`   | A `Tuple` of two optional `String` values defining the labels for opening and closing the right sidebar toggle button.
- `top_bar`                       | Either `nothing` (default) or a `String` specifying the top bar style. Possible values: `"fixed"` or `"sticky"`. If `nothing`, the top bar is disabled. Its container can be accessed via [`top_bar()`](/docs/version/latest/api-reference/layout-elements/top_bar).
+ `top_bar`                       | Either `nothing` (default) or a `String` specifying the top bar style. Possible values: `"sticky"` (stays at the top of the page while scrolling) or `"static"` (scrolls with the page). If `nothing`, the top bar is disabled. Its container can be accessed via [`top_bar()`](/docs/version/latest/api-reference/layout-elements/top_bar).
 
 ### Return Value
 
@@ -898,6 +898,16 @@ function set_page_layout(
     assert_string_in_list(@named(left_sidebar_position), ("slide-out", "overlay"))::Nothing
     assert_string_in_list(@named(right_sidebar_position), ("slide-out", "overlay"))::Nothing
 
+    # NOTE: "fixed" is deprecated. It is still accepted, but behaves like "sticky".
+    if top_bar == "fixed"
+        @warn "top_bar=\"fixed\" is deprecated. Using top_bar=\"sticky\" instead." maxlog=1
+        top_bar = "sticky"
+    end
+
+    if !isnothing(top_bar)
+        assert_string_in_list(@named(top_bar), ("sticky", "static"))::Nothing
+    end
+
     # Initialize sidebars
     #------------------------
     left_sidebar, right_sidebar = nothing, nothing
@@ -917,15 +927,12 @@ function set_page_layout(
     # Initialize main area
     #-------------------------
     top_bar_container = nothing
-    top_padding = "3rem"
     if !isnothing(top_bar)
         @push main_area
             padding_left = isnothing(left_sidebar) ? "0.5em" : "2.0em"
             padding_right = isnothing(right_sidebar) ? "0.5em" : "2.0em"
             top_bar_container = row(fill_width=true, css=Dict("position" => top_bar, "top" => "0", "border-radius" => "0", "padding" => ".5em $(padding_right) .5em $(padding_left)", "overflow-x" => "auto"), attributes=Dict("class" => "mg-page-top-bar mg-$(top_bar)"))
         @pop
-
-        top_padding = "6rem"
     end
 
     if style == "basic"
@@ -934,13 +941,13 @@ function set_page_layout(
         @pop
     elseif style == "centered"
         @push main_area
-            @push column(fill_width=true, fill_height=true, align_items="center", padding="$(top_padding) 5px 5px 5px")
+            @push column(fill_width=true, fill_height=true, align_items="center", padding="3rem 5px 5px 5px")
                 main_area = column(fill_width=true, fill_height=true, align_items="center", max_width=max_width, css=Dict("align-items" => "center"), attributes=Dict("class" => "mg-page-main-area"))
             @pop
         @pop
     elseif style == "wide"
         @push main_area
-            @push column(fill_width=true, fill_height=true, align_items="center", padding="$(top_padding) 0 0 0")
+            @push column(fill_width=true, fill_height=true, align_items="center", padding="3rem 0 0 0")
                 main_area = column(fill_width=true, fill_height=true, css=Dict("padding" => "0 5%"), attributes=Dict("class" => "mg-page-main-area"))
             @pop
         @pop
@@ -1113,7 +1120,7 @@ style by calling `set_page_layout()` with the `top_bar` argument.
 Example:
 
 ```julia
-set_page_layout("centered", top_bar="fixed")
+set_page_layout("centered", top_bar="sticky")
 ```
 
 Calling `top_bar()` when the layout does not have a top bar throws an
@@ -1136,7 +1143,7 @@ The `ContainerInterface` of the top bar.
 ### Example
 
 ```julia
-set_page_layout("wide", top_bar="fixed")
+set_page_layout("wide", top_bar="sticky")
 
 top_bar() do
     row(fill_width=true, align_items="center") do

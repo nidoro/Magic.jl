@@ -5,7 +5,7 @@ Retrieves the `ContainerInterface` of the page top bar created by [`set_page_lay
 The top bar is disabled by default. In order to enable it, you must set its style by calling `set_page_layout()` with the `top_bar` argument. Example:
 
 ```julia
-set_page_layout("centered", top_bar="fixed")
+set_page_layout("centered", top_bar="sticky")
 ```
 
 Calling `top_bar()` when the layout does not have a top bar throws an `ArgumentError`.
@@ -27,7 +27,7 @@ The `ContainerInterface` of the top bar.
 ### Example
 
 ```julia
-set_page_layout("wide", top_bar="fixed")
+set_page_layout("wide", top_bar="sticky")
 
 top_bar() do
     row(fill_width=true, align_items="center") do

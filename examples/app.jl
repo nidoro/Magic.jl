@@ -56,10 +56,10 @@ elseif startswith(get_url_path(), "/examples")
         right_sidebar_position="overlay",
         right_sidebar_initial_width="50%",
         right_sidebar_toggle_labels=(
-            "VIEW SOURCE <lt-icon lt-icon='material/code'></lt-icon>",
+            "VIEW SOURCE <mg-icon mg-icon='material/code'></mg-icon>",
             nothing
         ),
-        top_bar="fixed"
+        top_bar="sticky"
     )
 
     include("top-bar.jl")

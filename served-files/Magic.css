@@ -751,12 +751,12 @@ dd-button.mg-button, dd-cycle-button.mg-button, a.mg-link {
     background-color: var(--mg-page-background-color);
 }
 
-.mg-page-top-bar.mg-fixed {
+.mg-page-top-bar.mg-sticky {
     z-index: 10;
     transition: box-shadow 0.3s ease-out;
 }
 
-.mg-page-top-bar.mg-fixed.mg-shadow {
+.mg-page-top-bar.mg-sticky.mg-shadow {
     box-shadow: var(--mg-top-bar-shadow);
 }
 

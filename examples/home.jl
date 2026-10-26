@@ -10,7 +10,7 @@ function section_separator()::Nothing
     return nothing
 end
 
-set_page_layout("wide", top_bar="fixed")
+set_page_layout("wide", top_bar="sticky")
 include("top-bar.jl")
 
 column(fill_width=true, align_items="center") do

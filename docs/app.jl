@@ -162,7 +162,7 @@ function doc_section(title::AbstractString, url_prefix::AbstractString)
 end
 
 if startswith(get_url_path(), "/docs")
-    set_page_layout("wide", left_sidebar_initial_state="open", top_bar="fixed")
+    set_page_layout("wide", left_sidebar_initial_state="open", top_bar="sticky")
 
     if is_on_page("/docs")
         column(fill_width=true, max_width="958px", padding="0 0 3rem 0") do
