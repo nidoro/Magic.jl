@@ -7,22 +7,17 @@
 
 ### v0.9.0 (2026-10-17)
 
-- New: `@job` macro for running long running computations with visual
-progress feedback.
+- New: `@job` macro for running long running computations with visual progress feedback.
 - New: `dialog` function for creating modal-style container.
 - New: `expander` function to create an expandable container.
 - New: `markdown` function for rendering markdown as HTML.
-- New: `top_bar` function for displaying a top bar. Must be initialized in
-`set_page_layout`.
+- New: `top_bar` function for displaying a top bar. Must be initialized in `set_page_layout`.
 - New: `rerun` function for reruning the app or a specific fragment.
 - New: `column` and `row` can now take a `link` argument.
 - Breaking: `fragment` signature change.
-- Change: `set_app_data`, `set_page_data` and `set_session_data` can now hold
-keyed data. Their respective getters can now accept a key `String` for
-retrieving keyed data.
+- Change: `set_app_data`, `set_page_data` and `set_session_data` can now hold keyed data. Their respective getters can now accept a key `String` for retrieving keyed data.
 - Change: new styling arguments for `button` and `link`.
-- Change: `dataframe` widget now fits data height by default. `height` argument
-became optional. It also accepts other arguments.
+- Change: `dataframe` widget now fits data height by default. `height` argument became optional. It also accepts other arguments.
 - Bug-fix: Percent-encoded URL query params now decode UTF-8 correctly.
 - Bug-fix: Page title and description are escaped in the generated HTML.
 - Bug-fix: selectbox passes args to onchange.
@@ -39,29 +34,20 @@ became optional. It also accepts other arguments.
 ### v0.8.1 (2026-09-19)
 
 - Bug-fix: main area height was fitting content instead of scrolling.
-- Change: silently try to open browser when `open_browser` argument of
-`start_app` is true. Fail silently.
+- Change: silently try to open browser when `open_browser` argument of `start_app` is true. Fail silently.
 
 ### v0.8.0 (2026-09-19)
 
 - Breaking: complete rewrite of the `metric` widget, changing its signature.
-- Breaking: implemented type inference for `number_input` and `slider` based on
-the provided `initial_value`/`default_value`.
+- Breaking: implemented type inference for `number_input` and `slider` based on the provided `initial_value`/`default_value`.
 - New: Magic is now compatible with Julia 1.13.
-- New: `inject_html` function, which allows users to inject arbitrary HTML code
-into the HTML page served to clients.
-- New: multiselect `selectbox`, `checkboxes` and `radio` now can be initialized
-with an heterogeneous list of values, and its value(s) will assume the value of
-the selected option(s).
-- New: `get_query_params` and `get_url_search` functions to inspect the query
-parameters of the current session.
-- New: `get_server_host` and `get_server_origin` functions to retrieve server
-address info.
+- New: `inject_html` function, which allows users to inject arbitrary HTML code into the HTML page served to clients.
+- New: multiselect `selectbox`, `checkboxes` and `radio` now can be initialized with an heterogeneous list of values, and its value(s) will assume the value of the selected option(s).
+- New: `get_query_params` and `get_url_search` functions to inspect the query parameters of the current session.
+- New: `get_server_host` and `get_server_origin` functions to retrieve server address info.
 - New: `row` function now accepts the same arguments accepted by `column`.
-- New: new optional argument `open_browser` of `start_app` that indicates
-whether the app should be opened using the OS default browser or not.
-- Change: most elements API exported functions now throw when given invalid
-arguments.
+- New: new optional argument `open_browser` of `start_app` that indicates whether the app should be opened using the OS default browser or not.
+- Change: most elements API exported functions now throw when given invalid arguments.
 - Bug-fix: `get_current_page()` always returned `g.base_page_config`.
 - Bug-fix: `slider` was not present in the `ContainerInterface` struct.
 - Internal: new dependency `Printf`.
@@ -70,42 +56,28 @@ arguments.
 
 ### v0.7.2 (2026-08-22)
 
-- Bug-fix: due to the net-layer new signal handlers and julia's own gc changes,
-net-layer's thread was causing the process to crash on julia 1.12.
+- Bug-fix: due to the net-layer new signal handlers and julia's own gc changes, net-layer's thread was causing the process to crash on julia 1.12.
 
 ### v0.7.1 (2026-08-21)
 
-- New: `start_app` now can accept either a path to a script or a `Function` as
-the app entry point.
-- New: New function `inject_html` that allows users (that is, developers using
-Magic.jl) to inject custom HTML into pages served to their clients.
-- New: port 0 can now be passed to `start_app` to let the OS pick an available
-port for the server.
-- New: new boolean argument `init_and_quit` for `start_app`. If true,
-`start_app` will only initialize the server and immediately return. Useful for
-automated tests of dry-runs.
-- Bug-fix: `download_button` was broken due to incorrect generation of the
-file path in the backend.
-- Bug-fix: font path on avatar example updated to handle cases where the .Magic
-location is arbitratily defined.
-- Bug-fix: when using relative path, `add_font` was not aways properly striping
-away the .Magic/served-files path from the provided path.
-- Internal: Introduces the first batch of tests to the package, some unit tests,
-some end-to-end tests.
-- Internal: New dependencies backward.hpp, elfutils, xz, bzip2 and zstd, used
-for stacktrace printing on fatal error on, the net-layer on linux.
+- New: `start_app` now can accept either a path to a script or a `Function` as the app entry point.
+- New: New function `inject_html` that allows users (that is, developers using Magic.jl) to inject custom HTML into pages served to their clients.
+- New: port 0 can now be passed to `start_app` to let the OS pick an available port for the server.
+- New: new boolean argument `init_and_quit` for `start_app`. If true, `start_app` will only initialize the server and immediately return. Useful for automated tests of dry-runs.
+- Bug-fix: `download_button` was broken due to incorrect generation of the file path in the backend.
+- Bug-fix: font path on avatar example updated to handle cases where the .Magic location is arbitratily defined.
+- Bug-fix: when using relative path, `add_font` was not aways properly striping away the .Magic/served-files path from the provided path.
+- Internal: Introduces the first batch of tests to the package, some unit tests, some end-to-end tests.
+- Internal: New dependencies backward.hpp, elfutils, xz, bzip2 and zstd, used for stacktrace printing on fatal error on, the net-layer on linux.
 - Internal: New crash recovery mechanism on dev mode on linux.
 
 ### v0.7.0 (2026-08-17)
 
-- New: Docstrings for every public function so that users can get help from a
-Julia's REPL session.
+- New: Docstrings for every public function so that users can get help from a Julia's REPL session.
 - New: `get_dot_magic_dir()` and `get_dot_magic_path()`.
-- Change: `.Magic` default location changed to be the process working directory.
-More about `.Magic` in the "Basic Concepts" section of the documentation.
+- Change: `.Magic` default location changed to be the process working directory. More about `.Magic` in the "Basic Concepts" section of the documentation.
 - Internal: Tests implemented for `start_app()` input arguments.
-- Internal: Code refactoring. Moved code from `Magic.jl` to the newly created
-source files `layout.jl`, `elements.jl` and `logic.jl`.
+- Internal: Code refactoring. Moved code from `Magic.jl` to the newly created source files `layout.jl`, `elements.jl` and `logic.jl`.
 
 ### v0.6.2 (2026-08-14)
 
@@ -115,66 +87,41 @@ source files `layout.jl`, `elements.jl` and `logic.jl`.
 
 - New: Widget `slider()`.
 - New: Sliding curves example.
-- Bug-fix: on small screens, `row`s had overflow problems similar to what
-columns used to have. It seems that the flex model (at least on chrome) works
-with a default `min-width` based on "intrinsic width of child elements",
-whatever that is. The fix is to enforce a `min-width` of `0` on our layout
-elements.
+- Bug-fix: on small screens, `row`s had overflow problems similar to what columns used to have. It seems that the flex model (at least on chrome) works with a default `min-width` based on "intrinsic width of child elements", whatever that is. The fix is to enforce a `min-width` of `0` on our layout elements.
 
 ### v0.6.0 (2026-02-08)
 
-- Breaking-change: Removed argument `inner_func` from `set_page_layout()` and
-thus the ability to have a `do-end` block with this function. If you want a
-`do-end` block that does the same, implement it with `main_area()` instead,
-after calling `set_page_layout()`.
+- Breaking-change: Removed argument `inner_func` from `set_page_layout()` and thus the ability to have a `do-end` block with this function. If you want a `do-end` block that does the same, implement it with `main_area()` instead, after calling `set_page_layout()`.
 - New: New widget `number_input()`.
 - New: Example `probability.jl`.
-- Bug-fix: Fixes `file_uploader()` bug where selecting a file, clearing the
-selection and selecting the same file didn't work.
-https://github.com/nidoro/Magic.jl/issues/8
-- Bug-fix: Fixes `file_uploader()` bug where canceling the file dialog when a
-file was selected triggered a change callback, when it shouldn't.
-- Bug-fix: Dry-run logic was breaking trying to access session 0 after the
-`handle_client_left(Cint(0))` has been called.
+- Bug-fix: Fixes `file_uploader()` bug where selecting a file, clearing the selection and selecting the same file didn't work. https://github.com/nidoro/Magic.jl/issues/8
+- Bug-fix: Fixes `file_uploader()` bug where canceling the file dialog when a file was selected triggered a change callback, when it shouldn't.
+- Bug-fix: Dry-run logic was breaking trying to access session 0 after the `handle_client_left(Cint(0))` has been called.
 
 ### v0.5.0 (2026-01-31)
 
-- Breaking-change: renamed `gen_resource_path` to `gen_serveable_path`.
-Additionally, this function now generates file names without extension when
-an empty string is passed to extension, which is now the default value of the
-argument.
+- Breaking-change: renamed `gen_resource_path` to `gen_serveable_path`. Additionally, this function now generates file names without extension when an empty string is passed to extension, which is now the default value of the argument.
 - New: Widget `file_uploader()`.
 - New: Widget `download_button()`.
 - New: Function `make_serveable_copy()`.
 - New: Function `move_to_serveable_dir()`.
 - New: Example `image-filters.jl`.
-- New: A `.gitignore` file is now automatically generated inside `.Magic` if
-it doesn't exist.
+- New: A `.gitignore` file is now automatically generated inside `.Magic` if it doesn't exist.
 - New: New `start_app()` arguments `upload_max_size` and `upload_max_files`.
-- Change: if a non-serveable path is passed to `image()` and the path points
-to an existing file, a serveable copy is automatically created using
-`make_serveable_copy()`.
-- Change: Dry-run errors do not kill the server anymore. Rather, the user can
-see the error when accessing the web app, and work on the fix while using the
-hot-reloading mechanism.
-- Performance: The temporary module where the user script is evaluated is now
-session-persistent rather then recreated on every rerun.
-- Deprecated: `@once` macro is deprecated, as it turns out it is not needed now
-that the app module is session-persistent.
+- Change: if a non-serveable path is passed to `image()` and the path points to an existing file, a serveable copy is automatically created using `make_serveable_copy()`.
+- Change: Dry-run errors do not kill the server anymore. Rather, the user can see the error when accessing the web app, and work on the fix while using the hot-reloading mechanism.
+- Performance: The temporary module where the user script is evaluated is now session-persistent rather then recreated on every rerun.
+- Deprecated: `@once` macro is deprecated, as it turns out it is not needed now that the app module is session-persistent.
 
 ### v0.4.2 (2026-01-22)
 
-- Updates documentation installation instructions now that the package is
-registered in the julia General registry.
-- Bug-fix: Fixes catch block of rerun not reporting the error to the user.
-https://github.com/nidoro/Magic.jl/issues/7
-- Bug-fix: After introduction of the `docs_path` argument to `start_app()` on
-v0.3.0, we didn't update the CLI arguments to mirror that change.
+- Updates documentation installation instructions now that the package is registered in the julia General registry.
+- Bug-fix: Fixes catch block of rerun not reporting the error to the user. https://github.com/nidoro/Magic.jl/issues/7
+- Bug-fix: After introduction of the `docs_path` argument to `start_app()` on v0.3.0, we didn't update the CLI arguments to mirror that change.
 
 ### v0.4.1 (2026-01-20)
 
-- Hot-fix: Fixes server crash after session is closed
-https://github.com/nidoro/Magic.jl/issues/6
+- Hot-fix: Fixes server crash after session is closed https://github.com/nidoro/Magic.jl/issues/6
 
 ### v0.4.0 (2026-01-18)
 
@@ -188,31 +135,19 @@ https://github.com/nidoro/Magic.jl/issues/6
 ### v0.3.1 (2026-01-16)
 
 - Bug-fix: Unqueued rerun request are now validated as well.
-- Bug-fix: Implemented invalid state acknoledgment system, to avoid this
-situation:
-    1. Client sends 2 events in a row. The second is invalid, given the first
-    one. Invalid state is sent from server to client.
-    2. Before receiving the invalid state message, the client sends a third
-    event, which is valid. Then restores old state and unfades.
+- Bug-fix: Implemented invalid state acknoledgment system, to avoid this situation:
+    1. Client sends 2 events in a row. The second is invalid, given the first one. Invalid state is sent from server to client.
+    2. Before receiving the invalid state message, the client sends a third event, which is valid. Then restores old state and unfades.
     3. The server processes the new event and returns the newer state.
-    4. An update then happens in the client, which is unnexpected, because the
-    return from transparency should mean that all events have been processed,
-    and there are no other ones in queue.
-- Cache-busting: Introduced cache-busting system. Generated HTML pages now use
-cache-bustable links to resources that are likely to change from version to
-version of Lit.
+    4. An update then happens in the client, which is unnexpected, because the return from transparency should mean that all events have been processed, and there are no other ones in queue.
+- Cache-busting: Introduced cache-busting system. Generated HTML pages now use cache-bustable links to resources that are likely to change from version to version of Lit.
 - New logo.
 
 ### v0.3.0 (2026-01-11)
 
-- Breaking-change: Lit is distributed with its own docs, but not with its built
-docs, so in order for it to be served, the user has to specify a path where it
-has been built. So we added the ability to do so. Now `start_path()`, instead of
-accepting a `docs::Bool`, accepts a `docs_path::String`.
-- Bug-fix: Invalid URIs used to return HTTP status 200 with empty HTML. That
-has been fixed to return 404 and a proper 404.html page.
-- Bug-fix: To-Do now handles `nothing` as a possible value returned by the
-text box. [Issue #4](https://github.com/nidoro/Lit.jl/issues/4)
+- Breaking-change: Lit is distributed with its own docs, but not with its built docs, so in order for it to be served, the user has to specify a path where it has been built. So we added the ability to do so. Now `start_path()`, instead of accepting a `docs::Bool`, accepts a `docs_path::String`.
+- Bug-fix: Invalid URIs used to return HTTP status 200 with empty HTML. That has been fixed to return 404 and a proper 404.html page.
+- Bug-fix: To-Do now handles `nothing` as a possible value returned by the text box. [Issue #4](https://github.com/nidoro/Lit.jl/issues/4)
 
 ### v0.2.4 (2026-01-10)
 
