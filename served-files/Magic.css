@@ -94,6 +94,9 @@ body.mg-theme-light {
     --mg-selection-background-color: #bbb;
     --mg-top-bar-shadow: 0 12px 12px -12px rgba(0, 0, 0, 0.5);
 
+    --mg-page-background-secondary-hs: 0, 0%;
+    --mg-page-background-secondary: hsl(var(--mg-page-background-secondary-hs), 94%);
+
     --mg-light-border-color: #d6d6d6;
     --mg-border-color: var(--mg-light-border-color);
 
@@ -134,7 +137,7 @@ body.mg-theme-light {
 
     --mg-progress-bar-right-background: #bbb;
 
-    --mg-sidebar-background-color: #f0f0f0;
+    --mg-sidebar-background-color: var(--mg-page-background-secondary);
     --mg-sidebar-toggle-button-color: #aaa;
     --mg-sidebar-toggle-button-hover-color: #555;
     --mg-sidebar-button-secondary-hover-bg: hsl(var(--mg-button-secondary-hover-bg-hs), 88%);
@@ -146,7 +149,7 @@ body.mg-theme-light {
 
     --mg-file-uploader-clear-button-hover-color: black;
     --mg-file-uploader-error-color: #a40202;
-    --mg-file-uploader-background: #f0f0f0;
+    --mg-file-uploader-background: var(--mg-page-background-secondary);
     --mg-file-uploader-color: #555;
 }
 
@@ -161,11 +164,11 @@ body.mg-theme-dark {
     --mg-page-color: #fafafa;
     --mg-heading-color: #fafafa;
     --mg-link-color: #577ae3;
-    --mg-selection-background-color: hsl(var(--mg-dark-background-secondary-hs), 35%);
+    --mg-selection-background-color: hsl(var(--mg-page-background-secondary-hs), 35%);
     --mg-top-bar-shadow: 0 16px 16px -16px #333;
 
-    --mg-dark-background-secondary-hs: 231, 15%;
-    --mg-dark-background-secondary: hsl(var(--mg-dark-background-secondary-hs), 18%);
+    --mg-page-background-secondary-hs: 231, 15%;
+    --mg-page-background-secondary: hsl(var(--mg-page-background-secondary-hs), 18%);
 
     --mg-dark-border-color: hsla(0, 0%, 98%, 0.2);
     --mg-border-color: var(--mg-dark-border-color);
@@ -186,7 +189,7 @@ body.mg-theme-dark {
     --mg-checkbox-bg: var(--mg-page-background-color);
     --mg-checkbox-border-color: rgba(250, 250, 250, 0.4);
 
-    --mg-input-bg: var(--mg-dark-background-secondary);
+    --mg-input-bg: var(--mg-page-background-secondary);
     --mg-input-color: var(--mg-page-color);
     --mg-increment-button-color: #666;
     --mg-increment-button-hover-bg: #14161a;
@@ -194,7 +197,7 @@ body.mg-theme-dark {
 
     --mg-selectbox-clear-button-bg: #999;
     --mg-selectbox-clear-button-color: white;
-    --mg-selectbox-menu-background: var(--mg-dark-background-secondary);
+    --mg-selectbox-menu-background: var(--mg-page-background-secondary);
     --mg-selectbox-menu-border-color: rgba(250, 250, 250, 0.2);
     --mg-selectbox-menu-shadow-color: black;
     --mg-selectbox-option-hover-bg: #14161a;
@@ -202,12 +205,12 @@ body.mg-theme-dark {
     --mg-selectbox-selected-option-color: white;
 
     --mg-slider-left-color: hsl(212.7, 76.5%, 55%);
-    --mg-slider-right-color: var(--mg-dark-background-secondary);
+    --mg-slider-right-color: var(--mg-page-background-secondary);
     --mg-slider-knob-color: hsl(212.7, 76.5%, 55%);
 
-    --mg-progress-bar-right-background: hsl(var(--mg-dark-background-secondary-hs), 28%);
+    --mg-progress-bar-right-background: hsl(var(--mg-page-background-secondary-hs), 28%);
 
-    --mg-sidebar-background-color: var(--mg-dark-background-secondary);
+    --mg-sidebar-background-color: var(--mg-page-background-secondary);
     --mg-sidebar-toggle-button-color: var(--mg-page-color);
     --mg-sidebar-toggle-button-hover-color: white;
     --mg-sidebar-button-secondary-hover-bg: hsl(var(--mg-button-secondary-hover-bg-hs), 13%);
@@ -219,7 +222,7 @@ body.mg-theme-dark {
 
     --mg-file-uploader-clear-button-hover-color: #ddd;
     --mg-file-uploader-error-color: #f90707;
-    --mg-file-uploader-background: var(--mg-dark-background-secondary);
+    --mg-file-uploader-background: var(--mg-page-background-secondary);
     --mg-file-uploader-color: var(--mg-page-color);
 }
 
@@ -233,12 +236,12 @@ body.mg-theme-dark .tabulator {
 }
 
 body.mg-theme-dark .tabulator .tabulator-header {
-    background: hsl(var(--mg-dark-background-secondary-hs), 13%);
+    background: hsl(var(--mg-page-background-secondary-hs), 13%);
     color: var(--mg-page-color);
 }
 
 body.mg-theme-dark .tabulator .tabulator-header .tabulator-col.tabulator-range-highlight {
-    background: hsl(var(--mg-dark-background-secondary-hs), 8%);
+    background: hsl(var(--mg-page-background-secondary-hs), 8%);
     color: var(--mg-page-color);
 }
 
@@ -248,21 +251,21 @@ body.mg-theme-dark .tabulator .tabulator-header .tabulator-col {
 }
 
 body.mg-theme-dark .tabulator .tabulator-header .tabulator-col:hover {
-    background: hsl(var(--mg-dark-background-secondary-hs), 13%) !important;
+    background: hsl(var(--mg-page-background-secondary-hs), 13%) !important;
     color: var(--mg-page-color);
 }
 
 body.mg-theme-dark .tabulator-row .tabulator-cell.tabulator-range-selected {
-    background: hsl(var(--mg-dark-background-secondary-hs), 13%) !important;
+    background: hsl(var(--mg-page-background-secondary-hs), 13%) !important;
     color: var(--mg-page-color);
 }
 
 body.mg-theme-dark .tabulator-row {
-    background: var(--mg-dark-background-secondary);
+    background: var(--mg-page-background-secondary);
 }
 
 body.mg-theme-dark .tabulator-row:hover {
-    background: hsl(var(--mg-dark-background-secondary-hs), 20%);
+    background: hsl(var(--mg-page-background-secondary-hs), 20%);
 }
 
 body.mg-theme-dark .tabulator .tabulator-tableholder .tabulator-table {

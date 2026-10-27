@@ -6,6 +6,7 @@ subpages = [
     "checkbox.md",
     "checkboxes.md",
     "radio.md",
+    "cycle_button.md",
     "text_input.md",
     "number_input.md",
     "slider.md",

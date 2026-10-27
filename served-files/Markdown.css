@@ -102,10 +102,10 @@
 }
 
 /* ---------- Code blocks ---------- */
-/*.mg-markdown pre {
+.mg-markdown pre {
   padding: var(--mg-spacing);
   border-radius: var(--mg-radius);
-  background-color: var(--mg-subtle-bg);
+  background-color: var(--mg-page-background-secondary);
   font-size: 90%;
   line-height: 1.45;
   overflow: auto;
@@ -120,7 +120,7 @@
   font-size: inherit;
   line-height: inherit;
   vertical-align: baseline;
-}*/
+}
 
 /*.mg-markdown .mg-code {
   padding: var(--mg-spacing);

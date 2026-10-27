@@ -20,6 +20,8 @@ subpages = [
     "get_current_page.md",
     "is_app_first_pass.md",
     "set_title.md",
+    "set_theme.md",
+    "get_theme.md",
     "get_url_path.md",
     "get_url_search.md",
     "get_query_params.md",

@@ -22,7 +22,7 @@ function download_button(
 | `file_path` | A `String` specifying the file to be downloaded. The file must live inside `.Magic/served-files/` somewhere. See [`.Magic` directory](/docs/version/latest/getting-started/basic-concepts#the-magic-directory) to learn more. |
 | `file_name` | A `String` specifying the name with which the file should be saved in the client side.                                                                                                                                        |
 | `style`     | A `String`. Should be either `primary`, `secondary`, or `naked`. Default: `secondary`.                                                                                                                                        |
-| `icon`      | A `String` in the format `material/icon_name`. Example: `material/thumb_up`.<br/><br/>Check out https://fonts.google.com/icons?icon.set=Material+Icons to learn the icon names.                                               |
+| `icon`      | A `String` in the format `material/icon_name`. Example: `material/thumb_up`.<br/><br/>Check out [Material Icons](https://fonts.google.com/icons?icon.set=Material+Icons) to learn the icon names.                             |
 | `onclick`   | A callback `Function`. This function will be called when the button is clicked, before the app script is rerun.                                                                                                               |
 | `args`      | A `Vector` or `Tuple` of arguments that will be passed to the `onclick` callback function.                                                                                                                                    |
 

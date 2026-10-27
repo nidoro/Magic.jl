@@ -37,7 +37,7 @@ column(fill_width=true, align_items="center") do
             cols = columns(2, justify_content="center")
 
             cols(1) do
-                row().radio("Theme", ["auto", "light", "dark"], id="theme_example", onchange=update_theme, args=["theme_example"])
+                radio("Theme", ["auto", "light", "dark"], id="theme_example", horizontal=true, show_label=false, onchange=update_theme, args=["theme_example"])
             end
 
             cols(2) do
@@ -46,7 +46,7 @@ column(fill_width=true, align_items="center") do
                     """)
             end
 
-            link("Learn more", "/docs/version/latest/api-reference/interface-elements/button", new_tab=true)
+            link("Learn more", "/docs/version/latest/api-reference/application-logic/set_theme", new_tab=true)
         end
 
         markdown("---")
@@ -58,7 +58,7 @@ column(fill_width=true, align_items="center") do
                 cols = columns(2, justify_content="center")
 
                 @push cols[2]
-                    style = row().radio("Radio", ["primary", "secondary", "naked"], initial_value="secondary")
+                    style = radio("style", ["primary", "secondary", "naked"], horizontal=true, initial_value="secondary")
 
                     optional_code = style != "secondary" ? ", style=\"$(style)\"" : ""
 
@@ -122,13 +122,36 @@ column(fill_width=true, align_items="center") do
 
             row(fill_width=true, align_items="center") do
                 cols = columns(2, justify_content="center")
-                option = cols[1].row().radio("Radio", ["A", "B", "C"])
+                option = cols[1].radio("Radio", ["A", "B", "C"], horizontal=true)
                 cols[2].code("""
-                            option = radio("Radio", ["A", "B", "C"])
+                            option = radio("Radio", ["A", "B", "C"], horizontal=true)
                             # option = $(repr(option))
                             """)
 
                 link("Learn more", "/docs/version/latest/api-reference/interface-elements/radio", new_tab=true)
+            end
+
+            markdown("---")
+
+            row(fill_width=true, align_items="center") do
+                cols = columns(2, justify_content="center")
+                opt_row = cols[2].row()
+                fill_width = opt_row.checkbox("fill_width")
+
+                optional_code = ""
+                optional_code *= fill_width ? ", fill_width=$(fill_width)" : ""
+
+                @push cols[1]
+                    text("Cycle Button")
+                    state = cycle_button(["Run", "Pause"], labels=["▶️ Run", "⏸️ Pause"], fill_width=fill_width)
+                @pop
+
+                cols[2].code("""
+                            state = cycle_button(["Run", "Pause"], labels=["▶️ Run", "⏸️ Pause"]$(optional_code))
+                            # state = $(repr(state))
+                            """)
+
+                link("Learn more", "/docs/version/latest/api-reference/interface-elements/cycle_button", new_tab=true)
             end
 
             markdown("---")
@@ -347,12 +370,12 @@ column(fill_width=true, align_items="center") do
         row(fill_width=true, align_items="center") do
             cols = columns(2, justify_content="center")
 
-            cols[1].h1("Heading")
-            cols[1].h2("Heading")
-            cols[1].h3("Heading")
-            cols[1].h4("Heading")
-            cols[1].h5("Heading")
-            cols[1].h6("Heading")
+            cols[1].h1("Heading 1")
+            cols[1].h2("Heading 2")
+            cols[1].h3("Heading 3")
+            cols[1].h4("Heading 4")
+            cols[1].h5("Heading 5")
+            cols[1].h6("Heading 6")
 
             cols[2].code("""
                         h1("Heading")
@@ -414,7 +437,7 @@ column(fill_width=true, align_items="center") do
         fragment() do
             row(fill_width=true, align_items="center") do
                 cols = columns(2, justify_content="center")
-                selected_container = cols[2].row().radio("Radio", ["column", "row"])
+                selected_container = cols[2].radio("container", ["column", "row"], horizontal=true)
 
                 opt_row = cols[2].row()
                 fill_width = opt_row.checkbox("fill_width", initial_value=true)
@@ -422,13 +445,9 @@ column(fill_width=true, align_items="center") do
                 show_border = opt_row.checkbox("show_border", initial_value=true)
                 padding = opt_row.checkbox("padding")
 
-                opt_row = cols[2].row(align_items="center")
-                opt_row.text("align_items:")
-                align_items = opt_row.radio("Align", ["flex-start", "center", "flex-end"], initial_value="center")
+                align_items = cols[2].radio("align_items", ["flex-start", "center", "flex-end"], horizontal=true, initial_value="center")
 
-                opt_row = cols[2].row(align_items="center")
-                opt_row.text("justify_content:")
-                justify_content = opt_row.radio("Justify", ["flex-start", "center", "flex-end"], initial_value="center")
+                justify_content = cols[2].radio("justify_content", ["flex-start", "center", "flex-end"], horizontal=true, initial_value="center")
 
                 cnt = selected_container == "column" ?
                     cols[1].column(fill_width=fill_width, fill_height=fill_height, show_border=show_border, justify_content=justify_content, align_items=align_items,     padding=padding ? "20px" : "none") :
@@ -463,9 +482,7 @@ column(fill_width=true, align_items="center") do
 
             row(fill_width=true, align_items="center") do
                 cols = columns(2, justify_content="center")
-                opt_row = cols[2].row(align_items="center")
-                opt_row.text("columns: ")
-                num_columns = opt_row.radio("Cols", [2, 3, 4, 5, 6])
+                num_columns = cols[2].radio("columns", [2, 3, 4, 5, 6], horizontal=true)
                 cs = cols[1].columns(num_columns, fill_width=true, fill_height=true, show_border=true, justify_content="center", align_items="center")
 
                 for c in 1:num_columns

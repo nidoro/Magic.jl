@@ -25,17 +25,19 @@ Registers a new page in the app, associating it with one or more URL paths. Unli
 
 ### Function Signature
 
-function add_page(     uri         ::Union{AbstractString, AbstractVector, Tuple};     title       ::String            ="",     description ::String            ="" )
-
+```julia
+function add_page(
+    uri         ::Union{AbstractString, AbstractVector, Tuple};
+    title       ::String            ="",
+    description ::String            =""
+)
 ```
 
-Argument        | Description
-:---------------- |:-------------
- `uri`          | Either a `String` with the URL path of the page, or a `Vector` or `Tuple` of `String`s with all the URL paths that should be associated with the page. A leading `/` is added to each path if missing.
- `title`        | `String`. Title to be assigned to the page. If empty (default), the app's default title is used.
- `description`  | `String`. Description to be assigned to the page. If empty (default), the app's default description is used.
-
-```
+| Argument      | Description                                                                                                                                                                                            |
+|:------------- |:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `uri`         | Either a `String` with the URL path of the page, or a `Vector` or `Tuple` of `String`s with all the URL paths that should be associated with the page. A leading `/` is added to each path if missing. |
+| `title`       | `String`. Title to be assigned to the page. If empty (default), the app's default title is used.                                                                                                       |
+| `description` | `String`. Description to be assigned to the page. If empty (default), the app's default description is used.                                                                                           |
 
 ## set_title
 
@@ -132,3 +134,27 @@ function inject_html(
 | `html`      | `String` with the HTML code to be injected into the page. If the `file_path` argument is provided, this is ignored.                                                                                                                                                                                                                                           |
 | `file_path` | `String` specifying the file containing the HTML that should be injected into the page. If this is provided, the `html` argument is ignored.                                                                                                                                                                                                                  |
 | `location`  | `String` specifying the location *in the HTML page* where the provided HTML should be injected. Possible values: `"body_bottom"` (default, injects near the bottom of the HTML body), `"body_top"` (injects near the top of the HTML body), `"head_bottom"` (injects near the bottom of the HTML head), `"head_top"` (injects near the top of the HTML head). |
+
+## set_default_theme
+
+Sets the theme the current page starts with when a user accesses it. Unlike the other functions in this section, `set_default_theme()` can also be called at the app's dry-run, inside [`@app_startup`](/docs/version/latest/api-reference/application-logic/@app_startup) code blocks, in which case the theme becomes the default of every page.
+
+The default theme is only the starting point of each session. The theme of the current session can be changed at any time with [`set_theme()`](/docs/version/latest/api-reference/application-logic/set_theme).
+
+Example:
+
+```julia
+@app_startup begin
+    set_default_theme("dark")
+end
+```
+
+### Function Signature
+
+```julia
+function set_default_theme(theme::AbstractString)::Nothing
+```
+
+| Argument | Description                                                                                                                                          |
+|:-------- |:---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `theme`  | `String` specifying the default theme. Possible values: `"auto"` (default, follows the theme preferred by the user's system), `"light"` or `"dark"`. |

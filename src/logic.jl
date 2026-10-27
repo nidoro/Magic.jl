@@ -1752,6 +1752,7 @@ the app's dry-run, inside [`@app_startup`](/docs/version/latest/api-reference/ap
 
 ### Function Signature
 
+```julia
 function add_page(
     uri         ::Union{AbstractString, AbstractVector, Tuple};
     title       ::String            ="",
@@ -1764,8 +1765,6 @@ Argument        | Description
  `uri`          | Either a `String` with the URL path of the page, or a `Vector` or `Tuple` of `String`s with all the URL paths that should be associated with the page. A leading `/` is added to each path if missing.
  `title`        | `String`. Title to be assigned to the page. If empty (default), the app's default title is used.
  `description`  | `String`. Description to be assigned to the page. If empty (default), the app's default description is used.
-
-```
 
 ## set_title
 
@@ -1865,6 +1864,34 @@ Argument        | Description
  `html`        | `String` with the HTML code to be injected into the page. If the `file_path` argument is provided, this is ignored.
  `file_path`   | `String` specifying the file containing the HTML that should be injected into the page. If this is provided, the `html` argument is ignored.
  `location`   | `String` specifying the location *in the HTML page* where the provided HTML should be injected. Possible values: `"body_bottom"` (default, injects near the bottom of the HTML body), `"body_top"` (injects near the top of the HTML body), `"head_bottom"` (injects near the bottom of the HTML head), `"head_top"` (injects near the top of the HTML head).
+
+## set\\_default\\_theme
+
+Sets the theme the current page starts with when a user accesses it. Unlike
+the other functions in this section, `set_default_theme()` can also be called
+at the app's dry-run, inside [`@app_startup`](/docs/version/latest/api-reference/application-logic/@app_startup) code blocks, in which case
+the theme becomes the default of every page.
+
+The default theme is only the starting point of each session. The theme of the
+current session can be changed at any time with [`set_theme()`](/docs/version/latest/api-reference/application-logic/set_theme).
+
+Example:
+
+```julia
+@app_startup begin
+    set_default_theme("dark")
+end
+```
+
+### Function Signature
+
+```julia
+function set_default_theme(theme::AbstractString)::Nothing
+```
+
+Argument        | Description
+:---------------- |:-------------
+ `theme`        | `String` specifying the default theme. Possible values: `"auto"` (default, follows the theme preferred by the user's system), `"light"` or `"dark"`.
 """
 
 @doc DOC_PAGE_STATIC_SETTINGS add_page
@@ -1962,6 +1989,7 @@ function set_default_theme(page::PageConfig, theme::AbstractString)::Nothing
     return nothing
 end
 
+@doc DOC_PAGE_STATIC_SETTINGS
 function set_default_theme(theme::AbstractString)::Nothing
     if is_app_first_pass()
         set_default_theme(g.base_page_config, theme)
@@ -2309,6 +2337,40 @@ function set_callback(callback::Function)::Nothing
     return nothing
 end
 
+"""
+# set\\_theme
+
+Sets the theme of the current session. The new theme is applied once the
+current rerun finishes, and it persists across reruns until it is changed
+again.
+
+Each session starts with the default theme of the page it was opened on, which
+can be configured with [`set_default_theme()`](/docs/version/latest/api-reference/application-logic/set_title#setdefaulttheme).
+
+### Function Signature
+
+```julia
+function set_theme(theme::AbstractString)::Nothing
+```
+
+Argument        | Description
+:---------------- |:-------------
+ `theme`        | `String` specifying the theme. Possible values: `"auto"` (follows the theme preferred by the user's system), `"light"` or `"dark"`.
+
+### Example
+
+```julia
+using Magic
+
+theme = radio("Theme", ["auto", "light", "dark"], horizontal=true)
+set_theme(theme)
+```
+
+## See also
+
+- [`get_theme`](/docs/version/latest/api-reference/application-logic/get_theme)
+- [`set_default_theme`](/docs/version/latest/api-reference/application-logic/set_title#setdefaulttheme)
+"""
 function set_theme(theme::AbstractString)::Nothing
     assert_string_in_list(@named(theme), ["auto", "light", "dark"])
     task = ensure_app_task_exists()
@@ -2316,6 +2378,29 @@ function set_theme(theme::AbstractString)::Nothing
     return nothing
 end
 
+"""
+# get\\_theme
+
+Returns the theme of the current session, as set by [`set_theme()`](/docs/version/latest/api-reference/application-logic/set_theme) or, if it
+was never called, the default theme of the page the session was opened on.
+
+### Function Signature
+
+```julia
+function get_theme()::String
+```
+
+### Return Value
+
+A `String` with the theme of the current session: `"auto"`, `"light"` or
+`"dark"`. Note that `"auto"` is returned as is, regardless of which theme the
+user's system prefers.
+
+## See also
+
+- [`set_theme`](/docs/version/latest/api-reference/application-logic/set_theme)
+- [`set_default_theme`](/docs/version/latest/api-reference/application-logic/set_title#setdefaulttheme)
+"""
 function get_theme()::String
     task = ensure_app_task_exists()
     return task.session.theme
@@ -2729,7 +2814,7 @@ function gen_docs()::Nothing
                :get_dot_magic_dir, :is_on_page, :is_app_first_pass, :set_title,
                :get_url_path, :get_url_search, :get_query_params, :get_server_host,
                :get_server_port, :get_server_origin, :get_current_page, :rerun,
-               :stop_app]
+               :stop_app, :set_theme, :get_theme]
 
     for (i, object) in enumerate(objects)
         save_doc(getfield(Magic, object), joinpath(doc_logic_dir, "$(object).md"))

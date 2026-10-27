@@ -112,7 +112,7 @@ function button(
 :---------- |:-------------
  `label`   | A `String` to be displayed inside the button. It can contain HTML.
  `style`   | A `String` specifying the predefined style to be applied to the button. Possible values: `primary`, `secondary` (default), or `naked`.
- `icon`    | A `String` in the format `material/icon_name`. Example: `material/thumb_up`.<br/><br/>Check out https://fonts.google.com/icons?icon.set=Material+Icons to learn the icon names.
+ `icon`    | A `String` in the format `material/icon_name`. Example: `material/thumb_up`.<br/><br/>Check out [Material Icons](https://fonts.google.com/icons?icon.set=Material+Icons) to learn the icon names.
  `fill_width` | A `Bool` indicating whether the button should expand to fill the available horizontal space. Default: `false`.
  `font_weight` | An optional `String` specifying the font weight of the button label. Corresponds to the CSS `font-weight` property. Example values: `"normal"`, `"bold"`, `"600"`.
  `padding` | An optional `String` specifying the inner spacing of the button. Corresponds to the CSS `padding` property. Example: `"0.5rem 1rem"`.
@@ -200,7 +200,7 @@ function download_button(
  `file_path`    | A `String` specifying the file to be downloaded. The file must live inside `.Magic/served-files/` somewhere. See [`.Magic` directory](/docs/version/latest/getting-started/basic-concepts#the-magic-directory) to learn more.
  `file_name`    | A `String` specifying the name with which the file should be saved in the client side.
  `style`   | A `String`. Should be either `primary`, `secondary`, or `naked`. Default: `secondary`.
- `icon`    | A `String` in the format `material/icon_name`. Example: `material/thumb_up`.<br/><br/>Check out https://fonts.google.com/icons?icon.set=Material+Icons to learn the icon names.
+ `icon`    | A `String` in the format `material/icon_name`. Example: `material/thumb_up`.<br/><br/>Check out [Material Icons](https://fonts.google.com/icons?icon.set=Material+Icons) to learn the icon names.
  `onclick` | A callback `Function`. This function will be called when the button is clicked, before the app script is rerun.
  `args`    | A `Vector` or `Tuple` of arguments that will be passed to the `onclick` callback function.
 
@@ -1454,6 +1454,8 @@ function radio(
     label           ::String,
     options         ::Union{AbstractVector, Tuple};
     id              ::Any                               =nothing,
+    show_label      ::Bool                              =true,
+    horizontal      ::Bool                              =false,
     initial_value   ::Union{String, Number, Nothing}    =nothing,
     onchange        ::Function                          =()->(),
     args            ::Union{AbstractVector, Tuple}      =Vector()
@@ -1465,6 +1467,8 @@ function radio(
  `label`            | A `String` to be displayed as the label for the radio button group. It can contain HTML.
  `options`          | An `AbstractVector` or `Tuple` of selectable values. Each element represents one radio option and will be displayed using its string representation.
  `id`              | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like [`get_value()`](/docs/version/latest/api-reference/interface-elements/get_value) and [`set_value()`](/docs/version/latest/api-reference/interface-elements/get_value#setvalue).
+ `show_label`       | A `Bool` indicating whether the label should be displayed. Default: `true`.
+ `horizontal`       | A `Bool` indicating whether the radio options should be placed side by side (`true`) or stacked vertically (`false`). Default: `false`.
  `initial_value`    | The value that should be initially selected. If provided, it should match one of the values in `options`. If `nothing` (default), the default value set with [`set_default_value()`](/docs/version/latest/api-reference/interface-elements/get_value#setdefaultvalue) will be selected if one was provided. Otherwise, first option in `options` will be selected.
  `onchange`         | A callback `Function`. This function is called when the selected value changes, before the app script is rerun.
  `args`             | A `Vector` or `Tuple` of arguments that will be passed to the `onchange` callback function.
@@ -1477,6 +1481,8 @@ function radio(
     label           ::String,
     options         ::Union{AbstractVector, Tuple};
     id              ::Any                               =nothing,
+    show_label      ::Bool                              =true,
+    horizontal      ::Bool                              =false,
     initial_value   ::Union{String, Number, Nothing}    =nothing,
     onchange        ::Function                          =()->(),
     args            ::Union{AbstractVector, Tuple}      =Vector()
@@ -1484,7 +1490,18 @@ function radio(
 
     task = ensure_app_task_exists()
     widgets = task.session.widgets
-    return create_radio(widgets, top_container(), id, label, options, initial_value, onchange, args)
+
+    options_container = nothing
+
+    if !isempty(label) && show_label
+        col = column(gap="0.3em")
+        col.html("label", label, css=Dict("font-size" => "0.9rem", "margin-bottom" => "0.5em"))
+        options_container = horizontal ? col.row() : col.column()
+    else
+        options_container = horizontal ? row() : column()
+    end
+
+    return create_radio(widgets, options_container.container, id, label, options, initial_value, onchange, args)
 end
 
 # Cycle Button
@@ -2370,7 +2387,7 @@ function link(
  `url`          | A `String` specifying the destination URL of the link.
  `style`        | A `String` defining the visual style of the link. Accepted values: `"primary"`, `"secondary"`, or `"naked"`. Default: `"secondary"`.
  `new_tab`      | A `Bool` indicating whether the link should open in a new browser tab. Default: `false`.
- `icon`    | A `String` in the format `material/icon_name`, displayed after the label. Example: `material/thumb_up`. If empty and `new_tab` is `true`, the `material/open_in_new` icon is used.<br/><br/>Check out https://fonts.google.com/icons?icon.set=Material+Icons to learn the icon names.
+ `icon`    | A `String` in the format `material/icon_name`, displayed after the label. Example: `material/thumb_up`. If empty and `new_tab` is `true`, the `material/open_in_new` icon is used.<br/><br/>Check out [Material Icons](https://fonts.google.com/icons?icon.set=Material+Icons) to learn the icon names.
  `fill_width` | A `Bool` indicating whether the link should expand to fill the available horizontal space. Default: `false`.
  `font_weight` | An optional `String` specifying the font weight of the link label. Corresponds to the CSS `font-weight` property. Example values: `"normal"`, `"bold"`, `"600"`.
  `padding` | An optional `String` specifying the inner spacing of the link. Corresponds to the CSS `padding` property. Example: `"0.5rem 1rem"`.
@@ -2523,7 +2540,7 @@ function h1(
  Argument        | Description
 :------------------ |:-----------
  `text`         | A `String` containing the heading text. It can contain HTML.
- `icon`    | A `String` in the format `material/icon_name`. Example: `material/thumb_up`.<br/><br/>Check out https://fonts.google.com/icons?icon.set=Material+Icons to learn the icon names.
+ `icon`    | A `String` in the format `material/icon_name`. Example: `material/thumb_up`.<br/><br/>Check out [Material Icons](https://fonts.google.com/icons?icon.set=Material+Icons) to learn the icon names.
  `icon_color`   | An optional `String` specifying the color of the icon using a CSS color value.
  `show_anchor_link` | A `Bool`. If `true`, the heading gets an `id` attribute derived from its text, so it can be linked to directly with a URL fragment (for example, `#my-heading`), and a link icon is shown next to it that copies this URL to the clipboard when clicked. Default: `true`.
  `css`          | A `Dict` of additional CSS properties applied to the heading element.
@@ -2576,7 +2593,7 @@ function icon(
 
  Argument    | Description
 :------------------ |:-----------
- `icon`    | A `String` in the format `material/icon_name`. Example: `material/thumb_up`.<br/><br/>Check out https://fonts.google.com/icons?icon.set=Material+Icons to learn the icon names.
+ `icon`    | A `String` in the format `material/icon_name`. Example: `material/thumb_up`.<br/><br/>Check out [Material Icons](https://fonts.google.com/icons?icon.set=Material+Icons) to learn the icon names.
  `color`    | A `String` specifying the icon color using a CSS value. Default: `"inherit"`.
  `size`     | A `String` specifying the icon size using a CSS value. Default: `"inherit"`.
  `weight`   | A `String` specifying the icon weight or thickness, depending on the icon set. Default: `"inherit"`.

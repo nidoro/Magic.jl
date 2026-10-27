@@ -112,6 +112,18 @@ web app along with sensitive data and don't use it for anything safety-critical.
 If you want to be extra safe, you can run it inside a sandbox like
 [NSJail](https://github.com/google/nsjail).
 
+## AI Usage
+
+In October 2026 I started using Claude Code when working on this project.
+I think it has been very helpful, improving both the quality of the code base
+by catching non-obvious bugs and the speed with which I can implement and
+deliver new features.
+
+In general, I enjoy designing and coding too much to give away agency completely
+to an LLM, so I would never do that for projects that I care about, like this
+one. But I don't mind using it for writing docs and tests, looking for bugs,
+and even implementing small new features, as long as it does it the way I would
+do it, but faster. That's my approach to keep AI slop out of the code base.
 
 
 

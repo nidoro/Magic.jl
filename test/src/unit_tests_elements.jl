@@ -452,6 +452,12 @@ end
             set_app_data("test_successfull", val == 1)
         end,
 
+        # Test that show_label and horizontal are accepted
+        function ()
+            val = radio("Radio", [1, 2, 3], show_label=false, horizontal=true)
+            set_app_data("test_successfull", val == 1)
+        end,
+
         # Test that set_value with nothing will assign the first value of the list of options
         function ()
             radio("Radio", (1, 2, 3, "abc", 3.14), id="rad")
