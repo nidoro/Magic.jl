@@ -2,7 +2,7 @@
 function update_theme(widget_id::String)::Nothing
     theme = get_value(widget_id)
     set_theme(theme)
-    set_value("btn_theme", theme)
+    Magic.set_value("btn_theme", theme)
     if is_on_page("/home")
         set_value("theme_example", theme)
     end
