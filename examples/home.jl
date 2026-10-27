@@ -537,7 +537,7 @@ column(fill_width=true, align_items="center") do
 
         fragment() do
             row(fill_width=true, align_items="center") do
-                cols = columns(2, justify_content="center", fill_height=true)
+                cols = columns(2, fill_height=true)
 
                 cols[1].expander("Click to Expand") do
                     link("Github", "https://github.com/nidoro/Magic.jl")
