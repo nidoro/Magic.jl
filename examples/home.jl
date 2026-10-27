@@ -58,7 +58,7 @@ column(fill_width=true, align_items="center") do
                 cols = columns(2, justify_content="center")
 
                 @push cols[2]
-                    style = radio("style", ["primary", "secondary", "naked"], horizontal=true, initial_value="secondary")
+                    style = radio("style", ["primary", "secondary", "naked"], show_label=false, horizontal=true, initial_value="secondary")
 
                     optional_code = style != "secondary" ? ", style=\"$(style)\"" : ""
 

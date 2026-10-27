@@ -95,7 +95,7 @@ function sidebar_links(section::AbstractString="/", section_title::AbstractStrin
                             page.url_path,
                             style="naked",
                             fill_width=true,
-                            padding=".2em .5em .2em .5em",
+                            padding=".3em .5em .3em .5em",
                             justify_content="flex-start",
                             highlight=(page.url_path == current_path),
                         )
