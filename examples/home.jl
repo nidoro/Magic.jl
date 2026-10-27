@@ -430,6 +430,24 @@ column(fill_width=true, align_items="center") do
             link("Learn more", "/docs/version/latest/api-reference/interface-elements/markdown", new_tab=true)
         end
 
+        markdown("---")
+
+        fragment() do
+            row(fill_width=true, align_items="center") do
+                cols = columns(2, justify_content="center")
+                higher_is_better = cols[2].checkbox("higher_is_better", initial_value=true)
+
+                optional_code = !higher_is_better ? ", higher_is_better=$(higher_is_better)" : ""
+
+                cols[1].metric("Metric", 23.4, "ºC", delta=1.2, higher_is_better=higher_is_better)
+                cols[2].code("""
+                            metric("Metric", 23.4, "ºC", delta=1.2$(optional_code))
+                            """)
+
+                link("Learn more", "/docs/version/latest/api-reference/interface-elements/metric", new_tab=true)
+            end
+        end
+
         section_separator()
 
         h2("Flexible Layout")
