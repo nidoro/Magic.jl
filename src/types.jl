@@ -19,6 +19,9 @@ data/
 """
 
 const VERSION = VersionNumber(TOML.parsefile(joinpath(pkgdir(@__MODULE__), "Project.toml"))["version"])
+const DEFAULT_FAVICON_TAG = """<link rel="icon" type="image/png" href="/Magic.jl/images/favicon.ico">"""
+const DEFAULT_TITLE_TAG = "<title>Magic App</title>"
+const DEFAULT_DESCRIPTION_TAG = "<meta property=\"og:description\" content=\"Web app made with Magic.jl\">"
 
 function parse_material_icon_codepoints(path::AbstractString)::Dict{String, Char}
     icons = Dict{String,Char}()
@@ -192,16 +195,18 @@ end
     first_pass      ::Bool   = true
     user_page_data  ::Any    = nothing
     user_page_dict  ::Dict   = Dict()
+    favicon         ::Union{String, Nothing} = nothing
 
     set_title           ::Function = (args...; kwargs...)->()
     set_description     ::Function = (args...; kwargs...)->()
+    set_favicon         ::Function = (args...; kwargs...)->()
     add_font            ::Function = (args...; kwargs...)->()
     add_css_rule        ::Function = (args...; kwargs...)->()
     inject_html         ::Function = (args...; kwargs...)->()
     set_default_theme   ::Function = (args...; kwargs...)->()
 end
 
-const PAGE_CONFIG_FUNCS = [:set_title, :set_description, :add_font,
+const PAGE_CONFIG_FUNCS = [:set_title, :set_description, :set_favicon, :add_font,
                            :add_css_rule, :inject_html, :set_default_theme]
 
 # AppTask

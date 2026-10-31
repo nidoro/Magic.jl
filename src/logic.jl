@@ -1802,6 +1802,34 @@ Argument        | Description
 :---------------- |:-------------
  `description`        | `String`. Description to be assigned to the current page.
 
+## set_favicon
+
+Sets the favicon of the current page, that is, the icon displayed in the
+browser tab. The favicon is built from an emoji, so no image file is needed.
+
+Unlike most functions in this section, `set_favicon()` can also be called at
+the app's dry-run, inside [`@app_startup`](/docs/version/latest/api-reference/application-logic/@app_startup). In that case, the favicon becomes
+the default of every page, including pages added after the call and the 404
+page. Pages can still override it inside [`@page_startup`](/docs/version/latest/api-reference/application-logic/@page_startup).
+
+Example:
+
+```julia
+@page_startup begin
+    set_favicon("🚀")
+end
+```
+
+### Function Signature
+
+```julia
+function set_favicon(favicon::AbstractString)::Nothing
+```
+
+Argument        | Description
+:---------------- |:-------------
+ `favicon`        | `String` with the emoji to be used as favicon. Image files are not supported. If the `String` is not made only of emoji, the default Magic.jl favicon is used.
+
 ## add_font
 
 Makes a font available in the current page, adding the necessary CSS
@@ -1929,6 +1957,26 @@ function set_description(description::String)::Nothing
     return set_description(task.current_page, description)
 end
 
+function set_favicon(page::PageConfig, favicon::AbstractString)::Nothing
+    if !(page.first_pass || is_app_first_pass()) throw(PastStartupCall("set_favicon", "page")) end
+    page.favicon = favicon
+    return nothing
+end
+
+@doc DOC_PAGE_STATIC_SETTINGS
+function set_favicon(favicon::AbstractString)::Nothing
+    task = ensure_app_task_exists()
+    if is_app_first_pass() && task.current_page === g.base_page_config
+        set_favicon(g.base_page_config, favicon)
+        for page in g.pages
+            set_favicon(page, favicon)
+        end
+    else
+        set_favicon(task.current_page, favicon)
+    end
+    return nothing
+end
+
 function add_font(page::PageConfig, font_name::String, src_or_path::String)::Nothing
     if isempty(font_name) throw(InvalidArgument(@named(font_name), "`font_name` can't be an empty String.")) end
 
@@ -2023,6 +2071,16 @@ function end_page_config()::Nothing
     return nothing
 end
 
+function create_favicon_tag(page::PageConfig)::String
+    if isnothing(page.favicon) || !is_emoji(page.favicon)
+        return DEFAULT_FAVICON_TAG
+    end
+
+    # NOTE: `#` would otherwise end the data URL (e.g. keycap emoji).
+    emoji = replace(page.favicon, "#" => "%23")
+    return """<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>$(emoji)</text></svg>">"""
+end
+
 function create_page_html(page::PageConfig, output_path::String)::Nothing
     template = read(joinpath(@__DIR__, "../served-files/MagicPageTemplate.html"), String)
     theme_script = read(joinpath(@__DIR__, "../served-files/MagicTheme.js"), String)
@@ -2038,8 +2096,9 @@ function create_page_html(page::PageConfig, output_path::String)::Nothing
 
     page_html = replace(
         template,
-        "<title>Magic App</title>" => "<title>$(escape_html(title))</title>",
-        "<meta property=\"og:description\" content=\"Web app made with Magic.jl\">" => "<meta property=\"og:description\" content=\"$(escape_html(description))\">",
+        DEFAULT_TITLE_TAG => "<title>$(escape_html(title))</title>",
+        DEFAULT_DESCRIPTION_TAG => "<meta property=\"og:description\" content=\"$(escape_html(description))\">",
+        DEFAULT_FAVICON_TAG => create_favicon_tag(page),
         "<!-- MAGIC PAGE STYLE -->" => "<style>$(page.style)</style>",
         "BODY_CLASS" => body_class,
         "<!-- MAGIC THEME SCRIPT -->" => theme_script,
@@ -2066,6 +2125,7 @@ function create_404_html(output_path::String)::Nothing
         template,
         "<title>Magic App</title>" => "<title>$(escape_html(title))</title>",
         "<meta property=\"og:description\" content=\"Web app made with Magic.jl\">" => "<meta property=\"og:description\" content=\"$(escape_html(description))\">",
+        DEFAULT_FAVICON_TAG => create_favicon_tag(g.base_page_config),
         "BODY_CLASS" => body_class,
         "<!-- MAGIC THEME SCRIPT -->" => theme_script,
     )

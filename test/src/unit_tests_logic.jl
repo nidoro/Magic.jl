@@ -28,6 +28,7 @@ end
 
     @test_throws Magic.IncorrectUsage set_title("Title")
     @test_throws Magic.IncorrectUsage set_description("Description")
+    @test_throws Magic.IncorrectUsage set_favicon("🚀")
     @test_throws Magic.IncorrectUsage add_font("Pacifico", "../examples/.Magic/served-files/fonts/Pacifico-Regular.ttf")
     @test_throws Magic.IncorrectUsage add_css_rule("")
     @test_throws Magic.IncorrectUsage inject_html("")
@@ -55,6 +56,16 @@ end
         # Test that set_description fails if it is called outside @page_startup
         @test_throws Magic.PastStartupCall start_app(
             ()->(set_description("Description")),
+            port=PORT,
+            dev_mode=true,
+            callback=single_session_rerun_callback,
+            rethrow_rerun_exceptions=true,
+            throw_client_side_error=true
+        )
+
+        # Test that set_favicon fails if it is called outside @page_startup
+        @test_throws Magic.PastStartupCall start_app(
+            ()->(set_favicon("🚀")),
             port=PORT,
             dev_mode=true,
             callback=single_session_rerun_callback,
@@ -112,6 +123,87 @@ end
             throw_client_side_error=true
         )
     end
+end
+
+@testset "favicon" begin
+    @maybe_suppress @info """
+    ------------------------------------------------------------------
+    Test: favicon
+    ------------------------------------------------------------------------
+    """
+
+    # is_emoji
+    for s in ("🚀", "🚀🚀", "❤️", "⭐", "👍🏽", "👨‍👩‍👧", "🇧🇷", "1️⃣", "#️⃣")
+        @test Magic.is_emoji(s)
+    end
+
+    for s in ("", "a", "1", "#", "a🚀", "🚀 ", "logo.png", "/images/logo.png", "https://foo.com/logo.ico")
+        @test !Magic.is_emoji(s)
+    end
+
+    # Static HTML
+    page_html = function(page::Magic.PageConfig)
+        path = tempname()
+        Magic.create_page_html(page, path)
+        return read(path, String)
+    end
+
+    default_tag = "href=\"/Magic.jl/images/favicon.ico\""
+    emoji_tag = "<text y='.9em' font-size='90'>🚀</text>"
+
+    html = page_html(Magic.PageConfig())
+    @test occursin(default_tag, html)
+    @test !occursin("data:image/svg+xml", html)
+
+    html = page_html(Magic.PageConfig(favicon="🚀"))
+    @test occursin(emoji_tag, html)
+    @test !occursin(default_tag, html)
+
+    html = page_html(Magic.PageConfig(favicon="logo.png"))
+    @test occursin(default_tag, html)
+    @test !occursin("logo.png", html)
+
+    # Regenerating a page does not duplicate the tag
+    page = Magic.PageConfig(favicon="🚀")
+    page_html(page)
+    @test count(emoji_tag, page_html(page)) == 1
+
+    # `#` must not end the data URL
+    html = page_html(Magic.PageConfig(favicon="#️⃣"))
+    @test occursin("font-size='90'>%23", html)
+    @test !occursin("font-size='90'>#", html)
+
+    # App-wide favicon and page override
+    @test :set_favicon in Magic.PAGE_CONFIG_FUNCS
+
+    @maybe_suppress start_app(
+        ()->begin
+            if is_app_first_pass()
+                add_page("/before")
+                set_favicon("🚀")
+                add_page("/after")
+                add_page("/override").set_favicon("🎉")
+                add_page("/do-block") do
+                    set_favicon("🎈")
+                end
+            end
+        end,
+        port=PORT,
+        dev_mode=true,
+        init_and_quit=true,
+        rethrow_rerun_exceptions=true
+    )
+
+    favicon_of(uri) = Magic.get_page(uri).favicon
+    @test Magic.g.base_page_config.favicon == "🚀"
+    @test favicon_of("/before") == "🚀"
+    @test favicon_of("/after") == "🚀"
+    @test favicon_of("/override") == "🎉"
+    @test favicon_of("/do-block") == "🎈"
+
+    path = tempname()
+    Magic.create_404_html(path)
+    @test occursin(emoji_tag, read(path, String))
 end
 
 @testset "other public logic functions" begin

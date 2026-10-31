@@ -356,3 +356,29 @@ function is_path_inside(path::AbstractString, dir::AbstractString)::Bool
     end
     return path == dir || startswith(path, dir * "/")
 end
+
+# Characters that are emoji on their own
+function is_emoji_char(c::Char)::Bool
+    c in '\U1F000':'\U1FAFF' ||   # emoticons, pictographs, transport, flags, supplemental, etc.
+    c in '\u2600':'\u27BF'   ||   # misc symbols & dingbats (☀ ✂ ❤)
+    c in '\u2300':'\u23FF'   ||   # misc technical (⌚ ⏰)
+    c in '\u2B00':'\u2BFF'   ||   # arrows/shapes (⭐ ⬛)
+    c in ('\u00A9', '\u00AE', '\u203C', '\u2049', '\u2122', '\u2139',
+          '\u3030', '\u303D', '\u3297', '\u3299')
+end
+
+# Characters that only modify/join emoji
+is_modifier(c::Char) =
+    c in ('\u200D', '\uFE0F', '\u20E3') ||   # ZWJ, emoji variation selector, keycap
+    c in '\U0E0020':'\U0E007F'               # tag chars (subdivision flags)
+
+# Is the whole string made only of emoji?
+function is_emoji(s::AbstractString)::Bool
+    isempty(s) && return false
+    all(Unicode.graphemes(s)) do g
+        keycap = occursin('\u20E3', g)
+        any(is_emoji_char, g) || keycap || return false
+        all(c -> is_emoji_char(c) || is_modifier(c) ||
+                 (keycap && c in "0123456789#*"), g)
+    end
+end
