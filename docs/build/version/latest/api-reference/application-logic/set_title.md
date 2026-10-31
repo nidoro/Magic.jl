@@ -139,7 +139,7 @@ function inject_html(
 
 Sets the theme the current page starts with when a user accesses it. Unlike the other functions in this section, `set_default_theme()` can also be called at the app's dry-run, inside [`@app_startup`](/docs/version/latest/api-reference/application-logic/@app_startup) code blocks, in which case the theme becomes the default of every page.
 
-The default theme is only the starting point of each session. The theme of the current session can be changed at any time with [`set_theme()`](/docs/version/latest/api-reference/application-logic/set_theme).
+The default theme only applies to users without a cached theme. When the theme of a session changes, the new theme is cached in the user's browser and takes precedence over the default theme of every page of the app in future sessions. The theme of the current session can be changed at any time with [`set_theme()`](/docs/version/latest/api-reference/application-logic/set_theme).
 
 Example:
 

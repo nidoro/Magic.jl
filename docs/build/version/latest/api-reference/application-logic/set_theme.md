@@ -2,7 +2,7 @@
 
 Sets the theme of the current session. The new theme is applied once the current rerun finishes, and it persists across reruns until it is changed again.
 
-Each session starts with the default theme of the page it was opened on, which can be configured with [`set_default_theme()`](/docs/version/latest/api-reference/application-logic/set_title#setdefaulttheme).
+The theme is also cached in the user's browser, so future sessions on that browser start with it. Sessions without a cached theme start with the default theme of the page they were opened on, which can be configured with [`set_default_theme()`](/docs/version/latest/api-reference/application-logic/set_title#setdefaulttheme).
 
 ### Function Signature
 
