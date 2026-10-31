@@ -147,11 +147,6 @@ function main(_args::Vector{String} #= not used =#)
             help = "Initialize the server and quit immediately after"
             action = :store_true
 
-        "--docs-path", "-d"
-            help = "Path to built Magic.jl documentation to be served"
-            arg_type = String
-            default = nothing
-
         "--dev", "-D"
             help = "Enable development mode"
             action = :store_true
@@ -168,7 +163,6 @@ function main(_args::Vector{String} #= not used =#)
             upload_max_files=parsed["upload-max-files"],
             dot_magic_dir=parsed["dot-magic-dir"],
             init_and_quit=parsed["init-and-quit"],
-            docs_path=parsed["docs-path"],
             dev_mode=parsed["dev"]
         )
     end

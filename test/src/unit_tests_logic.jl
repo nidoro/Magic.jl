@@ -13,7 +13,6 @@
         @test_throws Magic.InvalidArgument start_app("src/test_examples.jl", upload_max_size=-1, dev_mode=true, init_and_quit=true)
         @test_throws Magic.InvalidArgument start_app("src/test_examples.jl", upload_max_files=-1, dev_mode=true, init_and_quit=true)
         @test_throws Magic.InvalidArgument start_app("src/test_examples.jl", dot_magic_dir="__NON_EXISTING_DIR__", dev_mode=true, init_and_quit=true)
-        @test_throws Magic.InvalidArgument start_app("src/test_examples.jl", docs_path="__NON_EXISTING_DIR__", dev_mode=true, init_and_quit=true)
     end
 
     # Test function as entry-point
