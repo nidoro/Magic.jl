@@ -345,6 +345,13 @@ function normalize_path(path::AbstractString)::String
     return path
 end
 
+# Returns the normalized absolute path of a file passed as argument.
+function assert_valid_file_path(arg::Tuple)::String
+    path = normalize_path(expanduser(arg[2]))
+    isfile(path) || throw(InvalidArgument(arg, "File not found or invalid: $(arg[2])"))
+    return path
+end
+
 # Checks if `path` is `dir` itself or lives somewhere inside `dir`. Both paths
 # are normalized first, and the comparison is case-insensitive on Windows.
 function is_path_inside(path::AbstractString, dir::AbstractString)::Bool
@@ -382,3 +389,17 @@ function is_emoji(s::AbstractString)::Bool
                  (keycap && c in "0123456789#*"), g)
     end
 end
+
+# Checks if the module is loaded and accessible from Main (e.g. as Main.Revise).
+function is_module_loaded(uuid_str::AbstractString)::Bool
+    uuid = tryparse(UUID, uuid_str)
+    uuid === nothing && throw(ArgumentError("invalid UUID: $uuid_str"))
+    for (pkg, mod) in Base.loaded_modules
+        if pkg.uuid == uuid
+            name = nameof(mod)
+            return isdefined(Main, name) && getfield(Main, name) === mod
+        end
+    end
+    return false
+end
+

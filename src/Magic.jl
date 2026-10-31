@@ -58,6 +58,7 @@ using Sockets
 using Tables
 using TOML
 using Unicode
+using UUIDs
 
 # Layout Elements
 #-------------------
@@ -143,6 +144,16 @@ function main(_args::Vector{String} #= not used =#)
             arg_type = String
             default = nothing
 
+        "--tls-cert-path", "-c"
+            help = "Path to the TLS certificate file (full chain, in PEM format). Requires --tls-key-path"
+            arg_type = String
+            default = nothing
+
+        "--tls-key-path", "-k"
+            help = "Path to the TLS private key file (in PEM format). Requires --tls-cert-path"
+            arg_type = String
+            default = nothing
+
         "--init-and-quit", "-q"
             help = "Initialize the server and quit immediately after"
             action = :store_true
@@ -162,6 +173,8 @@ function main(_args::Vector{String} #= not used =#)
             upload_max_size=parsed["upload-max-size"],
             upload_max_files=parsed["upload-max-files"],
             dot_magic_dir=parsed["dot-magic-dir"],
+            tls_cert_path=parsed["tls-cert-path"],
+            tls_key_path=parsed["tls-key-path"],
             init_and_quit=parsed["init-and-quit"],
             dev_mode=parsed["dev"]
         )

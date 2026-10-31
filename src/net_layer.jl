@@ -10,6 +10,8 @@ function init_net_layer(
     ipc_port::Int,
     dot_magic_dir::String,
     package_root_dir::String,
+    tls_cert_path::String,
+    tls_key_path::String,
     upload_max_size::Int,
     verbose::Bool,
     dev_mode::Bool
@@ -18,8 +20,8 @@ function init_net_layer(
     ccall(
         get_net_layer_func(:MG_InitNetLayer),
         Cvoid,
-        (Cstring, Cint, Cint, Cint, Cstring, Cint, Cstring, Cint, Cint, Cint, Cint),
-        host_name, Cint(sizeof(host_name)), port, Cint(ipc_port), dot_magic_dir, Cint(sizeof(dot_magic_dir)), package_root_dir, Cint(sizeof(package_root_dir)), Cint(upload_max_size), Cint(verbose), Cint(dev_mode)
+        (Cstring, Cint, Cint, Cint, Cstring, Cint, Cstring, Cint, Cstring, Cint, Cstring, Cint, Cint, Cint, Cint),
+        host_name, Cint(sizeof(host_name)), port, Cint(ipc_port), dot_magic_dir, Cint(sizeof(dot_magic_dir)), package_root_dir, Cint(sizeof(package_root_dir)), tls_cert_path, Cint(sizeof(tls_cert_path)), tls_key_path, Cint(sizeof(tls_key_path)), Cint(upload_max_size), Cint(verbose), Cint(dev_mode)
     )
     return nothing
 end

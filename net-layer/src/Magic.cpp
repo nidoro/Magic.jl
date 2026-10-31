@@ -93,6 +93,8 @@ struct MG_Global {
     int ipcPort;
     char magicPackageRootPath[PATH_MAX];
     char dotMagicDirPath[PATH_MAX];
+    char tlsCertPath[PATH_MAX];
+    char tlsKeyPath[PATH_MAX];
     bool appFatalError;
 
 #ifdef _WIN32
@@ -699,8 +701,7 @@ MG_API void* MG_RunServer(void*) {
     char pathBuffer1[2*PATH_MAX] = {};
     char pathBuffer2[2*PATH_MAX] = {};
 
-    sprintf(pathBuffer1, "%s/.Magic/certs", g.dotMagicDirPath);
-    bool disableSSL = !HS_IsDirectory(pathBuffer1);
+    bool disableSSL = SU_IsEmpty(g.tlsCertPath) || SU_IsEmpty(g.tlsKeyPath);
 
     g.hserver = HS_CreateServer(0, disableSSL);
     HS_InitServer(&g.hserver, true);
@@ -717,9 +718,7 @@ MG_API void* MG_RunServer(void*) {
     HS_PushCacheControlMapping(&g.hserver, "magic-app", "*.html", "no-cache, no-store, must-revalidate");
     HS_PushCacheControlMapping(&g.hserver, "magic-app", "/*", "max-age=2592000");
     if (!disableSSL) {
-        sprintf(pathBuffer1, "%s/.Magic/certs/certificate.crt", g.dotMagicDirPath);
-        sprintf(pathBuffer2, "%s/.Magic/certs/private.key", g.dotMagicDirPath);
-        HS_SetCertificate(&g.hserver, "magic-app", pathBuffer1, pathBuffer2);
+        HS_SetCertificate(&g.hserver, "magic-app", g.tlsCertPath, g.tlsKeyPath);
     }
 
     snprintf(pathBuffer1, sizeof(pathBuffer1), "%s/.Magic/served-files", g.dotMagicDirPath);
@@ -835,6 +834,10 @@ MG_API void MG_InitNetLayer(
     int dotMagicDirPathSize,
     const char* magicPackageRootPath,
     int magicPackageRootPathSize,
+    const char* tlsCertPath,
+    int tlsCertPathSize,
+    const char* tlsKeyPath,
+    int tlsKeyPathSize,
     int uploadMaxSize,
     bool verbose,
     bool devMode
@@ -860,6 +863,8 @@ MG_API void MG_InitNetLayer(
 
     strncpy(g.dotMagicDirPath, dotMagicDirPath, dotMagicDirPathSize);
     strncpy(g.magicPackageRootPath, magicPackageRootPath, magicPackageRootPathSize);
+    strncpy(g.tlsCertPath, tlsCertPath, tlsCertPathSize);
+    strncpy(g.tlsKeyPath, tlsKeyPath, tlsKeyPathSize);
 
     pthread_mutex_init(&g.netEventsMutex, 0);
     pthread_mutex_init(&g.appEventsMutex, 0);

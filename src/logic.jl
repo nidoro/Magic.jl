@@ -13,7 +13,9 @@ function start_app(
     upload_max_size             ::Int                       =25*MiB,
     upload_max_files            ::Int                       =10,
     dot_magic_dir               ::Union{String, Nothing}    =nothing,
-    open_browser                ::Bool                      =true
+    open_browser                ::Bool                      =true,
+    tls_cert_path               ::Union{String, Nothing}    =nothing,
+    tls_key_path                ::Union{String, Nothing}    =nothing
 )::Nothing
 ```
 
@@ -26,6 +28,8 @@ function start_app(
  `upload_max_files` | An `Int` specifying the maximum number of file acceptable by `file_uploader` widgets. Default is 10.
  `dot_magic_dir` | A `String` specifying the [`.Magic` directory](/docs/version/latest/getting-started/basic-concepts#the-magic-directory) location. If `nothing` (default), the current working directory will be used.
  `open_browser`    | A `Bool` indicating whether the default system browser should be open in the web app or not.
+ `tls_cert_path`   | A `String` specifying the path to the TLS certificate file, in PEM format. It should contain the full certificate chain (e.g. `fullchain.pem` for Let's Encrypt certificates). Must be provided together with `tls_key_path`. If both are `nothing` (default), the server runs without TLS.
+ `tls_key_path`    | A `String` specifying the path to the private key file of the TLS certificate, in PEM format. Must be provided together with `tls_cert_path`.
  * | Other arguments have been ommited here because they are for developers only.
 
 ### Return Value
@@ -50,6 +54,8 @@ function start_app(
     upload_max_files            ::Int                       =10,
     dot_magic_dir               ::Union{String, Nothing}    =nothing,
     open_browser                ::Bool                      =true,
+    tls_cert_path               ::Union{String, Nothing}    =nothing,
+    tls_key_path                ::Union{String, Nothing}    =nothing,
     init_and_quit               ::Bool                      =false,
     callback                    ::Union{Function, Nothing}  =nothing,
     verbose                     ::Bool                      =false,
@@ -65,15 +71,12 @@ function start_app(
     # NOTE: Revise's file watcher can be killed by the Ctrl+C that stops the
     # server, so we can't rely on it to pick up changes between runs.
     #---------------------------------------------------------------------------
-    if revise && dev_mode
-        revise_id = Base.PkgId(Base.UUID("295af30f-e4ad-537b-8983-00126c2a3abe"), "Revise")
-        if haskey(Base.loaded_modules, revise_id)
-            Base.loaded_modules[revise_id].revise(@__MODULE__; force=false)
-            return Base.invokelatest(start_app, script_or_func;
-                host_name, port, upload_max_size, upload_max_files, dot_magic_dir,
-                open_browser, init_and_quit, callback, verbose, dev_mode,
-                rethrow_rerun_exceptions, throw_client_side_error, revise=false)
-        end
+    if revise && dev_mode && is_module_loaded("295af30f-e4ad-537b-8983-00126c2a3abe")
+        Main.Revise.revise(@__MODULE__; force=false)
+        return Base.invokelatest(start_app, script_or_func;
+            host_name, port, upload_max_size, upload_max_files, dot_magic_dir,
+            open_browser, tls_cert_path, tls_key_path, init_and_quit, callback, verbose, dev_mode,
+            rethrow_rerun_exceptions, throw_client_side_error, revise=false)
     end
 
     # Input validation
@@ -126,6 +129,16 @@ function start_app(
         throw(InvalidArgument(@named(script_or_func), "File not found or invalid: $script_or_func"))
     end
 
+    if isnothing(tls_cert_path) != isnothing(tls_key_path)
+        arg = isnothing(tls_cert_path) ? @named(tls_cert_path) : @named(tls_key_path)
+        throw(InvalidArgument(arg, "`tls_cert_path` and `tls_key_path` must be provided together."))
+    end
+
+    if !isnothing(tls_cert_path)
+        g.tls_cert_path = assert_valid_file_path(@named(tls_cert_path))
+        g.tls_key_path = assert_valid_file_path(@named(tls_key_path))
+    end
+
     if isnothing(dot_magic_dir)
         g.dot_magic_dir = pwd()
     else
@@ -145,6 +158,8 @@ function start_app(
         App script/function  : $(g.script_or_func)
         Hostname             : $(g.host_name)
         Port                 : $(g.port) $(g.port == 0 ? "(let the OS pick a port)" : "")
+        TLS cert path        : $(g.tls_cert_path == "" ? "none" : g.tls_cert_path)
+        TLS key path         : $(g.tls_key_path == "" ? "none" : g.tls_key_path)
         Upload max size      : $(Float64(g.upload_max_size)/MiB) MiB
         Upload max files     : $(g.upload_max_files)
         Process working dir  : $(pwd())
@@ -184,6 +199,8 @@ function start_app(
         Int(ipc_port),
         g.dot_magic_dir,
         joinpath(@__DIR__, ".."),
+        g.tls_cert_path,
+        g.tls_key_path,
         g.upload_max_size,
         g.verbose,
         g.dev_mode

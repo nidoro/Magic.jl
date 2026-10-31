@@ -330,6 +330,8 @@ end
     script_name         ::Union{String, Nothing}    = nothing
     host_name           ::String                    = ""
     port                ::Int                       = 3443
+    tls_cert_path       ::String                    = ""
+    tls_key_path        ::String                    = ""
     sessions            ::Dict{Cint, Session}       = Dict{Ptr{Cvoid}, Session}()
     fd_read             ::Int32                     = -1
     fd_write            ::Int32                     = -1

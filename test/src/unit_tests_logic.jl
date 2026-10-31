@@ -13,6 +13,28 @@
         @test_throws Magic.InvalidArgument start_app("src/test_examples.jl", upload_max_size=-1, dev_mode=true, init_and_quit=true)
         @test_throws Magic.InvalidArgument start_app("src/test_examples.jl", upload_max_files=-1, dev_mode=true, init_and_quit=true)
         @test_throws Magic.InvalidArgument start_app("src/test_examples.jl", dot_magic_dir="__NON_EXISTING_DIR__", dev_mode=true, init_and_quit=true)
+
+        # TLS paths
+        tls_dir = mktempdir()
+        tls_file = joinpath(tls_dir, "tls.pem")
+        touch(tls_file)
+
+        @test_throws Magic.InvalidArgument start_app("src/test_examples.jl", tls_cert_path=tls_file, dev_mode=true, init_and_quit=true)
+        @test_throws Magic.InvalidArgument start_app("src/test_examples.jl", tls_key_path=tls_file, dev_mode=true, init_and_quit=true)
+        @test_throws Magic.InvalidArgument start_app("src/test_examples.jl", tls_cert_path="__NON_EXISTING_FILE__", tls_key_path=tls_file, dev_mode=true, init_and_quit=true)
+        @test_throws Magic.InvalidArgument start_app("src/test_examples.jl", tls_cert_path=tls_file, tls_key_path="__NON_EXISTING_FILE__", dev_mode=true, init_and_quit=true)
+        @test_throws Magic.InvalidArgument start_app("src/test_examples.jl", tls_cert_path=tls_dir, tls_key_path=tls_file, dev_mode=true, init_and_quit=true)
+        @test_throws Magic.InvalidArgument start_app("src/test_examples.jl", tls_cert_path=tls_file, tls_key_path=tls_dir, dev_mode=true, init_and_quit=true)
+        @test_throws Magic.InvalidArgument start_app("src/test_examples.jl", tls_cert_path="", tls_key_path="", dev_mode=true, init_and_quit=true)
+    end
+
+    # TLS paths are resolved to their absolute path
+    cd(mktempdir()) do
+        touch("tls.pem")
+        expected = Magic.normalize_path(joinpath(pwd(), "tls.pem"))
+        @test Magic.assert_valid_file_path(("tls_cert_path", "tls.pem")) == expected
+        @test Magic.assert_valid_file_path(("tls_cert_path", "./tls.pem")) == expected
+        @test isabspath(expected)
     end
 
     # Test function as entry-point
