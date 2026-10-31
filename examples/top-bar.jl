@@ -9,6 +9,10 @@ function update_theme(widget_id::String)::Nothing
     return nothing
 end
 
+@session_startup begin
+    set_default_value("btn_theme", get_theme())
+end
+
 top_bar() do
     row(fill_width=true, align_items="center", max_width="100%", css=Dict("flex-wrap" => "wrap")) do
         row(link="/").image("/Magic.jl/images/magic-logo-and-grey-text.svg", max_width="150px")

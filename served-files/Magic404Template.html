@@ -45,6 +45,8 @@
 </head>
 
 <body class="BODY_CLASS" style="height: 100%; font-family: sans-serif; margin: 0; padding: 0;">
+    <script><!-- MAGIC THEME SCRIPT --></script>
+
     <div style="display: flex; height: 100%; justify-content: center; align-items: center;">
         <div style="display: flex; flex-direction: column; gap: .4em; align-items: center">
             <h1 style="font-size: 3rem">404 :(</h1>
@@ -52,11 +54,5 @@
             <a href="/">Back to Home</a>
         </div>
     </div>
-
-    <script>
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        let theme = prefersDark ? "dark" : "light";
-        document.body.classList.add(`mg-theme-${theme}`);
-    </script>
 </body>
 </html>

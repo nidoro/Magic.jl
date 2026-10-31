@@ -156,7 +156,11 @@ function start_app(
     try_rm("$(g.dot_magic_dir)/.Magic/served-files/generated", recursive=true, force=true)
     try_rm("$(g.dot_magic_dir)/.Magic/uploaded-files", recursive=true, force=true)
     mkpath("$(g.dot_magic_dir)/.Magic/served-files/generated/app/pages")
-    cp(joinpath(@__DIR__, "../served-files/MagicPageTemplate.html"), "$(g.dot_magic_dir)/.Magic/served-files/generated/app/pages/first.html", force=true)
+    first_page_html = replace(
+        read(joinpath(@__DIR__, "../served-files/MagicPageTemplate.html"), String),
+        "<!-- MAGIC THEME SCRIPT -->" => read(joinpath(@__DIR__, "../served-files/MagicTheme.js"), String),
+    )
+    write("$(g.dot_magic_dir)/.Magic/served-files/generated/app/pages/first.html", first_page_html)
 
     if !isfile("$(g.dot_magic_dir)/.Magic/.gitignore")
         write("$(g.dot_magic_dir)/.Magic/.gitignore", DOT_MAGIC_GITIGNORE)
@@ -296,6 +300,11 @@ function start_app(
                         session.waiting_invalid_state_ack = false
                     elseif payload["type"] == "hello"
                         @debug "HelloFromClient | ClientId=$(session.client_id) | SessionId=$(session.session_id)"
+                        theme = get(payload, "theme", nothing)
+                        if theme in ("auto", "light", "dark")
+                            session.theme = theme
+                        end
+
                         payload = Dict(
                             "type" => "response_hello",
                             "session_id" => session.session_id,
@@ -616,9 +625,6 @@ function rerun_app(client_id::Cint, payload::Dict)::Task
         task.payload = payload
         page = get_current_page()
         task.current_page = ismissing(page) ? g.base_page_config : page
-        if is_session_first_pass()
-            session.theme = task.current_page.default_theme
-        end
 
         # Identify and initialize fragment
         #------------------------------------
@@ -1872,8 +1878,10 @@ the other functions in this section, `set_default_theme()` can also be called
 at the app's dry-run, inside [`@app_startup`](/docs/version/latest/api-reference/application-logic/@app_startup) code blocks, in which case
 the theme becomes the default of every page.
 
-The default theme is only the starting point of each session. The theme of the
-current session can be changed at any time with [`set_theme()`](/docs/version/latest/api-reference/application-logic/set_theme).
+The default theme only applies to users without a cached theme. When the theme
+of a session changes, the new theme is cached in the user's browser and takes
+precedence over the default theme of every page of the app in future sessions.
+The theme of the current session can be changed at any time with [`set_theme()`](/docs/version/latest/api-reference/application-logic/set_theme).
 
 Example:
 
@@ -2017,6 +2025,7 @@ end
 
 function create_page_html(page::PageConfig, output_path::String)::Nothing
     template = read(joinpath(@__DIR__, "../served-files/MagicPageTemplate.html"), String)
+    theme_script = read(joinpath(@__DIR__, "../served-files/MagicTheme.js"), String)
 
     title = length(page.title) > 0 ? page.title : g.base_page_config.title
     description = length(page.description) > 0 ? page.description : g.base_page_config.description
@@ -2033,6 +2042,7 @@ function create_page_html(page::PageConfig, output_path::String)::Nothing
         "<meta property=\"og:description\" content=\"Web app made with Magic.jl\">" => "<meta property=\"og:description\" content=\"$(escape_html(description))\">",
         "<!-- MAGIC PAGE STYLE -->" => "<style>$(page.style)</style>",
         "BODY_CLASS" => body_class,
+        "<!-- MAGIC THEME SCRIPT -->" => theme_script,
         "<!-- HTML HEAD TOP INJECTION -->" => page.html_injection["head_top"],
         "<!-- HTML HEAD BOTTOM INJECTION -->" => page.html_injection["head_bottom"],
         "<!-- HTML BODY TOP INJECTION -->" => page.html_injection["body_top"],
@@ -2046,6 +2056,7 @@ end
 
 function create_404_html(output_path::String)::Nothing
     template = read(joinpath(@__DIR__, "../served-files/Magic404Template.html"), String)
+    theme_script = read(joinpath(@__DIR__, "../served-files/MagicTheme.js"), String)
 
     title = g.base_page_config.title
     description = g.base_page_config.description
@@ -2056,6 +2067,7 @@ function create_404_html(output_path::String)::Nothing
         "<title>Magic App</title>" => "<title>$(escape_html(title))</title>",
         "<meta property=\"og:description\" content=\"Web app made with Magic.jl\">" => "<meta property=\"og:description\" content=\"$(escape_html(description))\">",
         "BODY_CLASS" => body_class,
+        "<!-- MAGIC THEME SCRIPT -->" => theme_script,
     )
 
     write(output_path, page_html)
@@ -2344,8 +2356,10 @@ Sets the theme of the current session. The new theme is applied once the
 current rerun finishes, and it persists across reruns until it is changed
 again.
 
-Each session starts with the default theme of the page it was opened on, which
-can be configured with [`set_default_theme()`](/docs/version/latest/api-reference/application-logic/set_title#setdefaulttheme).
+The theme is also cached in the user's browser, so future sessions on that
+browser start with it. Sessions without a cached theme start with the default
+theme of the page they were opened on, which can be configured with
+[`set_default_theme()`](/docs/version/latest/api-reference/application-logic/set_title#setdefaulttheme).
 
 ### Function Signature
 
@@ -2381,8 +2395,12 @@ end
 """
 # get\\_theme
 
-Returns the theme of the current session, as set by [`set_theme()`](/docs/version/latest/api-reference/application-logic/set_theme) or, if it
-was never called, the default theme of the page the session was opened on.
+Returns the theme of the current session. This is the theme last set by
+[`set_theme()`](/docs/version/latest/api-reference/application-logic/set_theme). If it was not called in this session, it is the theme cached in
+the user's browser or, if there is none, the default theme of the page the
+session was opened on.
+
+Inside dry runs there is no browser, so this function returns `"auto"`.
 
 ### Function Signature
 

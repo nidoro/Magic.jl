@@ -80,6 +80,7 @@ var g = {
     waitingRerun: 0,
 
     coolDown: {},
+    preferences: mgCachedPreferences,
 };
 
 function getLocation() {
@@ -1713,6 +1714,7 @@ function wsOnOpen() {
     wsSendObj({
         type: "hello",
         location: getLocation(),
+        theme: g.preferences.theme,
     });
 }
 
@@ -1759,17 +1761,14 @@ function getFragments(props) {
 }
 
 function setTheme(theme) {
-    const defaultThemes = ["mg-theme-light", "mg-theme-dark"];
-    for (let theme of defaultThemes) {
-        document.body.classList.remove(theme);
-    }
+    applyTheme(theme);
 
-    if (theme == "auto") {
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        theme = prefersDark ? 'dark' : 'light';
+    // Only an actual change is cached. Otherwise, page default themes would
+    // stick and reruns of other tabs would overwrite the user's choice.
+    if (theme != g.preferences.theme) {
+        g.preferences.theme = theme;
+        cachePreferences();
     }
-
-    document.body.classList.add(`mg-theme-${theme}`);
 }
 
 async function displayRerunResponse(msg) {
@@ -2132,6 +2131,14 @@ function errorHandler(event) {
     }
 }
 
+function cachePreferences() {
+    try {
+        localStorage.setItem('mg_preferences', JSON.stringify(g.preferences));
+    } catch (err) {
+        console.warn("Failed to cache preferences", err);
+    }
+}
+
 (async function main(){
     g.materialIcons = await loadIconMap("/Magic.jl/fonts/MaterialIconsOutlined-Regular.codepoints");
 
@@ -2158,8 +2165,4 @@ function errorHandler(event) {
     };
 
     window.addEventListener("error", errorHandler);
-
-    if (!document.body.getAttribute("class").includes("mg-theme")) {
-        setTheme("auto");
-    }
 })();

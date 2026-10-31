@@ -10,6 +10,10 @@ function section_separator()::Nothing
     return nothing
 end
 
+@session_startup begin
+    set_default_value("theme_example", get_theme())
+end
+
 set_page_layout("wide", top_bar="sticky")
 include("top-bar.jl")
 
