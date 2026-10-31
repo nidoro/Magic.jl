@@ -1,3 +1,5 @@
+using Magic
+using DataFrames
 
 function comment_lines(s::AbstractString)::String
     join(("# " * line for line in split(strip(s), '\n')), '\n')

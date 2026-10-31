@@ -1,4 +1,4 @@
-local
+/local
 /build
 net-layer/third/**/build/
 .dockerignore

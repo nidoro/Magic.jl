@@ -11,7 +11,6 @@ const MG_PATH_MAX = 4096-1
 const DOT_MAGIC_GITIGNORE = """.cache-bust
 .ssi-parsed
 
-certs
 served-files/generated
 uploaded-files
 companion-host.json
