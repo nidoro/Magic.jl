@@ -354,6 +354,24 @@ end
             val = get_value("cbx")
             set_app_data("test_successfull", isempty(val))
         end,
+
+        # Test that show_label and horizontal are accepted
+        function ()
+            val = checkboxes("Checkboxes", [1, 2, 3], show_label=false, horizontal=true)
+            set_app_data("test_successfull", isempty(val))
+        end,
+
+        # Test that the label and the horizontal options can be displayed together
+        function ()
+            val = checkboxes("Checkboxes", [1, 2, 3], horizontal=true, initial_value=[1])
+            set_app_data("test_successfull", val == [1])
+        end,
+
+        # Test that an empty label is accepted
+        function ()
+            val = checkboxes("", [1, 2, 3], initial_value=[2])
+            set_app_data("test_successfull", val == [2])
+        end,
     ]
 
     @maybe_suppress begin

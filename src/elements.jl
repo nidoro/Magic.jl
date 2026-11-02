@@ -1321,6 +1321,8 @@ function checkboxes(
     label        ::String,
     options      ::Union{Vector, Tuple};
     id           ::Any                              =nothing,
+    show_label   ::Bool                             =true,
+    horizontal   ::Bool                             =false,
     initial_value::Union{Vector, Tuple, Nothing}    =nothing,
     onchange     ::Function                         =()->(),
     args         ::Vector                           =Vector()
@@ -1329,9 +1331,11 @@ function checkboxes(
 
  Argument          | Description
 :------------------ |:-----------
- `label`           | A `String` to be displayed next to the checkbox. It can contain HTML.
+ `label`           | A `String` to be displayed as the label for the checkbox group. It can contain HTML.
  `options`         | A `Vector` or `Tuple` of selectable options. Each selectable option should be either a `String` or a `Real`, and will be displayed using its `String` representation.
  `id`              | An optional identifier for the checkbox. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like [`get_value()`](/docs/version/latest/api-reference/interface-elements/get_value) and [`set_value()`](/docs/version/latest/api-reference/interface-elements/get_value#setvalue).
+ `show_label`      | A `Bool` indicating whether the label should be displayed. Default: `true`.
+ `horizontal`      | A `Bool` indicating whether the checkboxes should be placed side by side (`true`) or stacked vertically (`false`). Default: `false`.
  `initial_value`   | Either a `Vector`/`Tuple` indicating which options in `options` should be initially checked, or `nothing`. If `nothing`, the default value set with [`set_default_value()`](/docs/version/latest/api-reference/interface-elements/get_value#setdefaultvalue) will be used, if any; otherwise, the initial value will be an empty `Vector`.
  `onchange`        | A callback `Function`. This function is called when the checkbox value changes, before the app script is rerun.
  `args`            | A `Vector` of arguments that will be passed to the `onchange` callback function.
@@ -1348,6 +1352,8 @@ function checkboxes(
     label        ::String,
     options      ::Union{Vector, Tuple};
     id           ::Any                              =nothing,
+    show_label   ::Bool                             =true,
+    horizontal   ::Bool                             =false,
     initial_value::Union{Vector, Tuple, Nothing}    =nothing,
     onchange     ::Function                         =()->(),
     args         ::Vector                           =Vector()
@@ -1355,7 +1361,52 @@ function checkboxes(
 
     task = ensure_app_task_exists()
     widgets = task.session.widgets
-    return create_checkboxes(widgets, top_container(), id, label, options, initial_value, true, onchange, args)
+
+    options_container = nothing
+
+    if !isempty(label) && show_label
+        col = column(gap="0.3em")
+        col.html("label", label, css=Dict("font-size" => "0.9rem", "margin-bottom" => "0.5em"))
+        options_container = horizontal ? col.row() : col.column()
+    else
+        options_container = horizontal ? row() : column()
+    end
+
+    return create_checkboxes(widgets, options_container.container, id, label, options, initial_value, true, onchange, args)
+end
+
+function choices(
+    label        ::String,
+    options      ::Union{Vector, Tuple};
+    id           ::Any                              =nothing,
+    show_label   ::Bool                             =true,
+    horizontal   ::Bool                             =true,
+    multiple     ::Bool                             =false,
+    initial_value::Union{Vector, Tuple, AbstractString, Real, Nothing}    =nothing,
+    onchange     ::Function                         =()->(),
+    args         ::Vector                           =Vector()
+)::Union{AbstractVector, Tuple, String, Number}
+
+    task = ensure_app_task_exists()
+    widgets = task.session.widgets
+
+    options_container = nothing
+    attr = Dict("class" => "mg-segmented-control mg-$(horizontal ? "horizontal" : "vertical")")
+    css = Dict("flex-wrap" => "wrap")
+
+    if !isempty(label) && show_label
+        col = column(gap="0.3em")
+        col.html("label", label, css=Dict("font-size" => "0.9rem"))
+        options_container = horizontal ? col.row(gap=".4em 0px", attributes=attr, css=css) : col.column(align_items="stretch", gap="0px", attributes=attr)
+    else
+        options_container = horizontal ? row(gap=".4em 0px", attributes=attr, css=css) : column(align_items="stretch", gap="0px", attributes=attr)
+    end
+
+    if multiple
+        return create_checkboxes(widgets, options_container.container, id, label, options, initial_value, true, onchange, args)
+    else
+        return create_radio(widgets, options_container.container, id, label, options, initial_value, onchange, args)
+    end
 end
 
 # Radio

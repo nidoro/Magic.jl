@@ -170,7 +170,7 @@ body.mg-theme-dark {
     --mg-page-background-secondary-hs: 231, 15%;
     --mg-page-background-secondary: hsl(var(--mg-page-background-secondary-hs), 18%);
 
-    --mg-dark-border-color: hsla(0, 0%, 98%, 0.2);
+    --mg-dark-border-color: hsl(225, 8%, 20%);
     --mg-border-color: var(--mg-dark-border-color);
 
     --mg-button-primary-bg: hsl(212.7, 76.5%, 55%);
@@ -639,6 +639,64 @@ dd-button.mg-button, dd-cycle-button.mg-button, a.mg-link {
 .mg-checkbox, .mg-radio {
     --checkbox-bg: var(--mg-checkbox-bg);
     --checkbox-border-color: var(--mg-checkbox-border-color);
+}
+
+/* CHOICES */
+/* CHOICES */
+/* CHOICES */
+
+.mg-segmented-control {
+    --button-hover-bg: var(--mg-button-secondary-bg);
+    --button-border-color: var(--mg-border-color);
+    --checkbox-checked-color: var(--mg-button-primary-border-color);
+    --checkbox-checked-border-color: var(--mg-button-primary-border-color);
+    --checkbox-checked-bg: var(--mg-button-secondary-bg);
+}
+
+.mg-segmented-control .mg-checkbox::before,
+.mg-segmented-control .mg-radio::before {
+    display: none;
+}
+
+.mg-segmented-control .mg-checkbox,
+.mg-segmented-control .mg-radio {
+    border-width: 1px;
+    padding: 4px 16px;
+}
+
+.mg-segmented-control .mg-checkbox[checked],
+.mg-segmented-control .mg-radio[checked] {
+    z-index: 1;
+}
+
+.mg-segmented-control.mg-horizontal .mg-checkbox,
+.mg-segmented-control.mg-horizontal .mg-radio {
+    margin-right: -1px;
+}
+
+.mg-segmented-control.mg-horizontal .mg-checkbox:first-child,
+.mg-segmented-control.mg-horizontal .mg-radio:first-child {
+    border-radius: .5em 0 0 .5em;
+}
+
+.mg-segmented-control.mg-horizontal .mg-checkbox:last-child,
+.mg-segmented-control.mg-horizontal .mg-radio:last-child {
+    border-radius: 0 .5em .5em 0;
+}
+
+.mg-segmented-control.mg-vertical .mg-checkbox,
+.mg-segmented-control.mg-vertical .mg-radio {
+    margin-bottom: -1px;
+}
+
+.mg-segmented-control.mg-vertical .mg-checkbox:first-child,
+.mg-segmented-control.mg-vertical .mg-radio:first-child {
+    border-radius: .5em .5em 0 0em;
+}
+
+.mg-segmented-control.mg-vertical .mg-checkbox:last-child,
+.mg-segmented-control.mg-vertical .mg-radio:last-child {
+    border-radius: 0 0 .5em .5em;
 }
 
 #mg_app_wrapper {

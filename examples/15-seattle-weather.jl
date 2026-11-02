@@ -101,7 +101,7 @@ fragment() do
     # Years comparison
     #------------------------
     h4("Select years")
-    selected_years = row().checkboxes("Years", ["2015", "2014", "2013", "2012"], initial_value=["2015", "2014", "2013", "2012"])
+    selected_years = checkboxes("Years", ["2015", "2014", "2013", "2012"], show_label=false, horizontal=true, initial_value=["2015", "2014", "2013", "2012"])
     selected_years = parse.(Int, selected_years)
 
     df = filter(row -> year(row.date) in selected_years, page_data.full_df)

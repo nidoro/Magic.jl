@@ -22,7 +22,6 @@ function display_page()::Nothing
 
     column(fill_width=true, align_items="center") do
         column(fill_width=true, max_width="1300px") do
-
             column(fill_width=true, align_items="center") do
                 h1("🚀 The easiest way of creating Julia web apps", show_anchor_link=false, css=Dict("margin-bottom" => "2rem", "text-align" => "center"))
 
@@ -37,6 +36,9 @@ function display_page()::Nothing
 
                 space(height="1.5rem")
             end
+
+            foo = choices("Foo", ["North", "East", "South", "West"], multiple=true, initial_value=["North"])
+            text(repr(foo))
 
             h2("Theme")
 

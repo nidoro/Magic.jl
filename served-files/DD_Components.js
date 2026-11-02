@@ -4527,6 +4527,7 @@ style.textContent = `
         color: var(--checkbox-checked-color, var(--button-color, inherit));
         font-weight: var(--checkbox-checked-font-weight, var(--button-font-weight, inherit));
         border-color: var(--checkbox-checked-border-color, var(--border-color));
+        background: var(--checkbox-checked-bg, var(--button-bg, initial));
     }
 
     dd-checkbox[checked]:hover, dd-radio[checked]:hover {
