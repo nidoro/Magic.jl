@@ -93,6 +93,8 @@ body.mg-theme-light {
     --mg-link-color: #002fbd;
     --mg-selection-background-color: #bbb;
     --mg-top-bar-shadow: 0 12px 12px -12px rgba(0, 0, 0, 0.5);
+    --mg-choices-checked-color: #3970b3;
+    --mg-choices-checked-bg: #e7eaf7;
 
     --mg-page-background-secondary-hs: 0, 0%;
     --mg-page-background-secondary: hsl(var(--mg-page-background-secondary-hs), 94%);
@@ -188,6 +190,9 @@ body.mg-theme-dark {
 
     --mg-checkbox-bg: var(--mg-page-background-color);
     --mg-checkbox-border-color: rgba(250, 250, 250, 0.4);
+
+    --mg-choices-checked-color: hsl(212.7, 76.5%, 55%);
+    --mg-choices-checked-bg: #031f44;
 
     --mg-input-bg: var(--mg-page-background-secondary);
     --mg-input-color: var(--mg-page-color);
@@ -646,11 +651,11 @@ dd-button.mg-button, dd-cycle-button.mg-button, a.mg-link {
 /* CHOICES */
 
 .mg-segmented-control {
-    --button-hover-bg: var(--mg-button-secondary-bg);
+    --button-hover-bg: var(--mg-button-secondary-hover-bg);
     --button-border-color: var(--mg-border-color);
-    --checkbox-checked-color: var(--mg-button-primary-border-color);
-    --checkbox-checked-border-color: var(--mg-button-primary-border-color);
-    --checkbox-checked-bg: var(--mg-button-secondary-bg);
+    --checkbox-checked-color: var(--mg-choices-checked-color);
+    --checkbox-checked-border-color: var(--mg-choices-checked-color);
+    --checkbox-checked-bg: var(--mg-choices-checked-bg);
 }
 
 .mg-segmented-control .mg-checkbox::before,

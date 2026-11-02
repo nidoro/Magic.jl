@@ -43,7 +43,7 @@ function display_page()::Nothing
                 cols = columns(2, justify_content="center")
 
                 cols(1) do
-                    radio("Theme", ["auto", "light", "dark"], id="theme_example", horizontal=true, show_label=false, onchange=update_theme, args=["theme_example"])
+                    choices("Theme", ["auto", "light", "dark"], id="theme_example", allow_nothing=false, onchange=update_theme, args=["theme_example"])
                 end
 
                 cols(2) do
@@ -128,13 +128,45 @@ function display_page()::Nothing
 
                 row(fill_width=true, align_items="center") do
                     cols = columns(2, justify_content="center")
-                    option = cols[1].radio("Radio", ["A", "B", "C"], horizontal=true, allow_nothing=true)
+
+                    opt_row = cols[2].row()
+                    allow_nothing = opt_row.checkbox("allow_nothing")
+
+                    optional_code = ""
+                    optional_code *= allow_nothing ? ", allow_nothing=$(allow_nothing)" : ""
+
+                    option = cols[1].radio("Radio", ["Comedy", "Drama", "Documentary"], horizontal=true, allow_nothing=allow_nothing)
                     cols[2].code("""
-                                option = radio("Radio", ["A", "B", "C"], horizontal=true)
+                                option = radio("Radio", ["Comedy", "Drama", "Documentary"], horizontal=true$(optional_code))
                                 # option = $(repr(option))
                                 """)
 
                     link("Learn more", "/docs/version/latest/api-reference/interface-elements/radio", new_tab=true)
+                end
+
+                markdown("---")
+
+                row(fill_width=true, align_items="center") do
+                    cols = columns(2, justify_content="center")
+
+                    opt_row = cols[2].row()
+                    multiple = opt_row.checkbox("multiple")
+                    allow_nothing = opt_row.checkbox("allow_nothing", initial_value=true)
+
+                    optional_code = ""
+                    optional_code *= multiple ? ", multiple=$(multiple)" : ""
+                    optional_code *= !multiple && !allow_nothing ? ", allow_nothing=$(allow_nothing)" : ""
+
+                    @push cols[1]
+                        selected = choices("Choices", ["North", "East", "South", "West"], multiple=multiple, allow_nothing=allow_nothing)
+                    @pop
+
+                    cols[2].code("""
+                                selected = choices("Choices", ["North", "East", "South", "West"]$(optional_code))
+                                # selected = $(repr(selected))
+                                """)
+
+                    link("Learn more", "/docs/version/latest/api-reference/interface-elements/choices", new_tab=true)
                 end
 
                 markdown("---")

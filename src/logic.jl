@@ -2927,7 +2927,7 @@ function gen_docs()::Nothing
 
     # Interface API
     #----------------
-    objects = [:button, :selectbox, :checkbox, :checkboxes, :radio, :text_input,
+    objects = [:button, :selectbox, :checkbox, :checkboxes, :radio, :choices, :text_input,
                :number_input, :slider, :dataframe, :file_uploader,
                :download_button, :link, :color_picker, :image, :text, :h1,
                :metric, :code, :icon, :space, :html, :get_value, :markdown,
