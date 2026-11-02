@@ -751,8 +751,18 @@ function rerun_app(client_id::Cint, payload::Dict)::Task
                         end
                         invokelatest(widget.onchange, widget.args...)
                     elseif widget.kind == WidgetKind_Radio
-                        widget.value = get_item_by_its_stringified_version(widget.props["options"], front_event["new_value"])
-                        invokelatest(widget.onchange, widget.args...)
+                        new_value = front_event["new_value"]
+                        if isnothing(new_value)
+                            # Deselecting is only valid if the radio allows nothing
+                            # to be selected. Otherwise, ignore the event.
+                            if widget.props["allow_nothing"]
+                                widget.value = nothing
+                                invokelatest(widget.onchange, widget.args...)
+                            end
+                        else
+                            widget.value = get_item_by_its_stringified_version(widget.props["options"], new_value)
+                            invokelatest(widget.onchange, widget.args...)
+                        end
                     elseif widget.kind == WidgetKind_CycleButton
                         widget.value = get_item_by_its_stringified_version(widget.props["options"], front_event["new_value"])
                         invokelatest(widget.onchange, widget.args...)

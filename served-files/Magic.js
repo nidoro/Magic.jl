@@ -346,7 +346,7 @@ function radChange(groupName) {
         type: "change",
         widget_id: groupName,
         fragment_id: fragmentId,
-        new_value: DD_Radio.getGroupValue(groupName),
+        new_value: DD_Radio.getGroupValue(groupName) ?? null,
     }]);
 }
 
@@ -1198,6 +1198,10 @@ function createAppElement(parent, props, fragmentId) {
                 elem.innerText = op;
                 elem.value = `${op}`;
 
+                if (props.allow_nothing) {
+                    elem.setAttribute("dd-allow-deselect", "");
+                }
+
                 if (op == props.options[0]) {
                     elem.setAttribute("dd-onanychange", "radChange()");
                 }
@@ -1213,7 +1217,11 @@ function createAppElement(parent, props, fragmentId) {
         }
 
         requestAnimationFrame(() => {
-            DD_Radio.selectInGroup(props.id, `${props.value}`, {silent: true});
+            if (props.value === null) {
+                DD_Radio.uncheckAllInGroup(props.id, {silent: true});
+            } else {
+                DD_Radio.selectInGroup(props.id, `${props.value}`, {silent: true});
+            }
         })
     } else if (props.type == "cycle_button") {
         let elem = document.querySelector(`[data-mg-id="${props.id}"]`);

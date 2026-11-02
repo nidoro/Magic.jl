@@ -1262,6 +1262,8 @@ class DD_Radio extends DD_Checkbox {
         if (!this.hasAttribute("checked")) {
             this.uncheckAllOthers();
             this.setAttribute("checked", "");
+        } else if (this.hasAttribute("dd-allow-deselect")) {
+            this.removeAttribute("checked");
         }
     }
     
@@ -1288,6 +1290,20 @@ class DD_Radio extends DD_Checkbox {
     
     static selectInGroup(groupName, value, options) {
         return DD_Checkbox.selectInGroup(groupName, value, options);
+    }
+
+    static uncheckAllInGroup(groupName, options) {
+        if (!options) options = {};
+        const group = DD_Checkbox.getGroup(groupName);
+        if (group) {
+            for (const radio of group.checkboxes) {
+                if (radio.hasAttribute("checked")) {
+                    if (options.silent) radio.setAttribute("dd-silent", "");
+                    radio.removeAttribute("checked");
+                    if (options.silent) radio.removeAttribute("dd-silent");
+                }
+            }
+        }
     }
 }
 

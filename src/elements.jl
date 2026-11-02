@@ -1385,7 +1385,7 @@ function choices(
     initial_value::Union{Vector, Tuple, AbstractString, Real, Nothing}    =nothing,
     onchange     ::Function                         =()->(),
     args         ::Vector                           =Vector()
-)::Union{AbstractVector, Tuple, String, Number}
+)::Union{AbstractVector, Tuple, String, Number, Nothing}
 
     task = ensure_app_task_exists()
     widgets = task.session.widgets
@@ -1405,7 +1405,7 @@ function choices(
     if multiple
         return create_checkboxes(widgets, options_container.container, id, label, options, initial_value, true, onchange, args)
     else
-        return create_radio(widgets, options_container.container, id, label, options, initial_value, onchange, args)
+        return create_radio(widgets, options_container.container, id, label, options, initial_value, true, onchange, args)
     end
 end
 
@@ -1418,9 +1418,10 @@ function create_radio(
     label::String,
     options::Union{AbstractVector, Tuple},
     initial_value::Union{String, Number, Nothing},
+    allow_nothing::Bool,
     onchange::Function,
     args::Union{AbstractVector, Tuple}
-)::Union{String, Number}
+)::Union{String, Number, Nothing}
 
     # Input validation
     #----------------------
@@ -1458,10 +1459,11 @@ function create_radio(
         "options" => options,
         "user_id" => user_id,
         "initial_value" => initial_value,
+        "allow_nothing" => allow_nothing,
     )
 
     if isnothing(props["initial_value"])
-        props["initial_value"] = coalesce(default_value, options[1])
+        props["initial_value"] = coalesce(default_value, allow_nothing ? nothing : options[1])
     end
 
     props["local_id"] = bytes2hex(sha256(JSON.json(props)))
@@ -1508,9 +1510,10 @@ function radio(
     show_label      ::Bool                              =true,
     horizontal      ::Bool                              =false,
     initial_value   ::Union{String, Number, Nothing}    =nothing,
+    allow_nothing   ::Bool                              =false,
     onchange        ::Function                          =()->(),
     args            ::Union{AbstractVector, Tuple}      =Vector()
-)::Union{String, Number}
+)::Union{String, Number, Nothing}
 ```
 
  Argument           | Description
@@ -1520,13 +1523,14 @@ function radio(
  `id`              | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like [`get_value()`](/docs/version/latest/api-reference/interface-elements/get_value) and [`set_value()`](/docs/version/latest/api-reference/interface-elements/get_value#setvalue).
  `show_label`       | A `Bool` indicating whether the label should be displayed. Default: `true`.
  `horizontal`       | A `Bool` indicating whether the radio options should be placed side by side (`true`) or stacked vertically (`false`). Default: `false`.
- `initial_value`    | The value that should be initially selected. If provided, it should match one of the values in `options`. If `nothing` (default), the default value set with [`set_default_value()`](/docs/version/latest/api-reference/interface-elements/get_value#setdefaultvalue) will be selected if one was provided. Otherwise, first option in `options` will be selected.
+ `initial_value`    | The value that should be initially selected. If provided, it should match one of the values in `options`. If `nothing` (default), the default value set with [`set_default_value()`](/docs/version/latest/api-reference/interface-elements/get_value#setdefaultvalue) will be selected if one was provided. Otherwise, no option will be selected if `allow_nothing` is `true`, and the first option in `options` will be selected if it is `false`.
+ `allow_nothing`    | A `Bool` indicating whether the radio can have no option selected, in which case its value is `nothing`. If `true`, the user can click on the selected option to deselect it, and calling [`set_value()`](/docs/version/latest/api-reference/interface-elements/get_value#setvalue) with `nothing` deselects all options. If `false`, calling `set_value()` with `nothing` selects the first option in `options`. Default: `false`.
  `onchange`         | A callback `Function`. This function is called when the selected value changes, before the app script is rerun.
  `args`             | A `Vector` or `Tuple` of arguments that will be passed to the `onchange` callback function.
 
 ### Return Value
 
-The currently selected value from `options`.
+The currently selected value from `options`, or `nothing` if no option is selected (only possible when `allow_nothing` is `true`).
 """
 function radio(
     label           ::String,
@@ -1535,9 +1539,10 @@ function radio(
     show_label      ::Bool                              =true,
     horizontal      ::Bool                              =false,
     initial_value   ::Union{String, Number, Nothing}    =nothing,
+    allow_nothing   ::Bool                              =false,
     onchange        ::Function                          =()->(),
     args            ::Union{AbstractVector, Tuple}      =Vector()
-)::Union{String, Number}
+)::Union{String, Number, Nothing}
 
     task = ensure_app_task_exists()
     widgets = task.session.widgets
@@ -1552,7 +1557,7 @@ function radio(
         options_container = horizontal ? row() : column()
     end
 
-    return create_radio(widgets, options_container.container, id, label, options, initial_value, onchange, args)
+    return create_radio(widgets, options_container.container, id, label, options, initial_value, allow_nothing, onchange, args)
 end
 
 # Cycle Button
@@ -3151,6 +3156,8 @@ function set_value(user_id::String, value::Any)::Any
                 else
                     throw(InvalidArgument(@named(value), "You tried to assign to a radio a value is not a String or Number."))
                 end
+            elseif widget.props["allow_nothing"]
+                widget.value = nothing
             else
                 widget.value = widget.props["options"][1]
             end

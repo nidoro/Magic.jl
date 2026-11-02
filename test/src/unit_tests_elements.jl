@@ -476,6 +476,32 @@ end
             set_app_data("test_successfull", val == 1)
         end,
 
+        # Test that allow_nothing makes the initial value nothing when none is provided
+        function ()
+            val = radio("Radio", [1, 2, 3], allow_nothing=true)
+            set_app_data("test_successfull", isnothing(val))
+        end,
+
+        # Test that allow_nothing doesn't override initial_value
+        function ()
+            val = radio("Radio", [1, 2, 3], allow_nothing=true, initial_value=2)
+            set_app_data("test_successfull", val == 2)
+        end,
+
+        # Test that allow_nothing doesn't override the default value
+        function ()
+            set_default_value("rad", 3)
+            val = radio("Radio", [1, 2, 3], id="rad", allow_nothing=true)
+            set_app_data("test_successfull", val == 3)
+        end,
+
+        # Test that set_value with nothing deselects all options if allow_nothing is true
+        function ()
+            radio("Radio", [1, 2, 3], id="rad", allow_nothing=true, initial_value=2)
+            set_value("rad", nothing)
+            set_app_data("test_successfull", isnothing(get_value("rad")))
+        end,
+
         # Test that set_value with nothing will assign the first value of the list of options
         function ()
             radio("Radio", (1, 2, 3, "abc", 3.14), id="rad")

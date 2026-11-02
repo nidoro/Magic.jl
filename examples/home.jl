@@ -37,9 +37,6 @@ function display_page()::Nothing
                 space(height="1.5rem")
             end
 
-            foo = choices("Foo", ["North", "East", "South", "West"], multiple=true, initial_value=["North"])
-            text(repr(foo))
-
             h2("Theme")
 
             row(fill_width=true, align_items="center") do
@@ -131,7 +128,7 @@ function display_page()::Nothing
 
                 row(fill_width=true, align_items="center") do
                     cols = columns(2, justify_content="center")
-                    option = cols[1].radio("Radio", ["A", "B", "C"], horizontal=true)
+                    option = cols[1].radio("Radio", ["A", "B", "C"], horizontal=true, allow_nothing=true)
                     cols[2].code("""
                                 option = radio("Radio", ["A", "B", "C"], horizontal=true)
                                 # option = $(repr(option))
