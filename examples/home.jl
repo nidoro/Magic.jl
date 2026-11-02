@@ -43,7 +43,7 @@ function display_page()::Nothing
                 cols = columns(2, justify_content="center")
 
                 cols(1) do
-                    choices("Theme", ["auto", "light", "dark"], id="theme_example", allow_nothing=false, onchange=update_theme, args=["theme_example"])
+                    choices("Theme", ["auto", "light", "dark"], id="theme_example", show_label=false, allow_nothing=false, onchange=update_theme, args=["theme_example"])
                 end
 
                 cols(2) do

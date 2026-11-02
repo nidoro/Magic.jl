@@ -97,6 +97,7 @@ end
     checkboxes      ::Function = (args...; kwargs...)->()
     selectbox       ::Function = (args...; kwargs...)->()
     radio           ::Function = (args...; kwargs...)->()
+    choices         ::Function = (args...; kwargs...)->()
     cycle_button    ::Function = (args...; kwargs...)->()
     file_uploader   ::Function = (args...; kwargs...)->()
     text_input      ::Function = (args...; kwargs...)->()
@@ -122,7 +123,7 @@ const CONTAINER_INTERFACE_FUNCS = [
     :h1, :h2, :h3, :h4, :h5, :h6, :dataframe, :checkbox, :checkboxes,
     :file_uploader, :text_input, :link, :color_picker, :text, :metric, :code,
     :icon, :space, :slider, :markdown, :number_input, :expander, :spinner,
-    :progress_bar, :cycle_button
+    :progress_bar, :cycle_button, :choices
 ]
 
 @with_kw mutable struct Containers

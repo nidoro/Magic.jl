@@ -67,6 +67,30 @@ function set_description(description::String)::Nothing
 |:------------- |:--------------------------------------------------------- |
 | `description` | `String`. Description to be assigned to the current page. |
 
+## set_favicon
+
+Sets the favicon of the current page, that is, the icon displayed in the browser tab. The favicon is built from an emoji, so no image file is needed.
+
+Unlike most functions in this section, `set_favicon()` can also be called at the app's dry-run, inside [`@app_startup`](/docs/version/latest/api-reference/application-logic/@app_startup). In that case, the favicon becomes the default of every page, including pages added after the call and the 404 page. Pages can still override it inside [`@page_startup`](/docs/version/latest/api-reference/application-logic/@page_startup).
+
+Example:
+
+```julia
+@page_startup begin
+    set_favicon("🚀")
+end
+```
+
+### Function Signature
+
+```julia
+function set_favicon(favicon::AbstractString)::Nothing
+```
+
+| Argument  | Description                                                                                                                                                    |
+|:--------- |:-------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `favicon` | `String` with the emoji to be used as favicon. Image files are not supported. If the `String` is not made only of emoji, the default Magic.jl favicon is used. |
+
 ## add_font
 
 Makes a font available in the current page, adding the necessary CSS `@font-face` configuration in the `head` of the current page.

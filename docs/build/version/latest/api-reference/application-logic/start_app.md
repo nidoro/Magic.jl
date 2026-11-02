@@ -12,20 +12,24 @@ function start_app(
     upload_max_size             ::Int                       =25*MiB,
     upload_max_files            ::Int                       =10,
     dot_magic_dir               ::Union{String, Nothing}    =nothing,
-    open_browser                ::Bool                      =true
+    open_browser                ::Bool                      =true,
+    tls_cert_path               ::Union{String, Nothing}    =nothing,
+    tls_key_path                ::Union{String, Nothing}    =nothing
 )::Nothing
 ```
 
-| Argument           | Description                                                                                                                                                                                           |
-|:------------------ |:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `script_or_func`   | A `String` specifying the path to the entry point script or `Function` specifying the entry point function. Default: "app.jl".                                                                        |
-| `host_name`        | A `String` specifying the hostname or IP address the server should bind to. Default is `"localhost"`.                                                                                                 |
-| `port`             | An `Int` specifying the port number on which the server will listen. Default is `3443`.                                                                                                               |
-| `upload_max_size`  | An `Int` specifying the maximum file size acceptable by `file_uploader` widgets. Default is 25 MiB.                                                                                                   |
-| `upload_max_files` | An `Int` specifying the maximum number of file acceptable by `file_uploader` widgets. Default is 10.                                                                                                  |
-| `dot_magic_dir`    | A `String` specifying the [`.Magic` directory](/docs/version/latest/getting-started/basic-concepts#the-magic-directory) location. If `nothing` (default), the current working directory will be used. |
-| `open_browser`     | A `Bool` indicating whether the default system browser should be open in the web app or not.                                                                                                          |
-| *                  | Other arguments have been ommited here because they are for developers only.                                                                                                                          |
+| Argument           | Description                                                                                                                                                                                                                                                                                 |
+|:------------------ |:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `script_or_func`   | A `String` specifying the path to the entry point script or `Function` specifying the entry point function. Default: "app.jl".                                                                                                                                                              |
+| `host_name`        | A `String` specifying the hostname or IP address the server should bind to. Default is `"localhost"`.                                                                                                                                                                                       |
+| `port`             | An `Int` specifying the port number on which the server will listen. Default is `3443`.                                                                                                                                                                                                     |
+| `upload_max_size`  | An `Int` specifying the maximum file size acceptable by `file_uploader` widgets. Default is 25 MiB.                                                                                                                                                                                         |
+| `upload_max_files` | An `Int` specifying the maximum number of file acceptable by `file_uploader` widgets. Default is 10.                                                                                                                                                                                        |
+| `dot_magic_dir`    | A `String` specifying the [`.Magic` directory](/docs/version/latest/getting-started/basic-concepts#the-magic-directory) location. If `nothing` (default), the current working directory will be used.                                                                                       |
+| `open_browser`     | A `Bool` indicating whether the default system browser should be open in the web app or not.                                                                                                                                                                                                |
+| `tls_cert_path`    | A `String` specifying the path to the TLS certificate file, in PEM format. It should contain the full certificate chain (e.g. `fullchain.pem` for Let's Encrypt certificates). Must be provided together with `tls_key_path`. If both are `nothing` (default), the server runs without TLS. |
+| `tls_key_path`     | A `String` specifying the path to the private key file of the TLS certificate, in PEM format. Must be provided together with `tls_cert_path`.                                                                                                                                               |
+| *                  | Other arguments have been ommited here because they are for developers only.                                                                                                                                                                                                                |
 
 ### Return Value
 
