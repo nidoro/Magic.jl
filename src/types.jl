@@ -57,7 +57,7 @@ const WidgetKind_FileUploader   = 11
 const WidgetKind_Slider         = 12
 const WidgetKind_CycleButton    = 13
 
-@with_kw mutable struct Widget
+@kwdef mutable struct Widget
     id          ::String                    = ""
     user_id     ::Union{String, Nothing}    = nothing
     kind        ::WidgetKind                = WidgetKind_None
@@ -76,7 +76,7 @@ end
 
 # Container stuff
 #-------------------
-@with_kw mutable struct ContainerInterface
+@kwdef mutable struct ContainerInterface
     container       ::Union{Dict, Nothing} = nothing
 
     columns         ::Function = (args...; kwargs...)->()
@@ -126,7 +126,7 @@ const CONTAINER_INTERFACE_FUNCS = [
     :progress_bar, :cycle_button, :choices
 ]
 
-@with_kw mutable struct Containers
+@kwdef mutable struct Containers
     containers      ::Vector{Union{ContainerInterface, Nothing}} = Vector{Union{ContainerInterface, Nothing}}()
 
     main_area       ::Union{ContainerInterface, Nothing} = nothing
@@ -139,7 +139,7 @@ Base.getindex(containers::Containers, i) = containers.containers[i]
 
 # CaughtError
 #-----------------
-@with_kw struct RerunError
+@kwdef struct RerunError
     exception   ::Union{Exception, Nothing} = nothing
     message     ::String                    = ""
     stacktrace  ::String                    = ""
@@ -147,7 +147,7 @@ end
 
 # Fragment
 #-----------------------
-@with_kw mutable struct Fragment
+@kwdef mutable struct Fragment
     id              ::String                    = ""
     parent_id       ::Union{String, Nothing}    = nothing
     func            ::Function                  = ()->()
@@ -162,7 +162,7 @@ struct ProgressSnapshot
     data        ::Any
 end
 
-@with_kw mutable struct AsyncJob
+@kwdef mutable struct AsyncJob
     id                  ::String                        = ""
     task                ::Union{Task, Nothing}          = nothing
     func                ::Function                      = ()->()
@@ -183,7 +183,7 @@ end
 
 # PageConfig
 #---------------------
-@with_kw mutable struct PageConfig
+@kwdef mutable struct PageConfig
     id              ::String = ""
     uris            ::Vector{String} = Vector{String}()
     title           ::String = "Magic App"
@@ -211,7 +211,7 @@ const PAGE_CONFIG_FUNCS = [:set_title, :set_description, :set_favicon, :add_font
 
 # AppTask
 #------------
-@with_kw mutable struct AppTask
+@kwdef mutable struct AppTask
     task            ::Union{Task, Nothing}  = nothing
     client_id       ::Cint                  = 0
     session         ::Any                   = nothing
@@ -233,7 +233,7 @@ const NetEventType_ClientLeft            = Cint(3)
 const NetEventType_NewPayload            = Cint(4)
 const NetEventType_ServerLoopInterrupted = Cint(5)
 
-@with_kw mutable struct NetEvent
+@kwdef mutable struct NetEvent
     ev_type         ::NetEventType  = NetEventType_None
     client_id       ::Cint          = 0
     session_id      ::NTuple{MG_SESSION_ID_SIZE+1, UInt8} = ntuple(_ -> 0x00, MG_SESSION_ID_SIZE+1)
@@ -251,7 +251,7 @@ const AppEventType_ServerStopRequested  = Cint(3)
 const AppEventType_FatalError           = Cint(4)
 const AppEventType_DisconnectRequested  = Cint(5)
 
-@with_kw mutable struct AppEvent
+@kwdef mutable struct AppEvent
     ev_type         ::AppEventType  = AppEventType_None
     client_id       ::Cint          = 0
     payload         ::Ptr{Cchar}    = Ptr{Cchar}(0)
@@ -273,7 +273,7 @@ struct RerunFragmentsEvent
     fragments::Vector{String}
 end
 
-@with_kw mutable struct InternalEvent
+@kwdef mutable struct InternalEvent
     ev_type ::InternalEventType         = InternalEventType_None
     data    ::Union{NetEvent, AppTask, AsyncJob, RerunFragmentsEvent}  = Union{NetEvent, AppTask, AsyncJob, RerunFragmentsEvent}()
 end
@@ -295,11 +295,11 @@ end
 
 # Session
 #-------------
-@with_kw mutable struct RerunRequest
+@kwdef mutable struct RerunRequest
     payload::Dict = Dict()
 end
 
-@with_kw mutable struct Session
+@kwdef mutable struct Session
     client_id                   ::Cint                      = 0
     session_id                  ::String                    = ""
     widgets                     ::Dict{String, Widget}      = Dict{String, Widget}()
@@ -323,7 +323,7 @@ end
 
 # Global
 #------------
-@with_kw mutable struct Global
+@kwdef mutable struct Global
     initialized         ::Bool                      = false
     dot_magic_dir       ::String                    = ""
     script_or_func      ::Union{String, Function}   = "app.jl"
@@ -360,7 +360,7 @@ end
 
 # File uploader
 #-----------------
-@with_kw mutable struct UploadedFile
+@kwdef mutable struct UploadedFile
     id::String          = ""
     name::String        = ""
     extension::String   = ""
