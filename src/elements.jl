@@ -2454,7 +2454,7 @@ end
 
 function commonmark_parser()
     parser = CommonMark.Parser()
-    CommonMark.enable!(parser, [AutoIdentifierRule(), TableRule(), FootnoteRule()])
+    CommonMark.enable!(parser, [AutoIdentifierRule(), TableRule(), FootnoteRule(), AttributeRule()])
     # Add other rules you need, e.g. CommonMark.AutolinkRule(), CommonMark.StrikethroughRule()
     return parser
 end
