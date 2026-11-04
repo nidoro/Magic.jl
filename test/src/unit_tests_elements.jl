@@ -730,6 +730,12 @@ end
             val = get_value("txt")
             set_app_data("test_successfull", val == "set value")
         end,
+
+        # Test that onchange and args are accepted
+        function ()
+            val = text_input("Text Input", initial_value="initial value", onchange=(a, b)->(), args=(1, 2))
+            set_app_data("test_successfull", val == "initial value")
+        end,
     ]
 
     @maybe_suppress begin
@@ -752,6 +758,11 @@ end
         function ()
             text_input("Text Input", id="txt")
             set_value("txt", [])
+        end,
+
+        # Test that it will fail when onchange doesn't accept the arguments in args
+        function ()
+            text_input("Text Input", onchange=()->(), args=(1, 2))
         end,
     ]
 
@@ -809,6 +820,12 @@ end
             val = get_value("num")
             set_app_data("test_successfull", val == 12)
         end,
+
+        # Test that onchange and args are accepted
+        function ()
+            val = number_input("Number Input", initial_value=3.14, onchange=(a, b)->(), args=(1, 2))
+            set_app_data("test_successfull", val == 3.14)
+        end,
     ]
 
     @maybe_suppress begin
@@ -836,6 +853,11 @@ end
         # Test that it will fail when given a range with min >= max
         function ()
             number_input("Number Input", min=20, max=10)
+        end,
+
+        # Test that it will fail when onchange doesn't accept the arguments in args
+        function ()
+            number_input("Number Input", onchange=()->(), args=(1, 2))
         end,
     ]
 
@@ -922,6 +944,12 @@ end
             val = get_value("sld")
             set_app_data("test_successfull", val == 12)
         end,
+
+        # Test that onchange and args are accepted
+        function ()
+            val = slider("Slider", initial_value=0.5, onchange=(a, b)->(), args=(1, 2))
+            set_app_data("test_successfull", val == 0.5)
+        end,
     ]
 
     @maybe_suppress begin
@@ -955,6 +983,11 @@ end
         # Test that it will fail when given a range with min >= max
         function ()
             slider("Slider", min=20, max=10)
+        end,
+
+        # Test that it will fail when onchange doesn't accept the arguments in args
+        function ()
+            slider("Slider", onchange=()->(), args=(1, 2))
         end,
     ]
 
@@ -1135,6 +1168,12 @@ end
             val = set_value("clr", nothing)
             set_app_data("test_successfull", val == "#aabbcc")
         end,
+
+        # Test that onchange and args are accepted
+        function ()
+            val = color_picker("Color Picker", initial_value="#ff0000", onchange=(a, b)->(), args=(1, 2))
+            set_app_data("test_successfull", val == "#ff0000")
+        end,
     ]
 
     @maybe_suppress begin
@@ -1169,6 +1208,11 @@ end
         function ()
             color_picker("Color Picker", id="clr")
             set_value("clr", "")
+        end,
+
+        # Test that it will fail when onchange doesn't accept the arguments in args
+        function ()
+            color_picker("Color Picker", onchange=()->(), args=(1, 2))
         end,
     ]
 

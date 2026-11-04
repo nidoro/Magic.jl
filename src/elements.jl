@@ -137,6 +137,7 @@ function button(
     justify_content ::Union{String, Nothing}    =nothing,
     background      ::Union{String, Nothing}    =nothing,
     hover_background::Union{String, Nothing}    =nothing,
+    highlight       ::Bool                      =false,
     onclick         ::Function                  =()->(),
     args            ::Union{Vector, Tuple}      =Vector(),
     css             ::Dict                      =Dict()
@@ -156,7 +157,9 @@ function button(
         set_css_if_not_set(css, "justify-content", justify_content)
     end
 
-    if !isnothing(background)
+    if highlight
+        set_css_if_not_set(css, "--button-bg", "var(--mg-button-highlight-background)")
+    elseif !isnothing(background)
         set_css_if_not_set(css, "--button-bg", background)
     end
 
@@ -264,11 +267,19 @@ function create_text_input(
     label::String,
     initial_value::Union{String, Nothing},
     placeholder::Union{String, Nothing},
+    onchange::Function,
+    args::Union{Vector, Tuple},
     css::Dict
 )::Union{String, Nothing}
 
     # Input validation
     #-------------------
+
+    # onchange validation
+    if !function_accepts_arg_count(onchange, length(args))
+        throw(InvalidArgument(@named(onchange), "`onchange` should accept the same number of arguments passed in `args` ($(length(args)))."))
+    end
+
     default_value = maybe_get_default_value(user_id)
     if !isnothing(default_value) && !ismissing(default_value)
         if !(default_value isa AbstractString)
@@ -308,6 +319,8 @@ function create_text_input(
         widget.fragment_id = top_fragment().id
         widget.user_id = props["user_id"]
         widget.value = props["initial_value"]
+        widget.onchange = onchange
+        widget.args = collect(args)
         widgets[props["id"]] = widget
     end
 
@@ -332,6 +345,8 @@ function text_input(
     fill_width      ::Bool                      =false,
     initial_value   ::Union{String, Nothing}    =nothing,
     placeholder     ::Union{String, Nothing}    =nothing,
+    onchange        ::Function                  =()->(),
+    args            ::Union{Vector, Tuple}      =Vector(),
     css             ::Dict                      =Dict()
 )::Union{String, Nothing}
 ```
@@ -344,6 +359,8 @@ function text_input(
  `fill_width`       | A `Bool` indicating whether the text input should expand to fill the available horizontal space. Default: `false`.
  `initial_value`    | Either a `String` specifying the initial text value of the input, or `nothing` (default). If `nothing` is provided, the initial value will be the default value previously set with [`set_default_value()`](/docs/version/latest/api-reference/interface-elements/get_value#setdefaultvalue) if any; otherwise, the widget will be initialized with value `nothing`.
  `placeholder`      | A `String` shown as placeholder text when the widget's value is `nothing`.
+ `onchange`         | A callback `Function`. This function is called when the text input value changes, before the app script is rerun.
+ `args`             | A `Vector` or `Tuple` of arguments that will be passed to the `onchange` callback function.
  `css`               | A `Dict` of additional CSS properties applied to the text input element.
 
 ### Return Value
@@ -361,6 +378,8 @@ function text_input(
     fill_width      ::Bool                      =false,
     initial_value   ::Union{String, Nothing}    =nothing,
     placeholder     ::Union{String, Nothing}    =nothing,
+    onchange        ::Function                  =()->(),
+    args            ::Union{Vector, Tuple}      =Vector(),
     css             ::Dict                      =Dict()
 )::Union{String, Nothing}
 
@@ -379,7 +398,7 @@ function text_input(
 
     set_css_to_achieve_layout(css, parent, fill_width, false)
 
-    return create_text_input(widgets, parent, id, label, initial_value, placeholder, css)
+    return create_text_input(widgets, parent, id, label, initial_value, placeholder, onchange, args, css)
 end
 
 # Number Input
@@ -398,11 +417,19 @@ function create_number_input(
     step::Real,
     decimal_separator::String,
     thousands_separator::String,
+    onchange::Function,
+    args::Union{Vector, Tuple},
     css::Dict
 )::Union{Real, Nothing}
 
     # Input validation
     #--------------------
+
+    # onchange validation
+    if !function_accepts_arg_count(onchange, length(args))
+        throw(InvalidArgument(@named(onchange), "`onchange` should accept the same number of arguments passed in `args` ($(length(args)))."))
+    end
+
     default_value = maybe_get_default_value(user_id)
     if !ismithing(default_value)
         if !(default_value isa Real)
@@ -490,6 +517,8 @@ function create_number_input(
         widget.fragment_id = top_fragment().id
         widget.user_id = props["user_id"]
         widget.value = !isnothing(initial_value) ? convert(num_type, initial_value) : nothing
+        widget.onchange = onchange
+        widget.args = collect(args)
         widgets[props["id"]] = widget
     end
 
@@ -521,6 +550,8 @@ function number_input(
     show_label          ::Bool                          =true,
     fill_width          ::Bool                          =false,
     id                  ::Any                           =nothing,
+    onchange            ::Function                      =()->(),
+    args                ::Union{Vector, Tuple}          =Vector(),
     css                 ::Dict                          =Dict()
 )::Union{Real, Nothing}
 ```
@@ -540,6 +571,8 @@ function number_input(
  `show_label`       | A `Bool` indicating whether the label should be displayed. Default: `true`.
  `fill_width`       | A `Bool` indicating whether the text input should expand to fill the available horizontal space. Default: `false`.
  `id`              | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like [`get_value()`](/docs/version/latest/api-reference/interface-elements/get_value) and [`set_value()`](/docs/version/latest/api-reference/interface-elements/get_value#setvalue).
+ `onchange`         | A callback `Function`. This function is called when the number input value changes, before the app script is rerun.
+ `args`             | A `Vector` or `Tuple` of arguments that will be passed to the `onchange` callback function.
  `css`               | A `Dict` of additional CSS properties applied to the input element.
 
 ### Return Value
@@ -565,6 +598,8 @@ function number_input(
     show_label          ::Bool                          =true,
     fill_width          ::Bool                          =false,
     id                  ::Any                           =nothing,
+    onchange            ::Function                      =()->(),
+    args                ::Union{Vector, Tuple}          =Vector(),
     css                 ::Dict                          =Dict()
 )::Union{Real, Nothing}
 
@@ -583,7 +618,7 @@ function number_input(
 
     set_css_to_achieve_layout(css, parent, fill_width, false)
 
-    return create_number_input(widgets, parent, id, label, initial_value, placeholder, num_type, precision, min, max, step, decimal_separator, thousands_separator, css)
+    return create_number_input(widgets, parent, id, label, initial_value, placeholder, num_type, precision, min, max, step, decimal_separator, thousands_separator, onchange, args, css)
 end
 
 # Slider
@@ -601,11 +636,19 @@ function create_slider(
     step::Union{Real, Nothing},
     decimal_separator::String,
     thousands_separator::String,
+    onchange::Function,
+    args::Union{Vector, Tuple},
     css::Dict
 )::Real
 
     # Input validation
     #--------------------
+
+    # onchange validation
+    if !function_accepts_arg_count(onchange, length(args))
+        throw(InvalidArgument(@named(onchange), "`onchange` should accept the same number of arguments passed in `args` ($(length(args)))."))
+    end
+
     default_value = maybe_get_default_value(user_id)
     if !ismithing(default_value)
         if !(default_value isa Real)
@@ -684,6 +727,8 @@ function create_slider(
         widget.fragment_id = top_fragment().id
         widget.user_id = props["user_id"]
         widget.value = props["initial_value"]
+        widget.onchange = onchange
+        widget.args = collect(args)
         widgets[props["id"]] = widget
     end
 
@@ -714,6 +759,8 @@ function slider(
     show_label          ::Bool                          =true,
     fill_width          ::Bool                          =false,
     id                  ::Any                           =nothing,
+    onchange            ::Function                      =()->(),
+    args                ::Union{Vector, Tuple}          =Vector(),
     css                 ::Dict                          =Dict()
 )::Real
 ```
@@ -732,6 +779,8 @@ function slider(
  `show_label`       | A `Bool` indicating whether the label should be displayed. Default: `true`.
  `fill_width`       | A `Bool` indicating whether the slider should expand to fill the available horizontal space. Default: `false`.
  `id`               | An optional identifier for the widget. If provided, it is used to uniquely identify the widget so you can reference it in other functions, like [`get_value()`](/docs/version/latest/api-reference/interface-elements/get_value) and [`set_value()`](/docs/version/latest/api-reference/interface-elements/get_value#setvalue).
+ `onchange`         | A callback `Function`. This function is called when the slider value changes, before the app script is rerun.
+ `args`             | A `Vector` or `Tuple` of arguments that will be passed to the `onchange` callback function.
  `css`              | A `Dict` of additional CSS properties applied to the slider element.
 
 ### Return Value
@@ -755,6 +804,8 @@ function slider(
     show_label          ::Bool                          =true,
     fill_width          ::Bool                          =false,
     id                  ::Any                           =nothing,
+    onchange            ::Function                      =()->(),
+    args                ::Union{Vector, Tuple}          =Vector(),
     css                 ::Dict                          =Dict()
 )::Real
 
@@ -777,7 +828,7 @@ function slider(
 
     set_css_to_achieve_layout(css, parent, fill_width, false)
 
-    return create_slider(widgets, parent, id, label, initial_value, num_type, precision, min, max, step, decimal_separator, thousands_separator, css)
+    return create_slider(widgets, parent, id, label, initial_value, num_type, precision, min, max, step, decimal_separator, thousands_separator, onchange, args, css)
 end
 
 # Selectbox
@@ -949,6 +1000,7 @@ function selectbox(
  `placeholder`  | A `String` shown as placeholder text when the selectbox is empty.
  `fill_width`   | A `Bool` indicating whether the select box should expand to fill the available horizontal space. Default: `false`.
  `onchange`     | A callback `Function`. This function is called when the selected value changes, before the app script is rerun.
+ `args`         | A `Vector` or `Tuple` of arguments that will be passed to the `onchange` callback function.
  `css`          | A `Dict` of additional CSS properties applied to the select box element.
 
 ### Return Value
@@ -1001,11 +1053,18 @@ function create_color_picker(
     label::String,
     initial_value::Union{String, Nothing},
     onchange::Function,
+    args::Union{Vector, Tuple},
     css::Dict
 )::String
 
     # Input validation
     #----------------------
+
+    # onchange validation
+    if !function_accepts_arg_count(onchange, length(args))
+        throw(InvalidArgument(@named(onchange), "`onchange` should accept the same number of arguments passed in `args` ($(length(args)))."))
+    end
+
     default_value = maybe_get_default_value(user_id)
     if !ismithing(default_value)
         if default_value isa String
@@ -1057,6 +1116,7 @@ function create_color_picker(
         widget.fragment_id = top_fragment().id
         widget.value = props["initial_value"]
         widget.onchange = onchange
+        widget.args = collect(args)
         widgets[props["id"]] = widget
     end
 
@@ -1081,6 +1141,7 @@ function color_picker(
     show_label      ::Bool                      =true,
     fill_width      ::Bool                      =false,
     onchange        ::Function                  =()->(),
+    args            ::Union{Vector, Tuple}      =Vector(),
     css             ::Dict                      =Dict()
 )::String
 ```
@@ -1093,6 +1154,7 @@ function color_picker(
  `show_label`   | A `Bool` indicating whether the label should be displayed. Default: `true`.
  `fill_width`   | A `Bool` indicating whether the select box should expand to fill the available horizontal space. Default: `false`.
  `onchange`     | A callback `Function`. This function is called when the selected color changes, before the app script is rerun.
+ `args`         | A `Vector` or `Tuple` of arguments that will be passed to the `onchange` callback function.
  `css`         | A `Dict` of additional CSS properties to apply to the color picker widget.
 
 ### Return Value
@@ -1111,6 +1173,7 @@ function color_picker(
     show_label      ::Bool                      =true,
     fill_width      ::Bool                      =false,
     onchange        ::Function                  =()->(),
+    args            ::Union{Vector, Tuple}      =Vector(),
     css             ::Dict                      =Dict()
 )::String
 
@@ -1133,7 +1196,7 @@ function color_picker(
 
     set_css_to_achieve_layout(css, parent, fill_width, false)
 
-    return create_color_picker(widgets, parent, id, label, initial_value, onchange, css)
+    return create_color_picker(widgets, parent, id, label, initial_value, onchange, args, css)
 end
 
 # Checkbox

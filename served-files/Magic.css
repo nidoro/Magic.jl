@@ -746,6 +746,7 @@ dd-button.mg-button, dd-cycle-button.mg-button, a.mg-link {
     transition: max-width 0.3s ease-out, min-width 0.3s ease-out;
     height: 100vh;
     white-space: nowrap;
+    --button-white-space: nowrap;
 
     --mg-button-secondary-hover-bg: var(--mg-sidebar-button-secondary-hover-bg);
     --mg-button-highlight-background: var(--mg-sidebar-button-highlight-background);

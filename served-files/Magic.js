@@ -751,7 +751,8 @@ function createAppElement(parent, props, fragmentId) {
             if (elem.classList.contains("mg-progress-bar")) {
                 let left = elem.querySelector(".left-bar");
                 const computedStyle = getComputedStyle(left);
-                elem.style.setProperty("--progress", computedStyle.width);
+                const pct = (left.getBoundingClientRect().width / elem.getBoundingClientRect().width) * 100;
+                elem.style.setProperty("--progress", `${pct}%`);
             }
 
             requestAnimationFrame(() =>
