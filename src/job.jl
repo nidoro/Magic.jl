@@ -12,7 +12,7 @@ function async_job(
     id::Union{AbstractString, Nothing}=nothing;
     dialog::Union{AbstractString, Nothing}="spinner",
     dialog_title::Union{String, Nothing}=nothing,
-    on_progress::Union{AbstractString, Nothing}=nothing
+    on_progress::Union{AbstractString, Nothing}=""
 )::AsyncJob
 
     if !isnothing(dialog)
@@ -33,8 +33,6 @@ function async_job(
         bind_fragment(result, on_progress)
     elseif dialog in ["spinner", "progress_bar"]
         progress_dialog(result, fragment_id="magic_" * dialog, title=dialog_title)
-    else
-        bind_fragment(result, "")
     end
     return result
 end
@@ -192,7 +190,7 @@ end
 function ensure_job_exists(args::Tuple)::AsyncJob
     job = get_job(args[2])
     if ismissing(job)
-        throw(InvalidArgument(args[1], "No job with id '$(args[2])' was found."))
+        throw(InvalidArgument(args, "No job with id '$(args[2])' was found."))
     end
     return job
 end
