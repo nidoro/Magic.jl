@@ -1699,7 +1699,7 @@ function createAppElement(parent, props, fragmentId) {
                 let elem = newElements[0];
                 const foo = document.createElement("div");
                 foo.style.width = "1px";
-                foo.style.minHeight = `${scrollHeight}vh`;
+                foo.style.minHeight = `${scrollHeight}px`;
                 elem.appendChild(foo);
                 elem.scrollTop = scrollTop;
 
@@ -1806,6 +1806,12 @@ async function displayRerunResponse(msg) {
     }
     const oldFirstChild = oldFragContainer.firstElementChild;
     const oldFragOpacity = oldFirstChild ? parseFloat(getComputedStyle(oldFirstChild).opacity) : 1.0;
+    // Building the new fragment moves reused elements out of the page (see
+    // createAppElement), so the page can shrink for a moment. If anything
+    // reads layout meanwhile, the browser clamps the scroll position of the
+    // containers around the fragment. Save it to restore after the swap.
+    const scrollPositions = getAncestorScrollPositions(oldFragContainer);
+
     oldFragContainer.style.visibility = "hidden";
 
     const newFragWrapper = document.createDocumentFragment();
@@ -1830,6 +1836,7 @@ async function displayRerunResponse(msg) {
 
     oldFragContainer.parentElement.insertBefore(newFragWrapper, oldFragContainer);
     oldFragContainer.remove();
+    restoreScrollPositions(scrollPositions);
 
     for (const child of newFragContainer.children) {
         child.style.setProperty("--opacity", oldFragOpacity);
@@ -1871,6 +1878,23 @@ async function displayRerunResponse(msg) {
     }, 10);
 
     setTheme(msg.theme);
+}
+
+function getAncestorScrollPositions(elem) {
+    const positions = [];
+    for (let el = elem.parentElement; el; el = el.parentElement) {
+        if (el.scrollTop || el.scrollLeft) {
+            positions.push([el, el.scrollTop, el.scrollLeft]);
+        }
+    }
+    return positions;
+}
+
+function restoreScrollPositions(positions) {
+    for (const [el, top, left] of positions) {
+        if (el.scrollTop != top) el.scrollTop = top;
+        if (el.scrollLeft != left) el.scrollLeft = left;
+    }
 }
 
 function queueRerunResponseDisplay(msg) {
