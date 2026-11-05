@@ -72,7 +72,12 @@ var g = {
     ws: null,
     devMode: false,
     nextRequestId: 1,
-    lastValidRerunResponse: null,
+    // Rerun requests are tracked per fragment: a response is only outdated
+    // if a newer request for the same fragment is pending.
+    requestFragments: {},              // request id => fragment id
+    latestRequestByFragment: {},       // fragment id => newest request id
+    lastValidResponseByFragment: {},   // fragment id => outdated valid response
+    displayQueue: Promise.resolve(),   // keeps responses displayed in order
     sessionId: null,
     uploadMaxSize: null,
     uploadMaxFiles: null,
@@ -119,16 +124,23 @@ function hasVerticalScrollbar(el) {
     return scrollable && el.scrollHeight > el.clientHeight;
 }
 
+function newRequestId(fragmentId) {
+    const requestId = g.nextRequestId++;
+    g.requestFragments[requestId] = fragmentId;
+    g.latestRequestByFragment[fragmentId] = requestId;
+    return requestId;
+}
+
 function requestUpdate(events) {
+    const fragmentId = events.length ? (events[0].fragment_id ?? "") : "";
     if (events.length) {
-        const fragmentId = events[0].fragment_id;
         fadeFragment(fragmentId);
     }
 
     wsSendObj({
         type: "request_rerun",
         location: getLocation(),
-        request_id: g.nextRequestId++,
+        request_id: newRequestId(fragmentId),
         events,
     });
 
@@ -290,7 +302,7 @@ function btnClick(event) {
 
     if (elem.hasAttribute("data-mg-download")) {
         const a = document.createElement("a");
-        a.href = `/.Magic/served-files/.download/${g.sessionId}?request_id=${g.nextRequestId++}&fragment_id=${encodeURIComponent(fragmentId)}&widget_id=${widgetId}`;
+        a.href = `/.Magic/served-files/.download/${g.sessionId}?request_id=${newRequestId(fragmentId ?? "")}&fragment_id=${encodeURIComponent(fragmentId)}&widget_id=${widgetId}`;
         a.download = elem.getAttribute("data-mg-download");
         a.click();
 
@@ -1788,8 +1800,12 @@ async function displayRerunResponse(msg) {
     const fragmentId = msg.root["fragment_id"];
 
     const oldFragContainer = document.querySelector(`.mg_fragment_container[data-mg-fragment-id="${fragmentId}"]`);
-    const computedStyle = getComputedStyle(oldFragContainer.firstElementChild);
-    const oldFragOpacity = parseFloat(computedStyle.opacity);
+    if (!oldFragContainer) {
+        // An ancestor fragment was rerun meanwhile and no longer renders this one
+        return;
+    }
+    const oldFirstChild = oldFragContainer.firstElementChild;
+    const oldFragOpacity = oldFirstChild ? parseFloat(getComputedStyle(oldFirstChild).opacity) : 1.0;
     oldFragContainer.style.visibility = "hidden";
 
     const newFragWrapper = document.createDocumentFragment();
@@ -1855,8 +1871,14 @@ async function displayRerunResponse(msg) {
     }, 10);
 
     setTheme(msg.theme);
+}
 
-    g.lastValidRerunResponse = null;
+function queueRerunResponseDisplay(msg) {
+    // displayRerunResponse waits for images to load, so without the queue a
+    // later response could be displayed before an earlier one
+    g.displayQueue = g.displayQueue
+        .then(() => displayRerunResponse(msg))
+        .catch((error) => console.error(error));
 }
 
 async function wsOnMessage(event) {
@@ -1872,18 +1894,25 @@ async function wsOnMessage(event) {
     }
 
     if (msg.type == "response_rerun") {
+        const fragmentId = g.requestFragments[msg.request_id] ?? "";
+        delete g.requestFragments[msg.request_id];
+
         if (msg.error == null) {
             // We only display the returned state if it is the response we are
-            // *finally* waiting for. Otherwise, store this as the last valid
-            // rerun response and wait for the next response.
-            if (msg.request_id == g.nextRequestId-1) {
-                displayRerunResponse(msg);
+            // *finally* waiting for for this fragment. Otherwise, store it as
+            // the fragment's last valid response and wait for the next one.
+            // Responses for different fragments don't supersede each other.
+            if (msg.request_id == g.latestRequestByFragment[fragmentId]) {
+                delete g.lastValidResponseByFragment[fragmentId];
+                queueRerunResponseDisplay(msg);
             } else {
-                g.lastValidRerunResponse = msg;
+                g.lastValidResponseByFragment[fragmentId] = msg;
             }
         } else if (msg.error.type == "InvalidState") {
-            if (g.lastValidRerunResponse) {
-                displayRerunResponse(g.lastValidRerunResponse);
+            const lastValid = g.lastValidResponseByFragment[fragmentId];
+            if (lastValid) {
+                delete g.lastValidResponseByFragment[fragmentId];
+                queueRerunResponseDisplay(lastValid);
             }
             ackInvalidState();
         }
