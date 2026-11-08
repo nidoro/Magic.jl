@@ -78,6 +78,7 @@ var g = {
     latestRequestByFragment: {},       // fragment id => newest request id
     lastValidResponseByFragment: {},   // fragment id => outdated valid response
     displayQueue: Promise.resolve(),   // keeps responses displayed in order
+    scrollSnapshot: null,              // element id => scroll position, during a rerun display
     sessionId: null,
     uploadMaxSize: null,
     uploadMaxFiles: null,
@@ -116,12 +117,6 @@ function fadeFragment(fragmentId) {
             }
         });
     }
-}
-
-function hasVerticalScrollbar(el) {
-    const { overflowY } = getComputedStyle(el);
-    const scrollable = overflowY === "auto" || overflowY === "scroll";
-    return scrollable && el.scrollHeight > el.clientHeight;
 }
 
 function newRequestId(fragmentId) {
@@ -1681,35 +1676,31 @@ function createAppElement(parent, props, fragmentId) {
         }
 
         if (props.type == "container") {
-            oldElem = document.querySelector(`[data-mg-id="${props.id}"]`);
-            let scrolled = false;
-            let scrollTop = null;
-            let scrollHeight = null;
-            if (oldElem) {
-                scrolled = hasVerticalScrollbar(oldElem);
-                scrollTop = oldElem.scrollTop;
-                scrollHeight = oldElem.scrollHeight;
-            }
-
             for (const child of props.children) {
                 createAppElement(newElements[0], child, fragmentId);
             }
 
-            // Scroll top
+            // Scroll position
             //----------------
-            if (scrolled) {
-                let elem = newElements[0];
-                const foo = document.createElement("div");
-                foo.style.width = "1px";
-                foo.style.minHeight = `${scrollHeight}px`;
-                elem.appendChild(foo);
-                elem.scrollTop = scrollTop;
+            // Saved by displayRerunResponse before the rerun started moving
+            // elements: by now the old element may have lost its scrollbar.
+            // A spacer keeps the new element tall enough to scroll back while
+            // expander heights and deferred CSS settle over the next frames.
+            const saved = g.scrollSnapshot ? g.scrollSnapshot.get(props.id) : undefined;
+            if (saved) {
+                const elem = newElements[0];
+                const spacer = document.createElement("div");
+                spacer.style.width = "1px";
+                spacer.style.minHeight = `${saved.height}px`;
+                elem.appendChild(spacer);
 
                 requestAnimationFrame(() => {
-                    elem.scrollTop = scrollTop;
+                    elem.scrollTop = saved.top;
+                    elem.scrollLeft = saved.left;
                     requestAnimationFrame(() => {
-                        elem.scrollTop = scrollTop;
-                        foo.remove();
+                        spacer.remove();
+                        elem.scrollTop = saved.top;
+                        elem.scrollLeft = saved.left;
                     });
                 });
             }
@@ -1810,14 +1801,22 @@ async function displayRerunResponse(msg) {
     const oldFragOpacity = oldFirstChild ? parseFloat(getComputedStyle(oldFirstChild).opacity) : 1.0;
     // Building the new fragment moves reused elements out of the page (see
     // createAppElement), so the page can shrink for a moment. If anything
-    // reads layout meanwhile, the browser clamps the scroll position of the
-    // containers around the fragment. Save it to restore after the swap.
-    const scrollPositions = getAncestorScrollPositions(oldFragContainer);
+    // reads layout meanwhile, the browser clamps scroll positions, both of the
+    // containers around the fragment and of those inside it. Save them now:
+    // the ones around it are restored after the swap, the ones inside it by
+    // createAppElement, on the new elements with the same ids.
+    const ancestorScrollPositions = getAncestorScrollPositions(oldFragContainer);
+    g.scrollSnapshot = getDescendantScrollPositions(oldFragContainer);
 
     oldFragContainer.style.visibility = "hidden";
 
     const newFragWrapper = document.createDocumentFragment();
-    const newFragContainer = createAppElement(newFragWrapper, msg.root, "");
+    let newFragContainer;
+    try {
+        newFragContainer = createAppElement(newFragWrapper, msg.root, "");
+    } finally {
+        g.scrollSnapshot = null;
+    }
 
     const headings = newFragContainer.querySelectorAll("h1, h2, h3, h4, h5, h6");
     for (let heading of headings) {
@@ -1838,7 +1837,7 @@ async function displayRerunResponse(msg) {
 
     oldFragContainer.parentElement.insertBefore(newFragWrapper, oldFragContainer);
     oldFragContainer.remove();
-    restoreScrollPositions(scrollPositions);
+    restoreScrollPositions(ancestorScrollPositions);
 
     for (const child of newFragContainer.children) {
         child.style.setProperty("--opacity", oldFragOpacity);
@@ -1887,6 +1886,19 @@ function getAncestorScrollPositions(elem) {
     for (let el = elem.parentElement; el; el = el.parentElement) {
         if (el.scrollTop || el.scrollLeft) {
             positions.push([el, el.scrollTop, el.scrollLeft]);
+        }
+    }
+    return positions;
+}
+
+// Scrolled elements inside a fragment, by id, for createAppElement to restore
+// on the elements that replace them
+function getDescendantScrollPositions(elem) {
+    const positions = new Map();
+    for (const el of elem.querySelectorAll("[data-mg-id]")) {
+        if (el.scrollTop || el.scrollLeft) {
+            positions.set(el.getAttribute("data-mg-id"),
+                          {top: el.scrollTop, left: el.scrollLeft, height: el.scrollHeight});
         }
     }
     return positions;
