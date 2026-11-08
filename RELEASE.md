@@ -5,4 +5,5 @@
 - Bug-fix: progress bar width not following the size of its container when updated.
 - Bug-fix: only the last fragment updating when a job is bound to several fragments; the others stayed faded with stale content.
 - Bug-fix: scroll position jumping when a fragment is rerun.
+- Bug-fix: page going blank on rerun when an expander takes the place of a different element.
 - Internal: gets rid of Parameters dependency.

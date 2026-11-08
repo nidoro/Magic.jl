@@ -869,7 +869,9 @@ function createAppElement(parent, props, fragmentId) {
             let oldTargetHeight = null;
             let oldState = null;
 
-            if (oldElem) {
+            // Ids are positions in the layout, so the old element at this id
+            // can be something else when the page's structure changed
+            if (oldElem && oldElem.classList.contains("mg-expander") && oldElem.querySelector("mg-icon")) {
                 const computedStyle = getComputedStyle(oldElem);
                 oldTargetHeight = computedStyle.getPropertyValue("--expander-height");
                 const icon = oldElem.querySelector("mg-icon");
